@@ -1,0 +1,10 @@
+This document outlines the objectives that the Machine Learning (ml) model must fulfill.
+
+What must the model take in as input?
+    Mean Stress
+    Stress Amplitude
+    Temperature
+    Fibre Fraction
+
+What must the model produce as an output?
+    Fatigue Life (Number of cycles to failure)
