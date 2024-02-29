@@ -1,8 +1,79 @@
 import pandas as pd
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
 
-dataframe = pd.read_csv(r".\\Optidat UPWIND 28_3_2017.csv")
-print(dataframe.head(10))
-print(dataframe)
-##hola
-=======
-print(pd.__version__)
+
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super(NeuralNetwork, self).__init__()
+        self.layer1 = nn.Linear(9, 10)
+        self.layer2 = nn.Linear(10, 10)
+        self.layer3 = nn.Linear(10, 10)
+        self.layer4 = nn.Linear(10, 10)
+        self.layer5 = nn.Linear(10, 10)
+        self.layer6 = nn.Linear(10, 1)
+
+    def forward(self, x):
+        x = torch.relu(self.layer1(x))
+        x = torch.relu(self.layer2(x))
+        x = torch.relu(self.layer3(x))
+        x = torch.relu(self.layer4(x))
+        x = torch.relu(self.layer5(x))
+        x = self.layer6(x)
+        return x
+
+# Create an instance of the neural network
+model = NeuralNetwork()
+
+#Optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+#Loss functions
+criterion = nn.MSELoss()
+
+#Create a random input tensor
+X = torch.rand(100, 9)
+
+#Create a output tensor of 100 number 2s
+y = torch.full((100, 1), 2.0)
+
+#Loss
+losses = []
+
+#Forward pass
+print(model(X))
+
+#Train the model
+for epoch in range(100):
+    #Forward pass
+    y_pred = model(X)
+
+    #Compute the loss
+    loss = criterion(y_pred, y)
+    losses.append(loss.item())
+
+    #Zero the gradients
+    optimizer.zero_grad()
+
+    #Backward pass
+    loss.backward()
+
+    #Update the weights
+    optimizer.step()
+
+#Test the model
+X_test = torch.rand(9)
+y_pred = model(X_test)
+print(model(X))
+print("Here is a prediction on a random test model")
+print(y_pred)
+
+#Plot the loss
+plt.plot(losses)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.show()
+
+#Save the model
+torch.save(model.state_dict(), 'model.pth')

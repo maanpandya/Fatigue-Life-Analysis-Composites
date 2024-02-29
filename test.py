@@ -46,7 +46,7 @@ input_tensor = torch.rand(1)
 output = model(input_tensor)
 print(output)
 
-# Backward pass
+# Backward pass and iterations
 target = torch.tensor([1.0, 5])
 epochs = 10000
 losses = []
