@@ -7,6 +7,7 @@ print(torch.cuda.is_available())
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
+        self.dummy_param = nn.Parameter(torch.empty(0))
         self.layer1 = nn.Linear(9, 10)
         self.layer2 = nn.Linear(10, 10)
         self.layer3 = nn.Linear(10, 10)
@@ -15,6 +16,7 @@ class NeuralNetwork(nn.Module):
         self.layer6 = nn.Linear(10, 1)
 
     def forward(self, x):
+        device = self.dummy_param.device
         x = torch.relu(self.layer1(x))
         x = torch.relu(self.layer2(x))
         x = torch.relu(self.layer3(x))
@@ -26,23 +28,27 @@ class NeuralNetwork(nn.Module):
 # Create an instance of the neural network
 model = NeuralNetwork()
 model = model.double()
+model.to('cuda')
+print(model.dummy_param.device)
 
 #Optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 #Loss functions
-criterion = nn.MSELoss()
+criterion = nn.L1Loss()
 
 # Load the data from "NNTrainingData.csv"
 data = pd.read_csv("NNTrainingData.csv")
 
 # Extract the input data from the first 9 columns
 X = torch.tensor(data.iloc[:, :9].values)
-print(X.dtype)
+X = X.cuda()
+print(X.device)
 
 # Extract the output data from the last column
 y = torch.tensor(data.iloc[:, -1].values).view(-1, 1)
-print(y.dtype)
+y = y.cuda()
+print(y.device)
 
 #Loss
 losses = []
@@ -51,7 +57,7 @@ losses = []
 #print(model(X))
 
 #Train the model
-for epoch in range(10000):
+for epoch in range(50000):
     #Forward pass
     y_pred = model(X)
 
@@ -73,6 +79,17 @@ plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show()
+
+#Test the model
+test_data = pd.read_csv("NNTestData.csv")
+X_test = torch.tensor(test_data.iloc[:, :9].values)
+X_test = X_test.cuda()
+y_test = torch.tensor(test_data.iloc[:, -1].values).view(-1, 1)
+y_test = y_test.cuda()
+y_test_pred = model(X_test)
+loss = criterion(y_test_pred, y_test)
+print(loss.item())
+print(y_test_pred-y_test)
 
 #Save the model
 torch.save(model.state_dict(), 'model.pth')
