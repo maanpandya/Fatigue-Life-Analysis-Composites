@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-
+print(torch.cuda.is_available())
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
@@ -25,27 +25,33 @@ class NeuralNetwork(nn.Module):
 
 # Create an instance of the neural network
 model = NeuralNetwork()
+model = model.double()
 
 #Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 #Loss functions
 criterion = nn.MSELoss()
 
-#Create a random input tensor
-X = torch.rand(100, 9)
+# Load the data from "NNTrainingData.csv"
+data = pd.read_csv("NNTrainingData.csv")
 
-#Create a output tensor of 100 number 2s
-y = torch.full((100, 1), 2.0)
+# Extract the input data from the first 9 columns
+X = torch.tensor(data.iloc[:, :9].values)
+print(X.dtype)
+
+# Extract the output data from the last column
+y = torch.tensor(data.iloc[:, -1].values).view(-1, 1)
+print(y.dtype)
 
 #Loss
 losses = []
 
 #Forward pass
-print(model(X))
+#print(model(X))
 
 #Train the model
-for epoch in range(100):
+for epoch in range(10000):
     #Forward pass
     y_pred = model(X)
 
@@ -61,13 +67,6 @@ for epoch in range(100):
 
     #Update the weights
     optimizer.step()
-
-#Test the model
-X_test = torch.rand(9)
-y_pred = model(X_test)
-print(model(X))
-print("Here is a prediction on a random test model")
-print(y_pred)
 
 #Plot the loss
 plt.plot(losses)
