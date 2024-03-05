@@ -31,8 +31,8 @@ def cleanup(dataframe, collum, mode):
         if mode == 'exclude' or mode == 'exclude_manual' or mode == 'exclude_nan':
             dataframe = pd.DataFrame.drop(dataframe, i)
             
-    if mode != 'exclude_nan':
-        print('amount of sinkable = ' + str(len(changelist)))
+    if mode != 'exclude_nan' and len(changelist) > 0:
+        print('amount of sinkable in ' + collum + '= ' + str(len(changelist)))
 
     for i in changelist:
         if mode == 'avg':
