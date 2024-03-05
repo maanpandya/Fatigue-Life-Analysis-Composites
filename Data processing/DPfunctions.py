@@ -31,8 +31,8 @@ def cleanup(dataframe, collum, mode):
         if mode == 'exclude' or mode == 'exclude_manual' or mode == 'exclude_nan':
             dataframe = pd.DataFrame.drop(dataframe, i)
             
-    if mode != 'exclude_nan':
-        print('amount of sinkable = ' + str(len(changelist)))
+    if mode != 'exclude_nan' and len(changelist) > 0:
+        print('amount of sinkable in ' + collum + '= ' + str(len(changelist)))
 
     for i in changelist:
         if mode == 'avg':
@@ -60,3 +60,16 @@ def col_filter(dataframe, columns, mode):
 def dfinfo(dataframe):
     print(str(len(dataframe.index)) + ' rows x ' + str(len(dataframe.columns)) + ' columns ')
     return [len(dataframe.index), len(dataframe.columns)]
+
+def row_filter(dataframe, column, filters, mode):
+    if mode == 'include':
+        for i in dataframe.index:
+            j = dataframe.loc[i, column]
+            if j not in filters:
+                dataframe = pd.DataFrame.drop(dataframe, i)
+    if mode == 'exclude':
+        for i in dataframe.index:
+            j = dataframe.loc[i, column]
+            if j in filters:
+                dataframe = pd.DataFrame.drop(dataframe, i)
+    return dataframe
