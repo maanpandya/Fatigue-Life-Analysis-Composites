@@ -61,15 +61,15 @@ def dfinfo(dataframe):
     print(str(len(dataframe.index)) + ' rows x ' + str(len(dataframe.columns)) + ' columns ')
     return [len(dataframe.index), len(dataframe.columns)]
 
-def row_filter(dataframe, column, filter_variable, mode):
+def row_filter(dataframe, column, filters, mode):
     if mode == 'include':
         for i in dataframe.index:
             j = dataframe.loc[i, column]
-            if j != filter_variable:
+            if j not in filters:
                 dataframe = pd.DataFrame.drop(dataframe, i)
     if mode == 'exclude':
         for i in dataframe.index:
             j = dataframe.loc[i, column]
-            if j == filter_variable:
+            if j in filters:
                 dataframe = pd.DataFrame.drop(dataframe, i)
     return dataframe
