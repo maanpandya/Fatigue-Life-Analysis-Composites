@@ -11,14 +11,19 @@ dfbase = dfbase.set_index('nr')
 print(dfbase.head(10))
 dp.dfinfo(dfbase)
 
-collums_to_include = ['taverage', 'waverage', 'Lnominal','Test type']
+collums_to_include = [
+    'taverage', 'waverage', 'Lnominal','Test type',
+    'Temp.', 'Fibre Volume Fraction', 'R-value1',
+    'Ffatigue', 'Ncycles', 'smax'
+]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
-print(dfnew.head())
 dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Test type', 'exclude_nan')
-print(dfnew.head())
+dp.dfinfo(dfnew)
+dfnew = dp.row_filter(dfnew, 'Test type', 'CA', 'include')
+dfnew = dp.col_filter(dfnew,['Test type'], 'exclude')
 dp.dfinfo(dfnew)
 
-#dataframe = nan_avg(dataframe, 'smax', 'manual')
+
 
 #pd.DataFrame.to_csv(path_or_buf='smaxdata.csv', self=dataframe['smax'], index=False)
