@@ -17,8 +17,8 @@ class NeuralNetwork(nn.Module):
 
     def forward(self, x):
         device = self.dummy_param.device
-        x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer2(x))
+        x = torch.sigmoid(self.layer1(x))
+        x = torch.sigmoid(self.layer2(x))
         x = torch.relu(self.layer3(x))
         x = torch.relu(self.layer4(x))
         x = torch.relu(self.layer5(x))
