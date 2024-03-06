@@ -4,30 +4,35 @@ import time
 import DPfunctions as dp
 
 
-file = 'optimatforpy.csv'
+file = 'Data/optimatforpy.csv'
+saveresult = True
+
 dfbase = pd.read_csv(file)
 dfbase = dfbase.set_index('nr')
 
-print(dfbase.head(10))
+
 dp.dfinfo(dfbase)
 
 collums_to_include = [
-    'taverage', 'waverage', 'Lnominal','Test type',
+    'taverage', 'waverage', 'Lnominal', 'Test type',
     'Temp.', 'Fibre Volume Fraction', 'R-value1',
     'Ffatigue', 'Ncycles', 'smax', 'f', 'Laminate',
-    'Eit', 'Eic'
+    'Eit', 'Eic', 'Cut angle '
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Test type', 'exclude_nan')
+dp.dfinfo(dfnew)
 dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
+dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
+dp.dfinfo(dfnew)
 dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4'], 'include')
-
+dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Temp.', 'avg')
+dp.dfinfo(dfnew)
 dfnew = dp.row_filter(dfnew, 'Fibre Volume Fraction', ['#N/A'], 'exclude')
-
-newc = np.zeros(len(dfnew.index))
+dp.dfinfo(dfnew)
 
 for i in dfnew.index:
     a = float(dfnew.loc[i, 'Eit'])
@@ -42,10 +47,13 @@ for i in dfnew.index:
     elif c == 0:
         c = np.nan
     dfnew.loc[i, 'Eit'] = c
+dp.dfinfo(dfnew)
 
 dfnew = dp.col_filter(dfnew,['Test type', 'Laminate', 'Eic'], 'exclude')
+dp.dfinfo(dfnew)
 dfnew = dfnew.rename(columns={'Eit': 'E'})
 dfnew = dp.cleanup(dfnew, 'E', 'avg')
+dp.dfinfo(dfnew)
 
 
 for i in dfnew.columns:
@@ -58,11 +66,9 @@ for i in dfnew.columns:
 print(dfnew.dtypes)
 dp.dfinfo(dfnew)
 
-name = 'processed\\testdata'+str(time.time()) + '.csv'
-pd.DataFrame.to_csv(dfnew, name)
+name = 'testdata'
+name = name + dp.timetag() + '.csv'
 
-
-
-
-
-#pd.DataFrame.to_csv(path_or_buf='smaxdata.csv', self=dataframe['smax'], index=False)
+if saveresult:
+    pd.DataFrame.to_csv(dfnew, 'processed\\' + name)
+    print('File saved as: ' + name)

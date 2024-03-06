@@ -73,3 +73,21 @@ def row_filter(dataframe, column, filters, mode):
             if j in filters:
                 dataframe = pd.DataFrame.drop(dataframe, i)
     return dataframe
+
+def timetag(format=False, day=True, currtime=True, bracket=False):
+    f = ''
+    if format:
+        if day:
+            f = f + '%d-%m-%y '
+        if currtime:
+            f = f + '%H:%M:%S'
+    else:
+        if day:
+            f += '%d%m%y'
+        if currtime:
+            f += '%H%M%S'
+    f = f.strip()
+    if bracket:
+        f = '('+f+')'
+    return time.strftime(f, time.localtime())
+
