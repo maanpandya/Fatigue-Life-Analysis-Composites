@@ -90,4 +90,3 @@ def timetag(format=False, day=True, currtime=True, bracket=False):
     if bracket:
         f = '('+f+')'
     return time.strftime(f, time.localtime())
-
