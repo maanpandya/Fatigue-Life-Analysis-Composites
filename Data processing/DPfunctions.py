@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import time
 
+
 def cleanup(dataframe, collum, mode):
     n = 0
     Tsum = 0
@@ -90,3 +91,14 @@ def timetag(format=False, day=True, currtime=True, bracket=False):
     if bracket:
         f = '('+f+')'
     return time.strftime(f, time.localtime())
+
+def datasplitscale(dataframe, test_size=0 , exclude_columns=[]):
+    from sklearn.model_selection import train_test_split
+    dftrain, dftest = train_test_split(dataframe, test_size=test_size)
+    for i in dftrain.columns:
+        if i not in exclude_columns:
+            mean = np.mean(dftrain[i])
+            std = np.std(dftrain[i])
+            dftrain[i] = (dftrain[i] - mean) / std
+            dftest[i] = (dftest[i] - mean) / std
+    return dftrain, dftest
