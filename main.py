@@ -33,10 +33,10 @@ model.to('cuda')
 print(model.dummy_param.device)
 
 #Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 #Loss functions
-criterion = nn.L1Loss()
+criterion = nn.MSELoss()
 
 # Load the data from "NNTrainingData.csv"
 base = pd.read_csv("Data processing/processed/traindata070324170302.csv")
@@ -63,7 +63,7 @@ losses = []
 #print(model(X))
 
 #Train the model
-for epoch in range(50000):
+for epoch in range(5000):
     #Forward pass
     y_pred = model(X)
 
@@ -83,7 +83,7 @@ for epoch in range(50000):
 #Plot the loss
 plt.plot(losses)
 plt.xlabel('Epoch')
-plt.ylabel('L1')
+plt.ylabel('Loss')
 plt.show()
 
 #Test the model

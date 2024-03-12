@@ -27,7 +27,7 @@ class NeuralNetwork(nn.Module):
 
 #Load the model
 model = NeuralNetwork().double()
-model.load_state_dict(torch.load("NNModelArchive/model120324105234.pth"))
+model.load_state_dict(torch.load("NNModelArchive/model120324110352.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -51,7 +51,14 @@ y_test_pred = model(X_test)
 #(torch.sum(y_test_pred)).backward()
 loss = criterion(y_test_pred, y_test)
 print(loss.item())
-print(y_test_pred-y_test)
+log_err = y_test_pred-y_test
+
+abs_cycle_error = torch.abs(torch.pow(10, y_test) - torch.pow(10, y_test_pred))
+rel_cycle_error = torch.abs(torch.pow(10, y_test_pred) / torch.pow(10, y_test) )
+print(float(torch.mean(abs_cycle_error)))
+print(float(torch.mean(rel_cycle_error)))
+print(log_err)
+
 #print(X_test.grad[:,0])
 #print(len(X_test.grad))
 #print(len(X_test))
