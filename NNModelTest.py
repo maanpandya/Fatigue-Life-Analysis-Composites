@@ -5,36 +5,15 @@ import matplotlib.pyplot as plt
 import function as f
 
 #Get the data to test the model
-base = pd.read_csv("Data processing/processed/testdata070324170302.csv")
+base = pd.read_csv("Data processing/processed/testdata2.csv")
 base = base.set_index('nr')
 test_data = f.col_filter(base, ['Ncycles'], 'exclude')
 test_target = f.col_filter(base, ['Ncycles'], 'include')
 ndata = len(test_data.columns)
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.dummy_param = nn.Parameter(torch.empty(0))
-        self.layer1 = nn.Linear(10, 12)
-        self.layer2 = nn.Linear(12, 12)
-        self.layer3 = nn.Linear(12, 12)
-        self.layer4 = nn.Linear(12, 12)
-        self.layer5 = nn.Linear(12, 12)
-        self.layer6 = nn.Linear(12, 1)
-
-    def forward(self, x):
-        device = self.dummy_param.device
-        x = torch.sigmoid(self.layer1(x))
-        x = torch.sigmoid(self.layer2(x))
-        x = torch.relu(self.layer3(x))
-        x = torch.relu(self.layer4(x))
-        x = torch.relu(self.layer5(x))
-        x = self.layer6(x)
-        return x
-
 #Load the model
 model = f.create_model(ndata, [14, 14, 14, 14, 14], 1)
-model.load_state_dict(torch.load("NNModelArchive/model120324110352.pth"))
+model.load_state_dict(torch.load("NNModelArchive/model120324122635.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 

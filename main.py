@@ -17,30 +17,8 @@ print('n inputs:'+str(ndata))
 print(data)
 print(target)
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.dummy_param = nn.Parameter(torch.empty(0))
-        self.layer1 = nn.Linear(ndata, 14)
-        self.layer2 = nn.Linear(14, 14)
-        self.layer3 = nn.Linear(14, 14)
-        self.layer4 = nn.Linear(14, 14)
-        self.layer5 = nn.Linear(14, 14)
-        self.layer6 = nn.Linear(14, 1)
-
-    def forward(self, x):
-        device = self.dummy_param.device
-        x = torch.sigmoid(self.layer1(x))
-        x = torch.sigmoid(self.layer2(x))
-        x = torch.relu(self.layer3(x))
-        x = torch.relu(self.layer4(x))
-        x = torch.relu(self.layer5(x))
-        x = self.layer6(x)
-        return x
-
 # Create an instance of the neural network
-model = NeuralNetwork()
-model = model.double()
+model = f.create_model(ndata, [14, 14, 14, 14, 14], 1)
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -69,7 +47,7 @@ losses = []
 #print(model(X))
 
 #Train the model
-for epoch in range(50000):
+for epoch in range(5000):
     #Forward pass
     y_pred = model(X)
 
