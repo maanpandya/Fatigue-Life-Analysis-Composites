@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-import DPfunctions as dp
+import function as f
 print(torch.cuda.is_available())
 
 #set custom tag
@@ -10,8 +10,8 @@ tag = ''
 # Load the data
 base = pd.read_csv("Data processing/processed/traindata2.csv")
 base = base.set_index('nr')
-data = dp.col_filter(base, ['Ncycles'], 'exclude')
-target = dp.col_filter(base, ['Ncycles'], 'include')
+data = f.col_filter(base, ['Ncycles'], 'exclude')
+target = f.col_filter(base, ['Ncycles'], 'include')
 ndata = len(data.columns)
 print('n inputs:'+str(ndata))
 print(data)
@@ -105,6 +105,6 @@ print(y_test_pred-y_test)'''
 
 #Save the model
 if tag == '':
-    tag = dp.timetag()
+    tag = f.timetag()
 path = 'NNModelArchive/model'+ tag +'.pth'
 torch.save(model.state_dict(), path)
