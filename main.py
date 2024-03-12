@@ -5,16 +5,28 @@ import matplotlib.pyplot as plt
 import DPfunctions as dp
 print(torch.cuda.is_available())
 
+#set custom tag
+tag = ''
+# Load the data
+base = pd.read_csv("Data processing/processed/traindata2.csv")
+base = base.set_index('nr')
+data = dp.col_filter(base, ['Ncycles'], 'exclude')
+target = dp.col_filter(base, ['Ncycles'], 'include')
+ndata = len(data.columns)
+print('n inputs:'+str(ndata))
+print(data)
+print(target)
+
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         self.dummy_param = nn.Parameter(torch.empty(0))
-        self.layer1 = nn.Linear(10, 12)
-        self.layer2 = nn.Linear(12, 12)
-        self.layer3 = nn.Linear(12, 12)
-        self.layer4 = nn.Linear(12, 12)
-        self.layer5 = nn.Linear(12, 12)
-        self.layer6 = nn.Linear(12, 1)
+        self.layer1 = nn.Linear(ndata, 14)
+        self.layer2 = nn.Linear(14, 14)
+        self.layer3 = nn.Linear(14, 14)
+        self.layer4 = nn.Linear(14, 14)
+        self.layer5 = nn.Linear(14, 14)
+        self.layer6 = nn.Linear(14, 1)
 
     def forward(self, x):
         device = self.dummy_param.device
@@ -38,16 +50,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 #Loss functions
 criterion = nn.MSELoss()
 
-# Load the data from "NNTrainingData.csv"
-base = pd.read_csv("Data processing/processed/traindata070324170302.csv")
-base = base.set_index('nr')
-data = dp.col_filter(base, ['Ncycles'], 'exclude')
-target = dp.col_filter(base, ['Ncycles'], 'include')
-print(data)
-print(target)
+
 
 # Extract the input data from the first 10 columns
-X = torch.tensor(data.iloc[:, :10].values)
+X = torch.tensor(data.iloc[:, :ndata].values)
 X = X.cuda()
 print(X.device)
 
@@ -63,7 +69,7 @@ losses = []
 #print(model(X))
 
 #Train the model
-for epoch in range(5000):
+for epoch in range(50000):
     #Forward pass
     y_pred = model(X)
 
@@ -98,5 +104,7 @@ print(loss.item())
 print(y_test_pred-y_test)'''
 
 #Save the model
-path = 'NNModelArchive/model'+ dp.timetag() +'.pth'
+if tag == '':
+    tag = dp.timetag()
+path = 'NNModelArchive/model'+ tag +'.pth'
 torch.save(model.state_dict(), path)
