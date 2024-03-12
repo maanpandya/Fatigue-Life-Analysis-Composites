@@ -2,13 +2,14 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import DPfunctions as dp
 print(torch.cuda.is_available())
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         self.dummy_param = nn.Parameter(torch.empty(0))
-        self.layer1 = nn.Linear(9, 10)
+        self.layer1 = nn.Linear(10, 10)
         self.layer2 = nn.Linear(10, 10)
         self.layer3 = nn.Linear(10, 10)
         self.layer4 = nn.Linear(10, 10)
@@ -38,10 +39,11 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 criterion = nn.L1Loss()
 
 # Load the data from "NNTrainingData.csv"
-data = pd.read_csv("NNTrainingData.csv")
+data = pd.read_csv("Data processing/processed/traindata070324170302.csv")
+data = data.set_index('nr')
 
-# Extract the input data from the first 9 columns
-X = torch.tensor(data.iloc[:, :9].values)
+# Extract the input data from the first 10 columns
+X = torch.tensor(data.iloc[:, :10].values)
 X = X.cuda()
 print(X.device)
 
@@ -81,8 +83,8 @@ plt.ylabel('Loss')
 plt.show()
 
 #Test the model
-test_data = pd.read_csv("NNTestData.csv")
-X_test = torch.tensor(test_data.iloc[:, :9].values)
+test_data = pd.read_csv("Data processing/processed/testdata070324170302.csv")
+X_test = torch.tensor(test_data.iloc[:, :10].values)
 X_test = X_test.cuda()
 y_test = torch.tensor(test_data.iloc[:, -1].values).view(-1, 1)
 y_test = y_test.cuda()
