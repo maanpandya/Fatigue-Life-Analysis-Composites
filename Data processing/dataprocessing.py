@@ -5,7 +5,7 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
+saveresult = False
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -35,15 +35,14 @@ dp.dfinfo(dfnew)
 for i in dfnew.index:
     a = float(dfnew.loc[i, 'Eit'])
     b = float(dfnew.loc[i, 'Eic'])
-    if pd.isna(a) == True:
-        a = 0
-    if pd.isna(b) == True:
-        b = 0
-    c = a + b
-    if c > a and c > b:
-        c = c/2
-    elif c == 0:
+    if pd.isna(a) and pd.isna(b):
         c = np.nan
+    elif pd.isna(a) and not pd.isna(b):
+        c = b
+    elif not pd.isna(a) and pd.isna(b):
+        c = a
+    else:
+        c = (a+b)/2
     dfnew.loc[i, 'Eit'] = c
 dfnew = dfnew.rename(columns={'Eit': 'E'})
 dfnew = dp.cleanup(dfnew, 'E', 'avg')
