@@ -4,7 +4,7 @@ import time
 import DPfunctions as dp
 
 saveresult = True
-file = 'data2.csv'
+file = 'data120324101615.csv'
 print('initial data from ' + file)
 tag = file[-16:-4]
 file = 'processed/' + file
