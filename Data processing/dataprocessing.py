@@ -17,7 +17,7 @@ collums_to_include = [
     'taverage', 'waverage', 'Lnominal', 'Test type',
     'Temp.', 'Fibre Volume Fraction', 'R-value1',
     'smax', 'f', 'Laminate', 'Environment', 'Lab',
-    'Eit', 'Eic', 'Cut angle ', 'Ncycles'
+    'Eit', 'Eic', 'Cut angle ', 'Ncycles', 'area', 'Ffatigue'
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
@@ -35,18 +35,17 @@ dp.dfinfo(dfnew)
 for i in dfnew.index:
     a = float(dfnew.loc[i, 'Eit'])
     b = float(dfnew.loc[i, 'Eic'])
-    if pd.isna(a) == True:
-        a = 0
-    if pd.isna(b) == True:
-        b = 0
-    c = a + b
-    if c > a and c > b:
-        c = c/2
-    elif c == 0:
+    if pd.isna(a) and pd.isna(b):
         c = np.nan
+    elif pd.isna(a) and not pd.isna(b):
+        c = b
+    elif not pd.isna(a) and pd.isna(b):
+        c = a
+    else:
+        c = (a+b)/2
     dfnew.loc[i, 'Eit'] = c
 dfnew = dfnew.rename(columns={'Eit': 'E'})
-dfnew = dp.cleanup(dfnew, 'E', 'avg')
+#dfnew = dp.cleanup(dfnew, 'E', 'avg')
 dp.dfinfo(dfnew)
 
 #temp column

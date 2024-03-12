@@ -102,3 +102,8 @@ def datasplitscale(dataframe, test_size=0 , exclude_columns=[]):
             dftrain[i] = (dftrain[i] - mean) / std
             dftest[i] = (dftest[i] - mean) / std
     return dftrain, dftest
+
+def dfread(file):
+    base = pd.read_csv(file)
+    base = base.set_index(base[0])
+    return base
