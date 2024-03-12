@@ -5,7 +5,7 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = False
+saveresult = True
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -17,7 +17,7 @@ collums_to_include = [
     'taverage', 'waverage', 'Lnominal', 'Test type',
     'Temp.', 'Fibre Volume Fraction', 'R-value1',
     'smax', 'f', 'Laminate', 'Environment', 'Lab',
-    'Eit', 'Eic', 'Cut angle ', 'Ncycles'
+    'Eit', 'Eic', 'Cut angle ', 'Ncycles', 'area', 'Ffatigue'
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
@@ -45,7 +45,7 @@ for i in dfnew.index:
         c = (a+b)/2
     dfnew.loc[i, 'Eit'] = c
 dfnew = dfnew.rename(columns={'Eit': 'E'})
-dfnew = dp.cleanup(dfnew, 'E', 'avg')
+#dfnew = dp.cleanup(dfnew, 'E', 'avg')
 dp.dfinfo(dfnew)
 
 #temp column
