@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import function as f
 
 #Get the data to test the model
-base = pd.read_csv("Data processing/processed/testdata070324170302.csv")
+base = pd.read_csv("Data processing/processed/testdata2.csv")
 base = base.set_index('nr')
 test_data = f.col_filter(base, ['Ncycles'], 'exclude')
 test_target = f.col_filter(base, ['Ncycles'], 'include')
@@ -34,7 +34,7 @@ class NeuralNetwork(nn.Module):
 
 #Load the model
 model = f.create_model(ndata, [14, 14, 14, 14, 14], 1)
-model.load_state_dict(torch.load("NNModelArchive/model120324110352.pth"))
+model.load_state_dict(torch.load("NNModelArchive/model120324122815.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -55,12 +55,13 @@ y_test_pred = model(X_test)
 loss = criterion(y_test_pred, y_test)
 print(loss.item())
 log_err = y_test_pred-y_test
+print(log_err)
 
-abs_cycle_error = torch.abs(torch.pow(10, y_test) - torch.pow(10, y_test_pred))
+'''abs_cycle_error = torch.abs(torch.pow(10, y_test) - torch.pow(10, y_test_pred))
 rel_cycle_error = torch.abs(torch.pow(10, y_test_pred) / torch.pow(10, y_test) )
 print(float(torch.mean(abs_cycle_error)))
-print(float(torch.mean(rel_cycle_error)))
-print(log_err)
+print(float(torch.mean(rel_cycle_error)))'''
+
 
 #print(X_test.grad[:,0])
 #print(len(X_test.grad))
