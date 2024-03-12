@@ -39,8 +39,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 criterion = nn.L1Loss()
 
 # Load the data from "NNTrainingData.csv"
-data = pd.read_csv("Data processing/processed/traindata070324170302.csv")
-data = data.set_index('nr')
+base = pd.read_csv("Data processing/processed/traindata070324170302.csv")
+base = base.set_index('nr')
+data = dp.col_filter(base, ['Ncycles'], 'exclude')
+target = dp.col_filter(base, ['Ncycles'], 'include')
 
 # Extract the input data from the first 10 columns
 X = torch.tensor(data.iloc[:, :10].values)
