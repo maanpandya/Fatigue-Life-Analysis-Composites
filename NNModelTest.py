@@ -27,7 +27,7 @@ class NeuralNetwork(nn.Module):
 
 #Load the model
 model = NeuralNetwork().double()
-model.load_state_dict(torch.load("NNModelArchive/model120324102147.pth"))
+model.load_state_dict(torch.load("NNModelArchive/model120324105234.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -67,6 +67,7 @@ print(y_test_pred-y_test)
 #print(torch.mean(((y_test_pred-y_test)/y_test)*100))
 
 plt.scatter(y_test.cpu().numpy(), y_test_pred.cpu().detach().numpy())
+plt.plot([0, 8], [0, 8], color='red', linestyle='--')
 plt.xlabel('y_test')
 plt.ylabel('predicted')
 plt.legend()

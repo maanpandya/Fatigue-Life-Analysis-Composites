@@ -33,10 +33,10 @@ model.to('cuda')
 print(model.dummy_param.device)
 
 #Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 #Loss functions
-criterion = nn.MSELoss()
+criterion = nn.L1Loss()
 
 # Load the data from "NNTrainingData.csv"
 base = pd.read_csv("Data processing/processed/traindata070324170302.csv")
