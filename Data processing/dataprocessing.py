@@ -5,7 +5,8 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
+saveresult = False
+customtag = ''
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -105,7 +106,10 @@ print(dfnew.dtypes)
 dp.dfinfo(dfnew)
 
 name = 'data'
-tag = dp.timetag()
+if customtag != '':
+    tag = customtag
+else:
+    tag = dp.timetag()
 name = name + tag + '.csv'
 
 print()
