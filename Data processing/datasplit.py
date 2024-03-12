@@ -4,9 +4,9 @@ import time
 import DPfunctions as dp
 
 saveresult = True
-file = 'data120324101615.csv'
+file = 'data2.csv'
 print('initial data from ' + file)
-tag = file[-16:-4]
+tag = file[4:-4]
 file = 'processed/' + file
 dfbase = pd.read_csv(file)
 dfbase = dfbase.set_index('nr')
@@ -17,6 +17,10 @@ trainfile = 'traindata'
 trainfile += tag + '.csv'
 testfile = 'testdata'
 testfile += tag + '.csv'
+print('saving as: ' + trainfile + ', ' + testfile)
 if saveresult:
     pd.DataFrame.to_csv(dftrain, 'processed\\' + trainfile)
     pd.DataFrame.to_csv(dftest, 'processed\\' + testfile)
+    print('saved')
+else:
+    print('not saved')
