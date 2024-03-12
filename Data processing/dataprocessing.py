@@ -5,8 +5,8 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
-tag = '2'
+saveresult = False
+tag = '3'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
