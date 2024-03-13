@@ -1,19 +1,20 @@
 import torch
 import pandas as pd
 import torch.nn as nn
+import numpy as np
 import matplotlib.pyplot as plt
 import function as f
 
 #Get the data to test the model
 base = pd.read_csv("Data processing/processed/testdata2.csv")
 base = base.set_index('nr')
-test_data = f.col_filter(base, ['Ncycles'], 'exclude')
-test_target = f.col_filter(base, ['Ncycles'], 'include')
+test_data = base.drop(columns=['Ncycles'])
+test_target = base[['Ncycles']]
 ndata = len(test_data.columns)
 
 #Load the model
-model = f.create_model(ndata, [14, 14, 14, 14, 14], 1)
-model.load_state_dict(torch.load("NNModelArchive/model120324110352.pth"))
+model = f.create_model(ndata, [20, 20, 20, 20, 20], 1)
+model.load_state_dict(torch.load("NNModelArchive/model130324010720.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -25,12 +26,12 @@ criterion = nn.MSELoss()
 X_test = torch.tensor(test_data.iloc[:, :ndata].values)
 X_test = X_test.cuda()
 
-#X_test.requires_grad = True
+X_test.requires_grad = True
 
 y_test = torch.tensor(test_target.iloc[:, -1].values).view(-1, 1)
 y_test = y_test.cuda()
 y_test_pred = model(X_test)
-#(torch.sum(y_test_pred)).backward()
+(torch.sum(y_test_pred)).backward()
 loss = criterion(y_test_pred, y_test)
 print(loss.item())
 log_err = y_test_pred-y_test
@@ -41,7 +42,9 @@ rel_cycle_error = torch.abs(torch.pow(10, y_test_pred) / torch.pow(10, y_test) )
 print(float(torch.mean(abs_cycle_error)))
 print(float(torch.mean(rel_cycle_error)))'''
 
-
+#Take the avg gradient of each column
+Xgrad = [np.mean(X_test.grad[:,i].cpu().detach().numpy()) for i in range(ndata)]
+print(Xgrad)
 #print(X_test.grad[:,0])
 #print(len(X_test.grad))
 #print(len(X_test))
