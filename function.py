@@ -141,13 +141,13 @@ def test_model(model, loss_fn, scaler, x_test, y_test):
 
 
 
-    plt.scatter(Y_test.cpu().numpy(), y_test_pred.cpu().detach().numpy())
-    plt.plot([-5, 5], [-5, 5], color='red', linestyle='--')
+    plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
+    plt.plot([-10, 10], [-10, 10], color='red', linestyle='--')
     plt.xlabel('y_test')
     plt.ylabel('predicted')
     plt.legend()
-    plt.xlim(-5, 5)
-    plt.ylim(-5, 5)
+    plt.xlim(0, 10)
+    plt.ylim(0, 10)
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
     plt.show()
