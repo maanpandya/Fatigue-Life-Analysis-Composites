@@ -16,7 +16,7 @@ ndata = len(test_data.columns)
 
 #Load the model
 model = f.create_model(ndata, [20, 20, 20, 20, 20], 1)
-model.load_state_dict(torch.load("NNModelArchive/model140324151118.pth"))
+model.load_state_dict(torch.load("NNModelArchive/model140324153816.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
@@ -75,6 +75,7 @@ plt.show()
 
 #row number 1 from testdata2.csv
 #SN Curve Implementation
+
 testvalue = torch.tensor([[0.4079718252543413,1.6242047812119902,1.4644113964375178,0.16800788310210216,1.4595548966921477,-0.15179418517972942,1.8456687590702017,-1.1422271739143373,-1,3.714078164981856,-0.191945547470551,-1.4151157428500964,-0.02295207457515992]])
 testvalue = testvalue.double()
 testvalue = testvalue.cuda()
