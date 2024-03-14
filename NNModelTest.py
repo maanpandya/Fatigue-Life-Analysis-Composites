@@ -39,28 +39,11 @@ print(loss.item())
 log_err = y_test_pred-y_test
 print(log_err)
 
-'''abs_cycle_error = torch.abs(torch.pow(10, y_test) - torch.pow(10, y_test_pred))
-rel_cycle_error = torch.abs(torch.pow(10, y_test_pred) / torch.pow(10, y_test) )
-print(float(torch.mean(abs_cycle_error)))
-print(float(torch.mean(rel_cycle_error)))'''
-
 #Take the avg gradient of each column
 Xgrad = [np.mean(X_test.grad[:,i].cpu().detach().numpy()) for i in range(ndata)]
 print(Xgrad)
-#print(X_test.grad[:,0])
-#print(len(X_test.grad))
-#print(len(X_test))
-#print(torch.sum(X_test.grad[:,0]))
-#print(torch.mean(X_test.grad[:,0]))
-#print(torch.min(X_test.grad[:,0]))
-#print(torch.max(X_test.grad[:,0]))
 
-#print(loss.item())
-#print(y_test_pred)
-#print(y_test_pred)
-#print(((y_test_pred-y_test)/y_test)*100)
-#print(torch.mean(((y_test_pred-y_test)/y_test)*100))
-
+#Plot the results
 plt.scatter(y_test.cpu().numpy(), y_test_pred.cpu().detach().numpy())
 max = np.max(y_test_pred.cpu().detach().numpy())
 plt.plot([0, max+1], [0, max+1], color='red', linestyle='--')

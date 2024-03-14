@@ -1,30 +1,8 @@
 import torch
+from torch import nn
 import numpy as np
-'''def PINNLoss(output,target,inputs):
-    #Mean squared error
-    loss = torch.mean((output-target)**2)
 
-    #Penalty if the first derivative of the output with respect to 'smax' (9th column, 8th index) is positive
-    inputs.requires_grad = True
-    outputmean = torch.mean(output)
-    outputmean.backward(retain_graph=True)
-    #print(inputs.grad)
-    gradient1 = inputs.grad[:,8]
-
-    #Penalize positive gradients
-    loss += torch.mean(torch.relu(gradient1))
-
-    #Penalty if the second derivative of the output with respect to 'smax' is negative
-    gradient1.backward(retain_graph=True)
-    gradient2 = inputs.grad[:,8]
-    #print(inputs.grad)
-
-    #Penalize negative gradients
-    loss += torch.mean(torch.relu(-gradient2))
-
-    return loss'''
-
-def PINNLoss(output, target, inputs):
+def PINNLoss(output, target, inputs=X):
     # Mean squared error
     loss = torch.mean((output - target)**2)
 

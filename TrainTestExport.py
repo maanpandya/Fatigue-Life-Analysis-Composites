@@ -5,6 +5,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import DataProcessing.DPfunctions as dp
 import function as f
+from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
 
@@ -27,7 +28,7 @@ n_epochs = 1000
 loss_fn = nn.MSELoss()                    # fn
 learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
-print(type(loss_fn))
+
 # data loading
 path = folder + '/' + file + '.csv'
 data = dp.dfread(path)
