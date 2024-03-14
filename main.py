@@ -7,7 +7,7 @@ from PINNLoss import PINNLoss
 print(torch.cuda.is_available())
 
 # Load the data
-base = pd.read_csv("Data processing/processed/traindata2.csv")
+base = pd.read_csv("DataProcessing/processed/traindata2.csv")
 base = base.set_index('nr')
 #data = f.col_filter(base, ['Ncycles'], 'exclude')
 #target = f.col_filter(base, ['Ncycles'], 'include')
@@ -73,14 +73,15 @@ for epoch in range(epochs):
 plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-tag = f.timetag()
+if tag == '':
+    tag = f.timetag()
 plt.title('epoch = '+str(epochs)+', lr = '+str(lr)+', tag = '+tag)
 plt.savefig("NNModelArchive/Loss Function Convergence/loss.png")
 plt.show()
 print(losses[-1])
 
 #Test the model
-'''test_data = pd.read_csv("Data processing/processed/testdata070324170302.csv")
+'''test_data = pd.read_csv("DataProcessing/processed/testdata070324170302.csv")
 X_test = torch.tensor(test_data.iloc[:, :10].values)
 X_test = X_test.cuda()
 y_test = torch.tensor(test_data.iloc[:, -1].values).view(-1, 1)
@@ -91,5 +92,7 @@ print(loss.item())
 print(y_test_pred-y_test)'''
 
 #Save the model
+if tag == '':
+    tag = dp.timetag()
 path = 'NNModelArchive/model'+ tag +'.pth'
 torch.save(model.state_dict(), path)

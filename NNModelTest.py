@@ -4,9 +4,10 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import function as f
+import DataProcessing.DPfunctions as dp
 
 #Get the data to test the model
-base = pd.read_csv("Data processing/processed/testdata2.csv")
+base = pd.read_csv("DataProcessing/processed/testdata2.csv")
 base = base.set_index('nr')
 test_data = base.drop(columns=['Ncycles'])
 test_target = base[['Ncycles']]
