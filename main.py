@@ -3,10 +3,9 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import function as f
+from PINNLoss import PINNLoss
 print(torch.cuda.is_available())
 
-#set custom tag
-tag = ''
 # Load the data
 base = pd.read_csv("Data processing/processed/traindata2.csv")
 base = base.set_index('nr')
@@ -16,8 +15,8 @@ data = base.drop(columns=['Ncycles'])
 target = base[['Ncycles']]
 ndata = len(data.columns)
 print('n inputs:'+str(ndata))
-print(data)
-print(target)
+#print(data)
+#print(target)
 
 # Create an instance of the neural network
 model = f.create_model(ndata, [20, 20, 20, 20, 20], 1)
@@ -25,11 +24,11 @@ model.to('cuda')
 print(model.dummy_param.device)
 
 #Optimizer
-lr = 0.01
+lr = 0.0001
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 #Loss functions
-criterion = nn.MSELoss()
+#criterion = PINNLoss()
 
 
 
@@ -49,14 +48,16 @@ losses = []
 #Forward pass
 #print(model(X))
 
+X.requires_grad = True
+
 #Train the model
-epochs = 30000
+epochs = 1
 for epoch in range(epochs):
     #Forward pass
     y_pred = model(X)
 
     #Compute the loss
-    loss = criterion(y_pred, y)
+    loss = PINNLoss(y_pred, y, X)
     losses.append(loss.item())
 
     #Zero the gradients
@@ -72,8 +73,7 @@ for epoch in range(epochs):
 plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-if tag == '':
-    tag = f.timetag()
+tag = f.timetag()
 plt.title('epoch = '+str(epochs)+', lr = '+str(lr)+', tag = '+tag)
 plt.savefig("NNModelArchive/Loss Function Convergence/loss.png")
 plt.show()
