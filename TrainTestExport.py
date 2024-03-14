@@ -4,6 +4,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import DataProcessing.DPfunctions as dp
 import function as f
+from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
 
@@ -20,7 +21,7 @@ act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
 n_epochs = 1000
-loss_fn = nn.MSELoss()                    # fn
+loss_fn = PINNLoss                    # fn
 learning_rate = 0.01
 optimizer = torch.optim.Adam            # fn
 

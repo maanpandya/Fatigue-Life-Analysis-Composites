@@ -4,6 +4,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from PINNLoss import PINNLoss
 
 
 def create_model(n_inputs, layers=None, n_outputs=1):
