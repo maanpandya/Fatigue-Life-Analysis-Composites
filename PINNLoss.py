@@ -30,15 +30,14 @@ def PINNLoss(output, target, inputs):
 
     # Compute gradients
     inputs.requires_grad_(True)
-    outputmean = torch.mean(output)
+    outputmean = torch.sum(output)
     gradient1 = torch.autograd.grad(outputmean, inputs, create_graph=True)[0]
     
     # Penalize positive first derivatives
     loss += torch.mean(torch.relu(gradient1[:, 8]))
 
     # Compute second derivatives
-    outputmean_grad = torch.autograd.grad(outputmean, inputs, create_graph=True)[0]
-    gradient2 = torch.autograd.grad(outputmean_grad[:, 8], inputs, create_graph=True)[0]
+    gradient2 = torch.autograd.grad(torch.sum(gradient1[:, 8]), inputs, create_graph=True)[0]
 
     # Penalize negative second derivatives
     loss += torch.mean(torch.relu(-gradient2[:, 8]))

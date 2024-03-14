@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import function as f
+import DataProcessing.DPfunctions as dp
 from PINNLoss import PINNLoss
 print(torch.cuda.is_available())
 
@@ -51,7 +52,7 @@ losses = []
 X.requires_grad = True
 
 #Train the model
-epochs = 1
+epochs = 30000
 for epoch in range(epochs):
     #Forward pass
     y_pred = model(X)
@@ -73,8 +74,7 @@ for epoch in range(epochs):
 plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-if tag == '':
-    tag = f.timetag()
+tag = dp.timetag()
 plt.title('epoch = '+str(epochs)+', lr = '+str(lr)+', tag = '+tag)
 plt.savefig("NNModelArchive/Loss Function Convergence/loss.png")
 plt.show()
@@ -92,7 +92,5 @@ print(loss.item())
 print(y_test_pred-y_test)'''
 
 #Save the model
-if tag == '':
-    tag = dp.timetag()
 path = 'NNModelArchive/model'+ tag +'.pth'
 torch.save(model.state_dict(), path)
