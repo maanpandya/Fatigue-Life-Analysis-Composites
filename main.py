@@ -3,15 +3,16 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import function as f
+import DataProcessing.DPfunctions as dp
 print(torch.cuda.is_available())
 
 #set custom tag
 tag = ''
 # Load the data
-base = pd.read_csv("Data processing/processed/traindata2.csv")
+base = pd.read_csv("DataProcessing/processed/traindata2.csv")
 base = base.set_index('nr')
-data = f.col_filter(base, ['Ncycles'], 'exclude')
-target = f.col_filter(base, ['Ncycles'], 'include')
+data = dp.col_filter(base, ['Ncycles'], 'exclude')
+target = dp.col_filter(base, ['Ncycles'], 'include')
 ndata = len(data.columns)
 print('n inputs:'+str(ndata))
 print(data)
@@ -71,7 +72,7 @@ plt.ylabel('Loss')
 plt.show()
 
 #Test the model
-'''test_data = pd.read_csv("Data processing/processed/testdata070324170302.csv")
+'''test_data = pd.read_csv("DataProcessing/processed/testdata070324170302.csv")
 X_test = torch.tensor(test_data.iloc[:, :10].values)
 X_test = X_test.cuda()
 y_test = torch.tensor(test_data.iloc[:, -1].values).view(-1, 1)
@@ -83,6 +84,6 @@ print(y_test_pred-y_test)'''
 
 #Save the model
 if tag == '':
-    tag = f.timetag()
+    tag = dp.timetag()
 path = 'NNModelArchive/model'+ tag +'.pth'
 torch.save(model.state_dict(), path)

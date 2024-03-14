@@ -3,12 +3,13 @@ import pandas as pd
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import function as f
+import DataProcessing.DPfunctions as dp
 
 #Get the data to test the model
-base = pd.read_csv("Data processing/processed/testdata2.csv")
+base = pd.read_csv("DataProcessing/processed/testdata2.csv")
 base = base.set_index('nr')
-test_data = f.col_filter(base, ['Ncycles'], 'exclude')
-test_target = f.col_filter(base, ['Ncycles'], 'include')
+test_data = dp.col_filter(base, ['Ncycles'], 'exclude')
+test_target = dp.col_filter(base, ['Ncycles'], 'include')
 ndata = len(test_data.columns)
 
 #Load the model
