@@ -11,20 +11,23 @@ tag = ''
 # Load the data
 base = pd.read_csv("DataProcessing/processed/traindata2.csv")
 base = base.set_index('nr')
-data = dp.col_filter(base, ['Ncycles'], 'exclude')
-target = dp.col_filter(base, ['Ncycles'], 'include')
+#data = f.col_filter(base, ['Ncycles'], 'exclude')
+#target = f.col_filter(base, ['Ncycles'], 'include')
+data = base.drop(columns=['Ncycles'])
+target = base[['Ncycles']]
 ndata = len(data.columns)
 print('n inputs:'+str(ndata))
 print(data)
 print(target)
 
 # Create an instance of the neural network
-model = f.create_model(ndata, [14, 14, 14, 14, 14], 1)
+model = f.create_model(ndata, [20, 20, 20, 20, 20], 1)
 model.to('cuda')
 print(model.dummy_param.device)
 
 #Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+lr = 0.01
+optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 #Loss functions
 criterion = nn.MSELoss()
@@ -48,7 +51,8 @@ losses = []
 #print(model(X))
 
 #Train the model
-for epoch in range(5000):
+epochs = 30000
+for epoch in range(epochs):
     #Forward pass
     y_pred = model(X)
 
@@ -69,7 +73,12 @@ for epoch in range(5000):
 plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
+if tag == '':
+    tag = dp.timetag()
+plt.title('epoch = '+str(epochs)+', lr = '+str(lr)+', tag = '+tag)
+plt.savefig("NNModelArchive/Loss Function Convergence/loss.png")
 plt.show()
+print(losses[-1])
 
 #Test the model
 '''test_data = pd.read_csv("DataProcessing/processed/testdata070324170302.csv")
