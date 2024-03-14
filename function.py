@@ -75,10 +75,11 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     y = y.cuda()
     print(y.device)
 
-    # L1
+
     losses = []
     t = time.time()
-
+    n = 10
+    model.train()
 
     optimizer = optimizer(model.parameters(), lr=learning_rate)
 
@@ -102,7 +103,9 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
 
         # show progress
         progress = int((epoch / n_epochs) * 100)
-        if progress % 10 == 0 and progress > 5:
+
+        if progress - n >= 0:
+            n = n + 10
             print('training progress: '+str(progress)+'%')
             print('time remaining: ' + str(((time.time()-t) / progress) * (100 - progress)) + 's')
     print('done in ' + str(time.time()-t))
@@ -114,23 +117,31 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     return model
 
 
-def test_model(model, loss_fn, x_test, y_test):
+def test_model(model, loss_fn, scaler, x_test, y_test):
+    model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
 
     X_test.requires_grad = True
 
-    y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
-    y_test = y_test.cuda()
-    print(type(X_test))
-    print(type(model))
+    Y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
+    Y_test = Y_test.cuda()
     y_test_pred = model(X_test)
-    loss = loss_fn(y_test_pred, y_test)
-    print(loss.item())
-    log_err = y_test_pred - y_test
-    print(log_err)
+    pred_eval = pd.DataFrame(y_test_pred.cpu().detach().numpy()).set_index(y_test.index)
+    pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'pred_scaled'})
+    pred_eval = pred_eval.join(y_test)
+    pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'real_scaled'})
+    scaler = scaler[y_test.columns[0]]
+    pred_eval['pred_log'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
+    pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
+    pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
+    pred_eval['real'] = np.power(10, pred_eval['real_log'])
+    print(pred_eval)
+    print(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))
 
-    plt.scatter(y_test.cpu().numpy(), y_test_pred.cpu().detach().numpy())
+
+
+    plt.scatter(Y_test.cpu().numpy(), y_test_pred.cpu().detach().numpy())
     plt.plot([-5, 5], [-5, 5], color='red', linestyle='--')
     plt.xlabel('y_test')
     plt.ylabel('predicted')
