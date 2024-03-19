@@ -201,5 +201,30 @@ def sncurvetest(model, dataindex, scalers):
     plt.ylabel('smax')
     plt.show()
 
-def export_model(model):
-    pass
+def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
+    if name == None:
+        name = dp.timetag()
+    path = folder + '/' + name
+    os.makedirs(path)
+    path = path + '/'
+    model_scripted = torch.jit.script(model)
+    model_scripted.save(path + 'model.pt')
+    if type(x_train) == pd.DataFrame:
+        pd.DataFrame.to_csv(x_train, path + 'x_train.csv')
+    if type(y_train) == pd.DataFrame:
+        pd.DataFrame.to_csv(y_train, path + 'y_train.csv')
+    if type(x_test) == pd.DataFrame:
+        pd.DataFrame.to_csv(x_test, path + 'x_test.csv')
+    if type(y_test) == pd.DataFrame:
+        pd.DataFrame.to_csv(y_test, path + 'y_test.csv')
+    if type(data) == pd.DataFrame:
+        pd.DataFrame.to_csv(data, path + 'data.csv')
+    if not scalers == None:
+        with open(path+'scalers.pkl', 'wb') as t:
+            pickle.dump(scalers, t)
+def import_model(path):
+    path = path + '/'
+    model = torch.jit.load(path + 'model.pt')
+    with open(path + 'scalers.pkl', 'rb') as t:
+        scaler = pickle.load(t)
+    return model, scaler

@@ -12,4 +12,4 @@ model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 
-f.test_model(model, 'loss_fn', scaler, x_test, y_test)
+f.test_model(model, scaler, x_test, y_test)
