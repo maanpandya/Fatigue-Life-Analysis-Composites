@@ -70,6 +70,7 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     X = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
     X = X.cuda()
     print(X.device)
+    X.requires_grad = True
 
     # Extract the output data from the last column
     y = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
@@ -90,7 +91,10 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         y_pred = model(X)
 
         # Compute the loss
-        loss = loss_fn(y_pred, y)
+        if loss_fn == PINNLoss:
+            loss = loss_fn(y_pred, y, X)
+        else:
+            loss = loss_fn(y_pred, y)
         losses.append(loss.item())
 
         # Zero the gradients
@@ -143,7 +147,7 @@ def test_model(model, loss_fn, scaler, x_test, y_test):
 
 
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-    plt.plot([-10, 10], [-10, 10], color='red', linestyle='--')
+    plt.plot([0, 10], [0, 10], color='red', linestyle='--')
     plt.xlabel('y_test')
     plt.ylabel('predicted')
     plt.legend()

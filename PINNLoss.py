@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs=X):
+def PINNLoss(output, target, inputs):
     # Mean squared error
     loss = torch.mean((output - target)**2)
 

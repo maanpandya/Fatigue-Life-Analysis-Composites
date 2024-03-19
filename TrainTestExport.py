@@ -9,7 +9,7 @@ from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
 
-seed = 0
+seed = 42
 torch.manual_seed(seed)
 np.random.seed(seed)
 # input data
@@ -24,9 +24,9 @@ layer_sizes = 22                              # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 1000
-loss_fn = nn.MSELoss()                    # fn
-learning_rate = 0.001
+n_epochs = 5000
+loss_fn = PINNLoss             # fn
+learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 
 # data loading
