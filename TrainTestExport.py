@@ -9,22 +9,26 @@ from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
 
-seed = 42
-torch.manual_seed(seed)
-np.random.seed(seed)
+# random seed
+random_seed = True
+if not random_seed:
+    seed = 4269
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
 # input data
 file = 'data2'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
-test_size = 0.2
+test_size = 0.3
 
 # model parameters
-n_hidden_layers = 8                           # int
-layer_sizes = 22                              # int or list of int
+n_hidden_layers = 10                           # int
+layer_sizes = 30                              # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 10000
+n_epochs = 1000
 loss_fn = PINNLoss            # fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
@@ -48,9 +52,6 @@ model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_trai
 
 # test
 f.test_model(model, scalers, x_test, y_test)
-
-#sn curve
-f.sncurvetest(model,1,scalers)
 
 # export
 name = input('enter a name to export model, enter <t> to use timetag: ')

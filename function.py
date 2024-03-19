@@ -146,8 +146,12 @@ def test_model(model, scaler, x_test, y_test):
     pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
     pred_eval['real'] = np.power(10, pred_eval['real_log'])
     print(pred_eval)
-    print(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))
-
+    print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
+    print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
+    print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
+    print('lMRE = ' + str(np.mean((np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))))))
+    #some values are inf, maybe outliers
+    print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
     plt.plot([0, 10], [0, 10], color='red', linestyle='--')
     plt.xlabel('y_test')
@@ -168,9 +172,8 @@ def sncurvetest(model, dataindex, scalers):
 
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
-
     #Keep increasing smax from 0 to the initial smax and appending the data to x
-    for i in range(math.ceil(smax)*500):
+    for i in range(math.ceil(smax)*50):
         data['smax'] = i/100
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
@@ -184,13 +187,12 @@ def sncurvetest(model, dataindex, scalers):
         x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
 
     print(x)
-
     #Predict the number of cycles
+    model.eval()
     x = torch.tensor(x.values)
     x = x.cuda()
     x.requires_grad = True
     y = model(x)
-
     #Unscale the predicted number of cycles
     y = y.cpu().detach().numpy()
     y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
@@ -228,3 +230,13 @@ def import_model(path):
     with open(path + 'scalers.pkl', 'rb') as t:
         scaler = pickle.load(t)
     return model, scaler
+
+def scale(data, scaler):
+    for i in data.columns:
+        data[i] = (data[i] - scaler[i]['mean']) / scaler[i]['std']
+    return data
+
+def inv_scale(data, scaler):
+    for i in data.columns:
+        data[i] = data[i] * scaler[i]['std'] + scaler[i]['mean']
+    return data
