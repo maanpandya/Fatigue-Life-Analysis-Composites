@@ -16,7 +16,7 @@ ndata = len(test_data.columns)
 
 #Load the model
 model = f.create_model(ndata, [20, 20, 20, 20, 20], 1)
-model.load_state_dict(torch.load("NNModelArchive/model140324153816.pth"))
+model.load_state_dict(torch.load("NNModelArchive/rev1/model140324153816.pth"))
 model.to('cuda')
 print(model.dummy_param.device)
 
