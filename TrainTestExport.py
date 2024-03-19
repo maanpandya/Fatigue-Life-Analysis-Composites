@@ -49,6 +49,9 @@ model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_trai
 # test
 f.test_model(model, loss_fn, scalers, x_test, y_test)
 
+#sn curve
+
+
 # export
 f.export_model(model, 'NNModelArchive/rev2', scalers, x_test=x_test, y_test=y_test, data=data)
 
