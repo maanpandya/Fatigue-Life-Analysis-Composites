@@ -24,8 +24,8 @@ layer_sizes = 22                              # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 1000
-loss_fn = nn.MSELoss()             # fn
+n_epochs = 10000
+loss_fn = PINNLoss            # fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 
@@ -48,6 +48,9 @@ model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_trai
 
 # test
 f.test_model(model, scalers, x_test, y_test)
+
+#sn curve
+f.sncurvetest(model,1,scalers)
 
 # export
 name = input('enter a name to export model, enter <t> to use timetag: ')

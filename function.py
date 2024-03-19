@@ -4,10 +4,12 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import DataProcessing.DPfunctions as dp
 from PINNLoss import PINNLoss
 import DataProcessing.DPfunctions as dp
 import os
 import pickle
+import math
 
 def create_model(n_inputs, layers=None, n_outputs=1):
     if layers is None:
@@ -157,32 +159,47 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
-    if name == None:
-        name = dp.timetag()
-    path = folder + '/' + name
-    os.makedirs(path)
-    path = path + '/'
-    model_scripted = torch.jit.script(model)
-    model_scripted.save(path + 'model.pt')
-    if type(x_train) == pd.DataFrame:
-        pd.DataFrame.to_csv(x_train, path + 'x_train.csv')
-    if type(y_train) == pd.DataFrame:
-        pd.DataFrame.to_csv(y_train, path + 'y_train.csv')
-    if type(x_test) == pd.DataFrame:
-        pd.DataFrame.to_csv(x_test, path + 'x_test.csv')
-    if type(y_test) == pd.DataFrame:
-        pd.DataFrame.to_csv(y_test, path + 'y_test.csv')
-    if type(data) == pd.DataFrame:
-        pd.DataFrame.to_csv(data, path + 'data.csv')
-    if not scalers == None:
-        with open(path+'scalers.pkl', 'wb') as t:
-            pickle.dump(scalers, t)
+def sncurvetest(model, dataindex, scalers):
+    data = dp.dfread("DataProcessing/processed/data2.csv")
+    data = data[dataindex:dataindex+1]
+    data = data.drop(columns=['Ncycles'])
+    smax = data['smax']
+    data['smax']=0
 
-def import_model(path):
-    path = path + '/'
-    model = torch.jit.load(path + 'model.pt')
-    with open(path + 'scalers.pkl', 'rb') as t:
-        scaler = pickle.load(t)
-    return model, scaler
+    #Let x be a dataframe with the same columns as data but empty
+    x = pd.DataFrame(columns=data.columns)
 
+    #Keep increasing smax from 0 to the initial smax and appending the data to x
+    for i in range(math.ceil(smax)*500):
+        data['smax'] = i/100
+        #Append the data to the dataframe x as a row
+        x = pd.concat([x, data])
+    
+    xorig = x.copy()
+
+    print(x)
+
+    #Scale x using the values in scalers
+    for i in x.columns:
+        x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
+
+    print(x)
+
+    #Predict the number of cycles
+    x = torch.tensor(x.values)
+    x = x.cuda()
+    x.requires_grad = True
+    y = model(x)
+
+    #Unscale the predicted number of cycles
+    y = y.cpu().detach().numpy()
+    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
+
+    #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
+    plt.scatter(y, xorig['smax'])
+    plt.xlabel('log of Ncycles')
+    plt.ylabel('smax')
+    plt.show()
+
+def export_model(model):
+    pass
