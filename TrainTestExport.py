@@ -47,8 +47,13 @@ model.to('cuda')
 model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
 
 # test
-f.test_model(model, loss_fn, scalers, x_test, y_test)
+f.test_model(model, scalers, x_test, y_test)
 
 # export
-f.export_model(model, 'NNModelArchive/rev2', scalers, x_test=x_test, y_test=y_test, data=data)
+name = input('enter a name to export model, enter <t> to use timetag: ')
+if name != '':
+    if name == 't':
+        name = None
+    f.export_model(model, 'NNModelArchive/rev2', scalers, name=name, x_test=x_test, y_test=y_test, data=data)
+
 
