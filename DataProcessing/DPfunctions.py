@@ -114,6 +114,9 @@ def dfread(file):
     return base
 
 def dfxysplit(dataframe, y_columns=[]):
-    x = col_filter(dataframe, y_columns, 'exclude')
-    y = col_filter(dataframe, y_columns, 'include')
+    '''x = col_filter(dataframe, y_columns, 'exclude')
+    y = col_filter(dataframe, y_columns, 'include')'''
+
+    x = dataframe.drop(columns=y_columns)
+    y = dataframe[y_columns]
     return x, y
