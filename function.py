@@ -9,6 +9,7 @@ from PINNLoss import PINNLoss
 import DataProcessing.DPfunctions as dp
 import os
 import pickle
+import math
 
 def create_model(n_inputs, layers=None, n_outputs=1):
     if layers is None:
@@ -169,10 +170,12 @@ def sncurvetest(model, dataindex, scalers):
     x = pd.DataFrame(columns=data.columns)
 
     #Keep increasing smax from 0 to the initial smax and appending the data to x
-    for i in range(smax*100):
+    for i in range(math.ceil(smax)*500):
         data['smax'] = i/100
-        #Append the data to x as a row
-        x = x.append(data)
+        #Append the data to the dataframe x as a row
+        x = pd.concat([x, data])
+    
+    xorig = x.copy()
 
     print(x)
 
@@ -192,10 +195,11 @@ def sncurvetest(model, dataindex, scalers):
     y = y.cpu().detach().numpy()
     y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
 
-    #Plot the results, smax on the y axis and the predicted number of cycles on the x axis
-    plt.plot(y, smax)
+    #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
+    plt.scatter(y, xorig['smax'])
     plt.xlabel('log of Ncycles')
     plt.ylabel('smax')
+    plt.show()
 
 def export_model(model):
     pass
