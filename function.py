@@ -6,7 +6,9 @@ import numpy as np
 import time
 import DataProcessing.DPfunctions as dp
 from PINNLoss import PINNLoss
-
+import DataProcessing.DPfunctions as dp
+import os
+import pickle
 
 def create_model(n_inputs, layers=None, n_outputs=1):
     if layers is None:
@@ -145,8 +147,6 @@ def test_model(model, loss_fn, scaler, x_test, y_test):
     print(pred_eval)
     print(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))
 
-
-
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
     plt.plot([0, 10], [0, 10], color='red', linestyle='--')
     plt.xlabel('y_test')
@@ -158,47 +158,5 @@ def test_model(model, loss_fn, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, dataindex, scalers):
-    data = dp.dfread("DataProcessing/processed/data2.csv")
-    data = data[dataindex:dataindex+1]
-    data = data.drop(columns=['Ncycles'])
-    smax = data['smax']
-    data['smax']=0
-
-    #Let x be a dataframe with the same columns as data but empty
-    x = pd.DataFrame(columns=data.columns)
-    
-    #Keep increasing smax from 0 to the initial smax and appending the data to x
-    for i in range(smax*100):
-        data['smax'] = i/100
-        #Append the data to x as a row
-        x = x.append(data)
-    
-    print(x)
-
-    #Scale x using the values in scalers
-    for i in x.columns:
-        x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
-    
-    print(x)
-
-    #Predict the number of cycles
-    x = torch.tensor(x.values)
-    x = x.cuda()
-    x.requires_grad = True
-    y = model(x)
-
-    #Unscale the predicted number of cycles
-    y = y.cpu().detach().numpy()
-    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
-
-    #Plot the results, smax on the y axis and the predicted number of cycles on the x axis
-    plt.plot(y, smax)
-    plt.xlabel('log of Ncycles')
-    plt.ylabel('smax')
-
-
 def export_model(model):
     pass
-
-sncurvetest(1, 1)

@@ -24,8 +24,8 @@ layer_sizes = 22                              # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 5000
-loss_fn = PINNLoss             # fn
+n_epochs = 1000
+loss_fn = nn.MSELoss()             # fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 
@@ -48,3 +48,7 @@ model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_trai
 
 # test
 f.test_model(model, loss_fn, scalers, x_test, y_test)
+
+# export
+f.export_model(model, 'NNModelArchive/rev2', scalers, x_test=x_test, y_test=y_test, data=data)
+
