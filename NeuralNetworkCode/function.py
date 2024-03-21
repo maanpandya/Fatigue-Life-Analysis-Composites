@@ -149,7 +149,9 @@ def test_model(model, scaler, x_test, y_test):
     print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
     print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
     print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
-    print('lMRE = ' + str(np.mean((np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))))))
+    lMRE = np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))
+    lMRE = lMRE.replace([np.inf, -np.inf], 0)
+    print('lMRE = ' + str(np.mean(lMRE)))
     #some values are inf, maybe outliers
     print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
