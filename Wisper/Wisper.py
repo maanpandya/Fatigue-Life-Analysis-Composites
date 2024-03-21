@@ -2,7 +2,7 @@ import numpy as np
 import rainflow 
 
 # Read the file
-with open('Wisper_X/WISPERX', 'r') as file:
+with open('Wisper/WISPER', 'r') as file:
     file_contents = file.readlines()
 array = np.array([float(x) for x in file_contents[1:]])
 
@@ -13,7 +13,7 @@ normalized_array = array / np.max(array)
 counted_cycles = rainflow.count_cycles(normalized_array)
 
 # Calculate the accumulated damage
-Max_Force = 330 # N
+Max_Force = 330 # Mpa
 
 print(counted_cycles)
 Accumulated_stress = 0
