@@ -73,15 +73,15 @@ def create_model_2(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_fn):
 def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train):
     X = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
     X = X.cuda()
-    print(X.device)
+    #print(X.device)
     X.requires_grad = True
 
     # Extract the output data from the last column
     y = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
     y = y.cuda()
-    print(y.device)
+    #print(y.device)
 
-
+    print('Training starting...')
     losses = []
     t = time.time()
     n = 10
@@ -130,12 +130,10 @@ def test_model(model, scaler, x_test, y_test):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
-
     X_test.requires_grad = True
-
-    Y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
-    Y_test = Y_test.cuda()
     y_test_pred = model(X_test)
+
+    # create dataframe of data
     pred_eval = pd.DataFrame(y_test_pred.cpu().detach().numpy()).set_index(y_test.index)
     pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'pred_scaled'})
     pred_eval = pred_eval.join(y_test)
@@ -145,15 +143,25 @@ def test_model(model, scaler, x_test, y_test):
     pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
     pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
     pred_eval['real'] = np.power(10, pred_eval['real_log'])
-    print(pred_eval)
+
+    # print various measures of accuracy
+    print('Measures of error:')
     print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
     print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
     print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
     lMRE = np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))
     lMRE = lMRE.replace([np.inf, -np.inf], 0)
     print('lMRE = ' + str(np.mean(lMRE)))
-    #some values are inf, maybe outliers
     print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
+
+    # outlier detection
+    lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
+    lAE = lAE.sort_values(ascending=False)
+    lE = pred_eval['pred_log'] - pred_eval['real_log']
+    print('top 5 lAE:')
+    print(lE.loc[lAE.index[0:5:]])
+
+    # plot errors
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
     plt.plot([0, 10], [0, 10], color='red', linestyle='--')
     plt.xlabel('y_test')
@@ -165,7 +173,7 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers):
+def sncurvetest(model, maxstressratio, dataindex, scalers, exportdata=False):
     data = dp.dfread("NeuralNetworkCode/DataProcessing/processed/data2.csv")
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
@@ -177,9 +185,10 @@ def sncurvetest(model, maxstressratio, dataindex, scalers):
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     iterations = maxstressratio
     for i in range(math.ceil(smax)*iterations):
-        data['smax'] = i
+        data['smax'] = int(i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
+        x['smax'] = x['smax'].astype(float)
     
     xorig = x.copy()
 
@@ -192,6 +201,8 @@ def sncurvetest(model, maxstressratio, dataindex, scalers):
     print(x)
     #Predict the number of cycles
     model.eval()
+    #print dtype of x
+    print(x.dtypes)
     x = torch.tensor(x.values)
     x = x.cuda()
     x.requires_grad = True
