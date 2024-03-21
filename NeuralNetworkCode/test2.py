@@ -15,4 +15,4 @@ y_test = dp.dfread(path + '/y_test.csv')
 f.test_model(model, scaler, x_test, y_test)
 
 #sn curve
-f.sncurvetest(model,1,scaler)
+#f.sncurvetest(model,1,scaler)
