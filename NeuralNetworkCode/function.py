@@ -177,9 +177,10 @@ def sncurvetest(model, maxstressratio, dataindex, scalers):
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     iterations = maxstressratio
     for i in range(math.ceil(smax)*iterations):
-        data['smax'] = i
+        data['smax'] = int(i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
+        x['smax'] = x['smax'].astype(float)
     
     xorig = x.copy()
 
@@ -192,6 +193,8 @@ def sncurvetest(model, maxstressratio, dataindex, scalers):
     print(x)
     #Predict the number of cycles
     model.eval()
+    #print dtype of x
+    print(x.dtypes)
     x = torch.tensor(x.values)
     x = x.cuda()
     x.requires_grad = True
