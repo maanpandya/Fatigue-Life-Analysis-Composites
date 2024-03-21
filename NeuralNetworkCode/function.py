@@ -165,7 +165,7 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, dataindex, scalers):
+def sncurvetest(model, maxstressratio, dataindex, scalers):
     data = dp.dfread("DataProcessing/processed/data2.csv")
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
@@ -175,8 +175,9 @@ def sncurvetest(model, dataindex, scalers):
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
-    for i in range(math.ceil(smax)*50):
-        data['smax'] = i/100
+    iterations = maxstressratio
+    for i in range(math.ceil(smax)*iterations):
+        data['smax'] = i
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
     
