@@ -1,6 +1,5 @@
 import pandas as pd
 import torch
-import torch.nn as nn
 import matplotlib.pyplot as plt
 import function as f
 import DataProcessing.DPfunctions as dp
