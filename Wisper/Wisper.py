@@ -1,5 +1,6 @@
 import numpy as np
 import rainflow 
+import matplotlib.pyplot as plt
 
 # Read the file
 with open('Wisper/WISPER', 'r') as file:
@@ -22,10 +23,29 @@ for i in range (len(counted_cycles)):
     Stress = counted_cycles[i][0] * Max_Force# stress
     B = 1.69111*10**22
     N_AI = (Stress/(367.8))**(-1/0.078)
+    #N_AI = -np.log(Stress/178.08)*10**(-7)
     Accumulated_stress += N_Cycle/N_AI
 
-print(1/Accumulated_stress)
-import matplotlib.pyplot as plt
+stresses = []
+cycles = []
+for j in range(340):
+    Max_Force = j
+    Accumulated_stress = 0
+    for i in range (len(counted_cycles)):
+        N_Cycle =counted_cycles[i][1] # fatigue life at reference stress 
+        Stress = counted_cycles[i][0] * Max_Force# stress
+        N_AI = (Stress/(367.8))**(-1/0.078)
+        Accumulated_stress += N_Cycle/N_AI
+        
+    cycles.append(1/Accumulated_stress)
+    stresses.append(j)
+plt.plot(np.log(cycles), stresses)  # Changed the order of the axes
+plt.xlabel('N_AI')  # Updated the x-axis label
+plt.ylabel('Stress')  # Updated the y-axis label
+plt.title('N_AI vs Stress')
+plt.show()
+
+
 
 # Calculate N_AI vs stress
 stress_values = [counted_cycles[i][0] * Max_Force for i in range(len(counted_cycles))]
