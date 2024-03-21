@@ -164,7 +164,7 @@ def test_model(model, scaler, x_test, y_test):
     plt.show()
 
 def sncurvetest(model, maxstressratio, dataindex, scalers):
-    data = dp.dfread("DataProcessing/processed/data2.csv")
+    data = dp.dfread("NeuralNetworkCode/DataProcessing/processed/data2.csv")
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
