@@ -8,6 +8,7 @@ import function as f
 from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
+savemodel = True
 
 # random seed
 random_seed = False
@@ -23,12 +24,12 @@ target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
 # model parameters
-n_hidden_layers = 0                           # int (set to zero to use len(layer_sizes)
-layer_sizes = [128, 128, 256, 256, 128, 128]                              # int or list of int
+n_hidden_layers = 5                           # int (set to zero to use len(layer_sizes)
+layer_sizes = 105                            # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 2000
+n_epochs = 5000
 loss_fn = PINNLoss            # fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
@@ -55,17 +56,20 @@ model = model.double()
 model.to('cuda')
 
 # train
-model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
-
+#model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
+#model = f.train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
+#model = f.noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
+model = f.noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
 # test
 f.test_model(model, scalers, x_test, y_test)
 
 # export
-name = input('enter a name to export model, enter <t> to use timetag: ')
-if name != '':
-    if name == 't':
-        name = None
-    f.export_model(model, 'NNModelArchive/rev2', scalers, name=name, data=data,
-                   x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
+if savemodel:
+    name = input('enter a name to export model, enter <t> to use timetag: ')
+    if name != '':
+        if name == 't':
+            name = None
+        f.export_model(model, 'NNModelArchive/rev2', scalers, name=name, data=data,
+                       x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
 
 
