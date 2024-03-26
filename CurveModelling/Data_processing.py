@@ -1,3 +1,5 @@
+import pandas as pd
+
 def separateDataFrame(dataFrame, separationList = ["R-value1"]):
 
     # separationList - Parameters to separate by, r value by default
@@ -27,3 +29,7 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
                     parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index])
 
         return parameterDictionary
+
+# dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
+# parameterDictionary = separateDataFrame(dataFrame, separationList = ["R-value1"])
+# print(parameterDictionary)
