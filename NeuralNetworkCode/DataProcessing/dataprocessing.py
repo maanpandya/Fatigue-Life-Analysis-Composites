@@ -24,9 +24,46 @@ collums_to_include = [
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Test type', 'exclude_nan')
+#temp column
+if 'Temp.' in dfnew.columns:
+    for i in dfnew.index:
+        t = dfnew.loc[i, 'Temp.']
+        if not pd.isna(t):
+            try:
+                t = float(t)
+            except:
+                t = t[1::]
+                try:
+                    t = float(t)
+                except:
+                    dfnew.loc[i, 'Temp.'] = np.nan
+                else:
+                    dfnew.loc[i, 'Temp.'] = t
+            else:
+                dfnew.loc[i, 'Temp.'] = t
+    tempdict = {}
+    for i in dfnew.index:
+        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
+        t = dfnew.loc[i, 'Temp.']
+        if env not in tempdict:
+            tempdict[env] = []
+        if not pd.isna(t):
+            tempdict[env].append(t)
+    for i in tempdict:
+        if tempdict[i] == []:
+            tempdict[i] = np.nan
+        else:
+            tempdict[i] = np.mean(np.array(tempdict[i]))
+    for i in dfnew.index:
+        t = dfnew.loc[i, 'Temp.']
+        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
+        if pd.isna(t):
+            dfnew.loc[i, 'Temp.'] = tempdict[env]
+    #end of temp processing
+
 dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
 dp.dfinfo(dfnew)
-dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4', 'UD5'], 'include')
+dfnew = dp.row_filter(dfnew, 'Laminate', ['MD2'], 'include')
 dp.dfinfo(dfnew)
 if 'Ncycles' in dfnew.columns:
     dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
@@ -54,43 +91,7 @@ if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
     #dfnew = dp.cleanup(dfnew, 'E', 'avg')
     dp.dfinfo(dfnew)
 
-#temp column
-if 'Temp.' in dfnew.columns:
-    for i in dfnew.index:
-        t = dfnew.loc[i, 'Temp.']
-        if not pd.isna(t):
-            try:
-                t = float(t)
-            except:
-                t = t[1::]
-                try:
-                    t = float(t)
-                except:
-                    dfnew = pd.DataFrame.drop(dfnew, i)
-                    print('dropped a row because temp')
-                else:
-                    dfnew.loc[i, 'Temp.'] = t
-            else:
-                dfnew.loc[i, 'Temp.'] = t
-    tempdict = {}
-    for i in dfnew.index:
-        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
-        t = dfnew.loc[i, 'Temp.']
-        if env not in tempdict:
-            tempdict[env] = []
-        if not pd.isna(t):
-            tempdict[env].append(t)
-    for i in tempdict:
-        if tempdict[i] == []:
-            tempdict[i] = np.nan
-        else:
-            tempdict[i] = np.mean(np.array(tempdict[i]))
-    for i in dfnew.index:
-        t = dfnew.loc[i, 'Temp.']
-        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
-        if pd.isna(t):
-            dfnew.loc[i, 'Temp.'] = tempdict[env]
-    #end of temp processing
+
 
 # static test processing
 statandfatigue = False
