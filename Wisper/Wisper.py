@@ -9,7 +9,7 @@ import torch
 import pandas as pd
 import DataProcessing.DPfunctions as dp
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinlossbetter'
 model, scaler = f.import_model(path)
 
 # Read the file
@@ -34,7 +34,8 @@ for j in range(340):
     Accumulated_stress = 0
     for i in range (len(counted_cycles)):
         N_Cycle =counted_cycles[i][1] # fatigue life at reference stress 
-        Stress = counted_cycles[i][0] * (340-j)# stress
+        Stress = counted_cycles[i][0] * (j)# stress
+        print(Stress)
         B = 1.69111*10**22
         data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/testdata2.csv')
         x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
@@ -51,7 +52,6 @@ for j in range(340):
         x['E'] = 30 #Young's modulus
         x['Temp.'] = 28 #Temperature
         x.drop(columns=['nr','Ncycles'],inplace=True)
-        print(x)
 
         #Normalize the data
         for i in x.columns:
@@ -65,6 +65,7 @@ for j in range(340):
         N_AI = model(x)
         N_AI = N_AI.cpu().detach().numpy()
         N_AI = np.power(10, N_AI)
+        print(N_AI)
         Accumulated_stress += N_Cycle/N_AI
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
