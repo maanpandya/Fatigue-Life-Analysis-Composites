@@ -264,7 +264,7 @@ def inv_scale(data, scaler):
     return data
 
 
-def train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+def train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test, best=True):
     # slower, but shows test loss to find over fitting and picks best model of all epochs
     from copy import deepcopy
     # extract training data
@@ -330,18 +330,19 @@ def train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_t
     plt.legend(['Training loss', 'Test loss', 'best model at ('+str(bestmodeldata[0])+', '+str(round(bestmodeldata[1], 3))+')'])
     plt.show()
     # load best model
-    model.load_state_dict(bestmodel)
+    if best:
+        model.load_state_dict(bestmodel)
     return model
 
 def spline(x, start, end):
     return -2*(end - start) * np.power(x, 3) + 3*(end - start) * np.power(x, 2) + start
-def nomial(x, start, exponent):
-    return start * np.power(1-x, exponent)
+def nomial(x, start, end, exponent=1.5):
+    return (start-end) * np.power(1-x, exponent) + end
 def logistic(x, start, end, slope=10, middle=0.5):
     y = (start - end) / (1 + np.power(np.e, -slope * ((1-x) - (1-middle))))
     return y + end
 
-def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test, best=True, noise=(0, 0), noisedistr=(10, 0.5), testloss_fn=None):
     # slower, but shows test loss to find over fitting and picks best model of all epochs
     from copy import deepcopy
     # extract training data
@@ -367,14 +368,14 @@ def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_t
     model.train()
 
     optimizer = optimizer(model.parameters(), lr=learning_rate)
+    if testloss_fn == None:
+        testloss_fn = loss_fn
 
     # Train the model
     for epoch in range(n_epochs):
         # noise generation
         x = epoch/n_epochs
-        #std = nomial(x, 1, 1.2)
-        #std = spline(x, 0.9, 0.2)
-        std = logistic(x, 1, 0.1, slope=9, middle=0.4)
+        std = logistic(x, noise[0], noise[1], slope=noisedistr[0], middle=noisedistr[1])
         noiselevels.append(std)
         bias = (torch.rand(1) * 2 - 1) * std
         ran = torch.randn(x_train.size()) * std + bias
@@ -384,10 +385,12 @@ def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_t
         # Compute the loss
         if loss_fn == PINNLoss:
             loss = loss_fn(y_pred_train, y_train, x_train)
-            testloss = loss_fn(y_pred_test, y_test, x_test)
         else:
             loss = loss_fn(y_pred_train, y_train)
-            testloss = loss_fn(y_pred_test, y_test)
+        if testloss_fn == PINNLoss:
+            testloss = testloss_fn(y_pred_test, y_test, x_test)
+        else:
+            testloss = testloss_fn(y_pred_test, y_test)
         losses.append(loss.item())
         testloss = testloss.item()
         testlosses.append(testloss)
@@ -408,23 +411,28 @@ def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_t
             print('time remaining: ' + str(int(((time.time()-t) / progress) * (100 - progress))) + 's')
     print('done in ' + str(round(time.time()-t,2)) + 's')
     plt.plot(losses)
+    legend = ['Training loss']
     plt.plot(testlosses)
-    plt.scatter(bestmodeldata[0], bestmodeldata[1], c='red')
-    plt.plot(noiselevels)
+    legend.append('Test loss')
+    if noise != (0,0):
+        plt.plot(noiselevels)
+        legend.append('Noise level')
+    if best:
+        plt.scatter(bestmodeldata[0], bestmodeldata[1], c='red')
+        legend.append('best model at ('+str(bestmodeldata[0])+', '+str(round(bestmodeldata[1], 3))+')')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('epoch = ' + str(n_epochs) + ', lr = ' + str(learning_rate))
-    plt.legend(['Training loss', 'Test loss',
-                'best model at ('+str(bestmodeldata[0])+', '+str(round(bestmodeldata[1], 3))+')',
-                'Noise level'])
+    plt.title('n_epochs = ' + str(n_epochs) + ', lr = ' + str(learning_rate))
+    plt.legend(legend)
     plt.ylim(0,1)
     plt.show()
     # load best model
-    model.load_state_dict(bestmodel)
+    if best:
+        model.load_state_dict(bestmodel)
     return model
 
 
-def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test, best=True, testloss_fn=None, noise=(0, 0), noisedistr=(10, 0.5), update_freq=1):
     # slower, but shows test loss to find over fitting and picks best model of all epochs
     from copy import deepcopy
     # extract training data
@@ -448,7 +456,7 @@ def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_r
     bestmodeldata = [0, 10]
     epoch = 0
     t = time.time()
-    n = 1
+    n = 1/update_freq
 
     # enable interactive mode
     plt.ion()
@@ -471,13 +479,13 @@ def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_r
     c = n
     model.train()
     optimizer = optimizer(model.parameters(), lr=learning_rate)
+    if testloss_fn == None:
+        testloss_fn = loss_fn
     # Train the model
     for epoch in range(n_epochs):
         # noise generation
         x = epoch/n_epochs
-        #std = nomial(x, 1, 1.2)
-        #std = spline(x, 0.9, 0.2)
-        std = logistic(x, 1, 0.13, slope=9, middle=0.4)
+        std = logistic(x, noise[0], noise[1], slope=noisedistr[0], middle=noisedistr[1])
         noiselevels.append(std)
         line3.set_xdata(list(range(epoch+1)))
         line3.set_ydata(noiselevels)
@@ -489,10 +497,12 @@ def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_r
         # Compute the loss
         if loss_fn == PINNLoss:
             loss = loss_fn(y_pred_train, y_train, x_train)
-            testloss = loss_fn(y_pred_test, y_test, x_test)
         else:
             loss = loss_fn(y_pred_train, y_train)
-            testloss = loss_fn(y_pred_test, y_test)
+        if testloss_fn == PINNLoss:
+            testloss = testloss_fn(y_pred_test, y_test, x_test)
+        else:
+            testloss = testloss_fn(y_pred_test, y_test)
         losses.append(loss.item())
         line1.set_xdata(list(range(epoch+1)))
         line1.set_ydata(losses)
@@ -526,8 +536,11 @@ def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_r
     plt.title('Progress: 100%, done in: ' + str(round(time.time()-t,2)) + 's')
     fig.canvas.draw()
     fig.canvas.flush_events()
+    plt.ioff()
     input('done in: ' + str(round(time.time()-t,2)) + 's, press enter to continue')
     plt.close(fig)
+
     # load best model
-    model.load_state_dict(bestmodel)
+    if best:
+        model.load_state_dict(bestmodel)
     return model

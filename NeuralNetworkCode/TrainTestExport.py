@@ -8,7 +8,6 @@ import function as f
 from PINNLoss import PINNLoss
 
 print('cuda available: ' + str(torch.cuda.is_available()))
-savemodel = True
 
 # random seed
 random_seed = False
@@ -31,8 +30,14 @@ act_fn = nn.Tanh()                    # fn or list of fn
 # training parameters
 n_epochs = 5000
 loss_fn = PINNLoss            # fn
+test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
+pick_best_model = True
+animate = False
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
+noisedata = (1, 0.08)              # start, end (if none, ==(0,0))
+noisedistr = (7, 0.5)              # distribution parameter(slope or exponent), -middle
+savemodel = True
 
 # data loading
 path = folder + '/' + file + '.csv'
@@ -56,10 +61,13 @@ model = model.double()
 model.to('cuda')
 
 # train
-#model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
-#model = f.train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
-#model = f.noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
-model = f.noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test)
+if not animate:
+    model = f.noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
+                                    best=pick_best_model, noise=noisedata, testloss_fn=test_loss_fn, noisedistr=noisedistr)
+else:
+    model = f.noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
+                                           best=pick_best_model, testloss_fn=test_loss_fn, noise=noisedata, noisedistr=noisedistr,
+                                           update_freq=0.5)
 # test
 f.test_model(model, scalers, x_test, y_test)
 
