@@ -53,7 +53,7 @@ for i in range (len(counted_cycles)):
 
     #Normalize the data
     for i in x.columns:
-        x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
     
     #Predict the number of cycles
     x = torch.tensor(x.values)
