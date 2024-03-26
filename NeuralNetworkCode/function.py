@@ -73,15 +73,15 @@ def create_model_2(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_fn):
 def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train):
     X = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
     X = X.cuda()
-    print(X.device)
+    #print(X.device)
     X.requires_grad = True
 
     # Extract the output data from the last column
     y = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
     y = y.cuda()
-    print(y.device)
+    #print(y.device)
 
-
+    print('Training starting...')
     losses = []
     t = time.time()
     n = 10
@@ -130,12 +130,10 @@ def test_model(model, scaler, x_test, y_test):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
-
     X_test.requires_grad = True
-
-    Y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
-    Y_test = Y_test.cuda()
     y_test_pred = model(X_test)
+
+    # create dataframe of data
     pred_eval = pd.DataFrame(y_test_pred.cpu().detach().numpy()).set_index(y_test.index)
     pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'pred_scaled'})
     pred_eval = pred_eval.join(y_test)
@@ -145,17 +143,35 @@ def test_model(model, scaler, x_test, y_test):
     pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
     pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
     pred_eval['real'] = np.power(10, pred_eval['real_log'])
-    print(pred_eval)
+
+    # print various measures of accuracy
+    print('Measures of error:')
     print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
     print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
     print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
     lMRE = np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))
-    lMRE = lMRE.replace([np.inf, -np.inf], 0)
-    print('lMRE = ' + str(np.mean(lMRE)))
-    #some values are inf, maybe outliers
+    a = 0
+    for i in lMRE.index:
+        if lMRE[i] == np.inf or lMRE[i] == -np.inf:
+            a+=1
+    if a/len(lMRE.index) > 0.1:
+        print('a lot of inf in lMRE')
+    lMRE = lMRE.replace([np.inf, -np.inf], np.nan)
+    print('lMRE = ' + str(np.nanmean(lMRE)))
     print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
+
+    # outlier detection
+    lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
+    lAE = lAE.sort_values(ascending=False)
+    lE = pred_eval['pred_log'] - pred_eval['real_log']
+    print('top 5 lAE:')
+    print(lE.loc[lAE.index[0:5:]])
+
+    # plot errors
     plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-    plt.plot([0, 10], [0, 10], color='red', linestyle='--')
+    plt.plot([-100, 100], [-100, 100], color='red', linestyle='--')
+    plt.plot([-100, 100], [-101, 99], color='darkred', linestyle='--')
+    plt.plot([-100, 100], [-99, 101], color='darkred', linestyle='--')
     plt.xlabel('y_test')
     plt.ylabel('predicted')
     plt.legend()
@@ -246,3 +262,272 @@ def inv_scale(data, scaler):
     for i in data.columns:
         data[i] = data[i] * scaler[i]['std'] + scaler[i]['mean']
     return data
+
+
+def train_validate_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+    # slower, but shows test loss to find over fitting and picks best model of all epochs
+    from copy import deepcopy
+    # extract training data
+    x_train = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
+    x_train = x_train.cuda()
+    x_train.requires_grad = True
+    y_train = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
+    y_train = y_train.cuda()
+
+    # extract test / validation data
+    x_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
+    x_test = x_test.cuda()
+    x_test.requires_grad = True
+    y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
+    y_test = y_test.cuda()
+
+    print('Training starting...')
+    losses = []
+    testlosses = []
+    t = time.time()
+    n = 10
+    model.train()
+
+    optimizer = optimizer(model.parameters(), lr=learning_rate)
+
+    # Train the model
+    for epoch in range(n_epochs):
+        # Forward pass
+        y_pred_train = model(x_train)
+        y_pred_test = model(x_test)
+        # Compute the loss
+        if loss_fn == PINNLoss:
+            loss = loss_fn(y_pred_train, y_train, x_train)
+            testloss = loss_fn(y_pred_test, y_test, x_test)
+        else:
+            loss = loss_fn(y_pred_train, y_train)
+            testloss = loss_fn(y_pred_test, y_test)
+        losses.append(loss.item())
+        testloss = testloss.item()
+        testlosses.append(testloss)
+        if testloss <= min(testlosses):
+            bestmodel = deepcopy(model.state_dict())
+            bestmodeldata = [epoch, testloss]
+        # Zero the gradients
+        optimizer.zero_grad()
+        # Backward pass
+        loss.backward()
+        # Update the weights
+        optimizer.step()
+        # show progress
+        progress = int((epoch / n_epochs) * 100)
+        if progress - n >= 0:
+            n = n + 10
+            print('training progress: '+str(progress)+'%')
+            print('time remaining: ' + str(int(((time.time()-t) / progress) * (100 - progress))) + 's')
+    print('done in ' + str(round(time.time()-t,2)))
+    plt.plot(losses)
+    plt.plot(testlosses)
+    plt.scatter(bestmodeldata[0], bestmodeldata[1])
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('epoch = ' + str(n_epochs) + ', lr = ' + str(learning_rate))
+    plt.legend(['Training loss', 'Test loss', 'best model at ('+str(bestmodeldata[0])+', '+str(round(bestmodeldata[1], 3))+')'])
+    plt.show()
+    # load best model
+    model.load_state_dict(bestmodel)
+    return model
+
+def spline(x, start, end):
+    return -2*(end - start) * np.power(x, 3) + 3*(end - start) * np.power(x, 2) + start
+def nomial(x, start, exponent):
+    return start * np.power(1-x, exponent)
+def logistic(x, start, end, slope=10, middle=0.5):
+    y = (start - end) / (1 + np.power(np.e, -slope * ((1-x) - (1-middle))))
+    return y + end
+
+def noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+    # slower, but shows test loss to find over fitting and picks best model of all epochs
+    from copy import deepcopy
+    # extract training data
+    x_train = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
+    x_train = x_train.cuda()
+    x_train.requires_grad = True
+    y_train = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
+    y_train = y_train.cuda()
+
+    # extract test / validation data
+    x_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
+    x_test = x_test.cuda()
+    x_test.requires_grad = True
+    y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
+    y_test = y_test.cuda()
+
+    print('Training starting...')
+    losses = []
+    testlosses = []
+    noiselevels = []
+    t = time.time()
+    n = 10
+    model.train()
+
+    optimizer = optimizer(model.parameters(), lr=learning_rate)
+
+    # Train the model
+    for epoch in range(n_epochs):
+        # noise generation
+        x = epoch/n_epochs
+        #std = nomial(x, 1, 1.2)
+        #std = spline(x, 0.9, 0.2)
+        std = logistic(x, 1, 0.1, slope=9, middle=0.4)
+        noiselevels.append(std)
+        bias = (torch.rand(1) * 2 - 1) * std
+        ran = torch.randn(x_train.size()) * std + bias
+        # Forward pass
+        y_pred_train = model(x_train + ran.cuda())
+        y_pred_test = model(x_test)
+        # Compute the loss
+        if loss_fn == PINNLoss:
+            loss = loss_fn(y_pred_train, y_train, x_train)
+            testloss = loss_fn(y_pred_test, y_test, x_test)
+        else:
+            loss = loss_fn(y_pred_train, y_train)
+            testloss = loss_fn(y_pred_test, y_test)
+        losses.append(loss.item())
+        testloss = testloss.item()
+        testlosses.append(testloss)
+        if testloss <= min(testlosses):
+            bestmodel = deepcopy(model.state_dict())
+            bestmodeldata = [epoch, testloss]
+        # Zero the gradients
+        optimizer.zero_grad()
+        # Backward pass
+        loss.backward()
+        # Update the weights
+        optimizer.step()
+        # show progress
+        progress = int((epoch / n_epochs) * 100)
+        if progress - n >= 0:
+            n = n + 10
+            print('training progress: '+str(progress)+'%')
+            print('time remaining: ' + str(int(((time.time()-t) / progress) * (100 - progress))) + 's')
+    print('done in ' + str(round(time.time()-t,2)) + 's')
+    plt.plot(losses)
+    plt.plot(testlosses)
+    plt.scatter(bestmodeldata[0], bestmodeldata[1], c='red')
+    plt.plot(noiselevels)
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('epoch = ' + str(n_epochs) + ', lr = ' + str(learning_rate))
+    plt.legend(['Training loss', 'Test loss',
+                'best model at ('+str(bestmodeldata[0])+', '+str(round(bestmodeldata[1], 3))+')',
+                'Noise level'])
+    plt.ylim(0,1)
+    plt.show()
+    # load best model
+    model.load_state_dict(bestmodel)
+    return model
+
+
+def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test):
+    # slower, but shows test loss to find over fitting and picks best model of all epochs
+    from copy import deepcopy
+    # extract training data
+    x_train = torch.tensor(x_train.iloc[:, :len(x_train.columns)].values)
+    x_train = x_train.cuda()
+    x_train.requires_grad = True
+    y_train = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
+    y_train = y_train.cuda()
+
+    # extract test / validation data
+    x_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
+    x_test = x_test.cuda()
+    x_test.requires_grad = True
+    y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
+    y_test = y_test.cuda()
+
+    print('Training starting...')
+    losses = []
+    testlosses = []
+    noiselevels = []
+    bestmodeldata = [0, 10]
+    epoch = 0
+    t = time.time()
+    n = 1
+
+    # enable interactive mode
+    plt.ion()
+
+    # creating subplot and figure
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    line1, = ax.plot(list(range(epoch)), losses)
+    line2, = ax.plot(list(range(epoch)), testlosses)
+    line3, = ax.plot(list(range(epoch)), noiselevels)
+    line4, = ax.plot(bestmodeldata[0], bestmodeldata[1], 'ro')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Progress: 0%, time remaining:  ...s')
+    plt.legend(['Training loss', 'Test loss','Noise level', 'Best model at ('+ str(bestmodeldata[0]) + ', ' + str(bestmodeldata[1])+ ')'])
+    plt.ylim(0, 1)
+    plt.xlim(0, n_epochs)
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    c = n
+    model.train()
+    optimizer = optimizer(model.parameters(), lr=learning_rate)
+    # Train the model
+    for epoch in range(n_epochs):
+        # noise generation
+        x = epoch/n_epochs
+        #std = nomial(x, 1, 1.2)
+        #std = spline(x, 0.9, 0.2)
+        std = logistic(x, 1, 0.13, slope=9, middle=0.4)
+        noiselevels.append(std)
+        line3.set_xdata(list(range(epoch+1)))
+        line3.set_ydata(noiselevels)
+        bias = (torch.rand(1) * 2 - 1) * std
+        ran = torch.randn(x_train.size()) * std + bias
+        # Forward pass
+        y_pred_train = model(x_train + ran.cuda())
+        y_pred_test = model(x_test)
+        # Compute the loss
+        if loss_fn == PINNLoss:
+            loss = loss_fn(y_pred_train, y_train, x_train)
+            testloss = loss_fn(y_pred_test, y_test, x_test)
+        else:
+            loss = loss_fn(y_pred_train, y_train)
+            testloss = loss_fn(y_pred_test, y_test)
+        losses.append(loss.item())
+        line1.set_xdata(list(range(epoch+1)))
+        line1.set_ydata(losses)
+        testloss = testloss.item()
+        testlosses.append(testloss)
+        line2.set_xdata(list(range(epoch+1)))
+        line2.set_ydata(testlosses)
+        if testloss < bestmodeldata[1]:
+            bestmodel = deepcopy(model.state_dict())
+            bestmodeldata = [epoch, testloss]
+            line4.set_xdata(bestmodeldata[0])
+            line4.set_ydata(bestmodeldata[1])
+        # Zero the gradients
+        optimizer.zero_grad()
+        # Backward pass
+        loss.backward()
+        # Update the weights
+        optimizer.step()
+        # show progress
+
+        elapsed = time.time() - t
+        if elapsed - c > 0:
+            c += n
+            progress = round((epoch/n_epochs) * 100, 1)
+            remaining = (elapsed / (epoch+1)) * (n_epochs - epoch)
+            plt.title('Progress: '+str(progress)+'%, time remaining: ' + str(round(remaining,2)) + 's')
+            plt.legend(['Training loss', 'Test loss', 'Noise level', 'Best model at ('+ str(bestmodeldata[0]) + ', ' + str(round(bestmodeldata[1],3))+ ')'])
+            fig.canvas.draw()
+            fig.canvas.flush_events()
+
+    plt.title('Progress: 100%, done in: ' + str(round(time.time()-t,2)) + 's')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    input('done in: ' + str(round(time.time()-t,2)) + 's, press enter to continue')
+    plt.close(fig)
+    # load best model
+    model.load_state_dict(bestmodel)
+    return model

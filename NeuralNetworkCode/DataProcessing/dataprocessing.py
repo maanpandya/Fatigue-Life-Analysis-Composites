@@ -5,7 +5,7 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = False
+saveresult = True
 tag = '3'
 
 print('initial data from ' + file)
@@ -18,7 +18,8 @@ collums_to_include = [
     'taverage', 'waverage', 'Lnominal', 'Test type',
     'Temp.', 'Fibre Volume Fraction', 'R-value1',
     'smax', 'f', 'Laminate', 'Environment', 'Lab',
-    'Eit', 'Eic', 'Cut angle ', 'Ncycles', 'area', 'Ffatigue'
+    'Eit', 'Eic', 'Cut angle ', 'Ncycles', 'area', 'Ffatigue',
+    'runout'
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
@@ -30,7 +31,8 @@ dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
 dfnew = dp.row_filter(dfnew, 'Ncycles', [0.0, 0], 'exclude')
 dp.dfinfo(dfnew)
-
+dfnew = dp.row_filter(dfnew, 'runout', ['y', 'Y'], 'exclude')
+dp.dfinfo(dfnew)
 
 # E column
 for i in dfnew.index:
@@ -86,7 +88,7 @@ for i in dfnew.index:
         dfnew.loc[i, 'Temp.'] = tempdict[env]
 #end of temp processing
 
-collums_to_exclude = ['Test type', 'Laminate', 'Eic', 'Environment', 'Lab']
+collums_to_exclude = ['Test type', 'Laminate', 'Eic', 'Environment', 'Lab', 'runout']
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
 dp.dfinfo(dfnew)
 print()
