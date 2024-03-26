@@ -37,26 +37,28 @@ for i in range (len(counted_cycles)):
     #Number of cycles predicted by AI model
     #N_AI = (Stress/(367.8))**(-1/0.078)
     data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/testdata2.csv')
-    x = pd.DataFrame(columns=data2.columns)
+    x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
     x['smax'] = Stress#Max Stress
     x['Fibre Volume Fraction'] =53.26 #Fibre Volume Fraction
-    x['Cut angle'] = 0#Cut angle
-    x['taverage'] = 6.45#Average thickness
-    x['waverage'] = 25.25#Average width
-    x['area'] = 162.86#Area
-    x['Lnominal'] = 150#Nominal length of sample
-    x['R-value1'] = -1#R-value
-    x['Ffatigue'] = 53.75#Fatigue force
-    x['f'] = 363#Frequency
-    x['E'] = 30#Young's modulus
-    x['Temp'] = 28 #Temperature
+    x['Cut angle '] = 0 #Cut angle
+    x['taverage'] = 6.45 #Average thickness
+    x['waverage'] = 25.25 #Average width
+    x['area'] = 162.86 #Area
+    x['Lnominal'] = 150 #Nominal length of sample
+    x['R-value1'] = -1 #R-value
+    x['Ffatigue'] = 53.75 #Fatigue force
+    x['f'] = 363 #Frequency
+    x['E'] = 30 #Young's modulus
+    x['Temp.'] = 28 #Temperature
+    x.drop(columns=['nr','Ncycles'],inplace=True)
 
     #Normalize the data
     for i in x.columns:
-        x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
     
     #Predict the number of cycles
     x = torch.tensor(x.values)
+    x=x.cuda()
     model.eval()
     N_AI = model(x)
     N_AI = N_AI.cpu().detach().numpy()
@@ -73,7 +75,9 @@ for j in range(340):
         Stress = counted_cycles[i][0] * Max_Force# stress
         N_AI = (Stress/(367.8))**(-1/0.078)
         Accumulated_stress += N_Cycle/N_AI
-        
+    print()    
+    print(j)
+    print
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
 plt.plot(np.log(cycles), stresses)  # Changed the order of the axes
