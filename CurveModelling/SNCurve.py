@@ -1,36 +1,30 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Read csv
-dfMain = pd.read_csv("Data/data2.csv")
+def regression(nArray, sArray):
+    #  Conduct linear regression, taking an array of fatigue life in log10 of N and Stress in MPa
+    from sklearn.linear_model import LinearRegression
 
-def separateDataFrame(dataFrame, separationList = ["R-value1"]):
+    nArray = nArray.reshape((-1,1))
+    sArray = np.log10(sArray)
+    model = LinearRegression().fit(nArray, sArray)
 
-    # separationList - Parameters to separate by, r value by default
-    # data2.csv has nr,Fibre Volume Fraction,Cut angle ,taverage,waverage,area,Lnominal,R-value1,Ffatigue,smax,Ncycles,f,E,Temp.
+    return model
+ 
+dfMain = pd.read_csv("CurveModelling/Data/data2.csv")
+from Data_processing import separateDataFrame
+dictionary = separateDataFrame(dfMain, separationList=["R-value1", "Fibre Volume Fraction"])
+R1N = np.array(dictionary["R-value1 -1.0"]["Ncycles"])
+R1S = np.array(dictionary["R-value1 -1.0"]["smax"])
+print(dictionary)
 
-    # set up dictionary with keys ("parameter" + " " + "parameterValue" ) and the list of values for that parameter and marameterValue
-    parameterDictionary = dict()
+model = regression(R1N, R1S)
+x1 = np.linspace(0,10)
+x2 = model.predict(x1.reshape(-1,1))
 
-    for parameter in separationList:  # for each parameter that needs to be separated
-
-        # Set up a list of the possible parameter values
-        parameterValues = [dataFrame[parameter][0]]  # get one starting parameter value
-        for index, row in enumerate(dataFrame[parameter]):
-            counter = 0
-            for parameterValue in parameterValues:
-                if row != parameterValue:
-                    counter += 1
-                    if counter == len(parameterValues):  # if you find that there are more parameters that don't
-                        # match than you know of
-                        parameterValues.append(row)
-
-        for parameterValue in parameterValues:  # for each parameter value
-            key = str(parameter) + " " + str(parameterValue)
-            parameterDictionary[key] = pd.DataFrame()
-            for index, row in enumerate(dataFrame[parameter]):
-                if row == parameterValue:
-                    parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index])
-
-        return parameterDictionary
+plt.plot(x1, x2)
+plt.scatter(R1N, np.log10(R1S), c="green")
+plt.scatter(dictionary["Fibre Volume Fraction 0.0"]["Ncycles"], np.log10(dictionary["Fibre Volume Fraction 0.0"]["smax"]), c="lightblue")
+plt.show()
 

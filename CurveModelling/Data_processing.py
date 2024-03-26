@@ -1,3 +1,5 @@
+import pandas as pd
+
 def separateDataFrame(dataFrame, separationList = ["R-value1"]):
 
     # separationList - Parameters to separate by, r value by default
@@ -20,10 +22,10 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
                         parameterValues.append(row)
 
         for parameterValue in parameterValues:  # for each parameter value
-            key = str(parameter) + " " + str(parameterValue)
-            parameterDictionary[key] = pd.DataFrame()
-            for index, row in enumerate(dataFrame[parameter]):
-                if row == parameterValue:
-                    parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index])
+            key = str(parameter) + " " + str(parameterValue) # create a key 
+            parameterDictionary[key] = pd.DataFrame() # create empty dataframe
+            for index, row in enumerate(dataFrame[parameter]):  # go thorugh the paramter column in the main dataframe
+                if row == parameterValue: # if you encounter the desired value
+                    parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index]) #add the row with the desired value to the output dataframe in the dictionary
 
-        return parameterDictionary
+    return parameterDictionary
