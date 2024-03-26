@@ -1,9 +1,3 @@
-import pandas as pd
-import numpy as np
-
-# Read csv
-dfMain = pd.read_csv("Data/data2.csv")
-
 def separateDataFrame(dataFrame, separationList = ["R-value1"]):
 
     # separationList - Parameters to separate by, r value by default
@@ -33,4 +27,3 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
                     parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index])
 
         return parameterDictionary
-
