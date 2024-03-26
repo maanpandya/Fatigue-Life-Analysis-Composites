@@ -1,5 +1,5 @@
 import sys
-sys.path.append('NeuralNetworkCode/DataProcessing')
+sys.path.append('NeuralNetworkCode')
 
 import numpy as np
 import rainflow 
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import function as f
 import torch
 import pandas as pd
-import DataProcessing.DPfunctions as dp 
+import DataProcessing.DPfunctions as dp
 
 path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
 model, scaler = f.import_model(path)
