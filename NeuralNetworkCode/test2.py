@@ -7,7 +7,7 @@ import DataProcessing.DPfunctions as dp
 import function as f
 from PINNLoss import PINNLoss
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/0449mse4mrenoisetrained'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/mirkodisplaytest11'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -16,7 +16,7 @@ y_test = dp.dfread(path + '/y_test.csv')
 #f.test_model(model, scaler, x_test, y_test)
 
 #sn curve
-f.sncurvetest(model,4,1,scaler)
+f.sncurvetest(model,5,1,scaler)
 
 x_train = dp.dfread(path + '/x_train.csv')
 

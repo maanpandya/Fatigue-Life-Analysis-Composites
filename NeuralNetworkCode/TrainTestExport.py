@@ -18,24 +18,24 @@ if not random_seed:
 
 # input data
 file = 'data3'
-folder = 'DataProcessing/processed'
+folder = 'NeuralNetworkCode/DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
 # model parameters
-n_hidden_layers = 5                           # int (set to zero to use len(layer_sizes)
-layer_sizes = 105                            # int or list of int
+n_hidden_layers = 10                           # int (set to zero to use len(layer_sizes)
+layer_sizes = 30                            # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 5000
+n_epochs = 2000
 loss_fn = PINNLoss            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
-pick_best_model = True
+pick_best_model = False
 animate = False
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
-noisedata = (1, 0.08)              # start, end (if none, ==(0,0))
+noisedata = (0, 0)              # start, end (if none, ==(0,0))
 noisedistr = (7, 0.5)              # distribution parameter(slope or exponent), -middle
 savemodel = True
 
@@ -77,7 +77,7 @@ if savemodel:
     if name != '':
         if name == 't':
             name = None
-        f.export_model(model, 'NNModelArchive/rev2', scalers, name=name, data=data,
+        f.export_model(model, 'NeuralNetworkCode/NNModelArchive/rev2', scalers, name=name, data=data,
                        x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
 
 

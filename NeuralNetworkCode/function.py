@@ -181,8 +181,9 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers, exportdata=False):
-    data = dp.dfread("NeuralNetworkCode/DataProcessing/processed/data2.csv")
+def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile='data2.csv', exportdata=False):
+    path = 'NeuralNetworkCode/DataProcessing/processed/' + testdatafile
+    data = dp.dfread(path)
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
