@@ -34,5 +34,3 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
 
         return parameterDictionary
 
-dictionary = separateDataFrame(dfMain)
-print(dictionary)
