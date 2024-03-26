@@ -1,18 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from Data_processing import separateDataFrame
-
-
 #Import function to find the regression courve for the given load ratio
-#Import function to find the amplitude for the given number of stress cycles and load ratio
-
-
 np.set_printoptions(precision=3)
 
 def Amplitude_finder(R, N):
     """
     This function finds the amplitude of the stress for a given load ratio, mean stress and number of cycles
     """
+    #Use function to separate take the stress amplitude and number of cycles for the given load ration from the pandas dataframe
+    #Use function to find the regression curve for the given load ratio, x axis is number of cycles and y axis is amplitude
+    #Use regression model to find the amplitude for the given number of stress cycles and load ratio
 
     #-----R = -1,
     if R == -1 and N == 10**7:
@@ -72,8 +70,8 @@ R_list = [10,
           -1,
           0.1]
 
-print(N_lines)
-print(R_list)
+print("Curves of number of cycles to failure in log:\n",np.log10(N_lines))
+print("Load ratio to be studied:\n",R_list)
 
 #------------------- Find amplitude for each load ratio
 """
@@ -91,12 +89,16 @@ for N in N_lines:
         Data_points.extend([ratio, amp, mean, N])
 
 Data_points = np.array(Data_points).reshape(len(N_lines)*len(R_list),4)
+
 print(Data_points)
 
-#Create graph with mean stress on x axis and amplitude on y axis
+#------------------- Plot CLD: mean stress on x axis and amplitude on y axis
+"""
+Separates the data points for each number of cycles to failure
+Plots a curve for each number of cycles to failure
+"""
 
-
-plt.figure()
+fig, ax = plt.subplots()
 
 #Plot the first constant life line
 amp_plot = Data_points[0:len(R_list),1]
@@ -112,9 +114,5 @@ for n in range(1,len(N_lines)):
     plt.plot(mean_plot,amp_plot)
     print(amp_plot)
 
+ax.set_ylim(bottom=0)
 plt.show()
-
-
-
-#Find the corresponding mean stress and amplitude for the given number of cycles for each axis
-
