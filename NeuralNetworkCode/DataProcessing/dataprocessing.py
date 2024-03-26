@@ -5,8 +5,8 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
-tag = '3'
+saveresult = False
+tag = 'onlystatic'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -16,10 +16,10 @@ print()
 print('DataProcessing:')
 collums_to_include = [
     'taverage', 'waverage', 'Lnominal', 'Test type',
-    'Temp.', 'Fibre Volume Fraction', 'R-value1',
-    'smax', 'f', 'Laminate', 'Environment', 'Lab',
-    'Eit', 'Eic', 'Cut angle ', 'Ncycles', 'area', 'Ffatigue',
-    'runout'
+    'Fibre Volume Fraction',
+    'smax', 'Laminate', 'Environment', 'Lab',
+    'Eit', 'Eic', 'Cut angle ', 'area', 'Fmax',
+    'runout', 'f', 'R-value1', 'Temp.', 'Ncycles'
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
@@ -28,66 +28,80 @@ dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
 dp.dfinfo(dfnew)
 dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4', 'UD5'], 'include')
 dp.dfinfo(dfnew)
-dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
-dfnew = dp.row_filter(dfnew, 'Ncycles', [0.0, 0], 'exclude')
-dp.dfinfo(dfnew)
-dfnew = dp.row_filter(dfnew, 'runout', ['y', 'Y'], 'exclude')
-dp.dfinfo(dfnew)
+if 'Ncycles' in dfnew.columns:
+    dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
+    dfnew = dp.row_filter(dfnew, 'Ncycles', [0.0, 0], 'exclude')
+    dp.dfinfo(dfnew)
+if 'runout' in dfnew.columns:
+    dfnew = dp.row_filter(dfnew, 'runout', ['y', 'Y'], 'exclude')
+    dp.dfinfo(dfnew)
 
 # E column
-for i in dfnew.index:
-    a = float(dfnew.loc[i, 'Eit'])
-    b = float(dfnew.loc[i, 'Eic'])
-    if pd.isna(a) and pd.isna(b):
-        c = np.nan
-    elif pd.isna(a) and not pd.isna(b):
-        c = b
-    elif not pd.isna(a) and pd.isna(b):
-        c = a
-    else:
-        c = (a+b)/2
-    dfnew.loc[i, 'Eit'] = c
-dfnew = dfnew.rename(columns={'Eit': 'E'})
-#dfnew = dp.cleanup(dfnew, 'E', 'avg')
-dp.dfinfo(dfnew)
+if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
+    for i in dfnew.index:
+        a = float(dfnew.loc[i, 'Eit'])
+        b = float(dfnew.loc[i, 'Eic'])
+        if pd.isna(a) and pd.isna(b):
+            c = np.nan
+        elif pd.isna(a) and not pd.isna(b):
+            c = b
+        elif not pd.isna(a) and pd.isna(b):
+            c = a
+        else:
+            c = (a+b)/2
+        dfnew.loc[i, 'Eit'] = c
+    dfnew = dfnew.rename(columns={'Eit': 'E'})
+    #dfnew = dp.cleanup(dfnew, 'E', 'avg')
+    dp.dfinfo(dfnew)
 
 #temp column
-for i in dfnew.index:
-    t = dfnew.loc[i, 'Temp.']
-    if not pd.isna(t):
-        try:
-            t = float(t)
-        except:
-            t = t[1::]
+if 'Temp.' in dfnew.columns:
+    for i in dfnew.index:
+        t = dfnew.loc[i, 'Temp.']
+        if not pd.isna(t):
             try:
                 t = float(t)
             except:
-                dfnew = pd.DataFrame.drop(dfnew, i)
-                print('dropped a row because temp')
+                t = t[1::]
+                try:
+                    t = float(t)
+                except:
+                    dfnew = pd.DataFrame.drop(dfnew, i)
+                    print('dropped a row because temp')
+                else:
+                    dfnew.loc[i, 'Temp.'] = t
             else:
                 dfnew.loc[i, 'Temp.'] = t
+    tempdict = {}
+    for i in dfnew.index:
+        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
+        t = dfnew.loc[i, 'Temp.']
+        if env not in tempdict:
+            tempdict[env] = []
+        if not pd.isna(t):
+            tempdict[env].append(t)
+    for i in tempdict:
+        if tempdict[i] == []:
+            tempdict[i] = np.nan
         else:
-            dfnew.loc[i, 'Temp.'] = t
-tempdict = {}
-for i in dfnew.index:
-    env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
-    t = dfnew.loc[i, 'Temp.']
-    if env not in tempdict:
-        tempdict[env] = []
-    if not pd.isna(t):
-        tempdict[env].append(t)
-for i in tempdict:
-    if tempdict[i] == []:
-        tempdict[i] = np.nan
-    else:
-        tempdict[i] = np.mean(np.array(tempdict[i]))
-for i in dfnew.index:
-    t = dfnew.loc[i, 'Temp.']
-    env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
-    if pd.isna(t):
-        dfnew.loc[i, 'Temp.'] = tempdict[env]
-#end of temp processing
+            tempdict[i] = np.mean(np.array(tempdict[i]))
+    for i in dfnew.index:
+        t = dfnew.loc[i, 'Temp.']
+        env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
+        if pd.isna(t):
+            dfnew.loc[i, 'Temp.'] = tempdict[env]
+    #end of temp processing
 
+# static test processing
+statandfatigue = False
+if statandfatigue:
+    for i in dfnew.index:
+        if dfnew.loc[i, 'Test type'] == 'STT' or dfnew.loc[i, 'Test type'] == 'STC':
+            dfnew.loc[i, 'R-value1'] = 1.0
+            dfnew.loc[i, 'f'] = 0.0
+
+
+# end of rvalue
 collums_to_exclude = ['Test type', 'Laminate', 'Eic', 'Environment', 'Lab', 'runout']
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
 dp.dfinfo(dfnew)
@@ -101,7 +115,8 @@ for i in dfnew.columns:
     dfnew[i] = dfnew[i].astype(dtype=float)
 
 # log of some columns
-dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
+if 'Ncycles' in dfnew.columns:
+    dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
 print()
 print('Final stats')
 print(dfnew.dtypes)
