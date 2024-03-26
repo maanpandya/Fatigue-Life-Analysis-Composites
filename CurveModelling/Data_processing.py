@@ -29,3 +29,7 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
                     parameterDictionary[key] = parameterDictionary[key]._append(dataFrame.iloc[index]) #add the row with the desired value to the output dataframe in the dictionary
 
     return parameterDictionary
+
+# dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
+# parameterDictionary = separateDataFrame(dataFrame, separationList = ["R-value1"])
+# print(parameterDictionary)

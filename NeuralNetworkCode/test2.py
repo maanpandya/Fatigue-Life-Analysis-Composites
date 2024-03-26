@@ -7,7 +7,7 @@ import DataProcessing.DPfunctions as dp
 import function as f
 from PINNLoss import PINNLoss
 
-path = 'NNModelArchive/rev2/128-256x6mre3v2'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/mirkodisplaytest11'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -16,7 +16,7 @@ y_test = dp.dfread(path + '/y_test.csv')
 #f.test_model(model, scaler, x_test, y_test)
 
 #sn curve
-#f.sncurvetest(model,5,1,scaler)
+f.sncurvetest(model,5,1,scaler)
 
 x_train = dp.dfread(path + '/x_train.csv')
 
@@ -58,7 +58,7 @@ def logistic(x, start, end, slope=10, middle=0.5):
     y = (start - end) / (1 + np.power(np.e, -slope * ((1-x) - (1-middle))))
     return y + end
 
-x = np.linspace(0, 1, 100)
+'''x = np.linspace(0, 1, 100)
 
 #plt.plot(x, nomial(x, 1, 0.5))
 #plt.plot(x, spline(x, 1, 0))
@@ -67,4 +67,4 @@ plt.plot(x, x)
 plt.plot(x, x-1)
 #plt.xlim(0,1)
 #plt.ylim(0,1)
-plt.show()
+plt.show()'''
