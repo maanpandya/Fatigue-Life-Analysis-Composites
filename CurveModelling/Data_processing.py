@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def separateDataFrameOLD(dataFrame, separationList = ["R-value1"]):
 
@@ -30,11 +31,22 @@ def separateDataFrameOLD(dataFrame, separationList = ["R-value1"]):
 
     return parameterDictionary
 
-def separateDataFrame(dataFrame, separationList = ["R-value1"]):
-    groupBy = dataFrame.groupby(separationList)
-    return [groupBy.get_group(x) for x in groupBy.groups]
+def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separationRanges = [False]):
+    # INPUT
+    #  dataFrame - dataframe on which the operation will be done
+    #  separationParameters - list of parameters by which to separate
+    #  separationRanges - list of numbers seperating the ranges and/or the booleans False when ranges shoudnt be made
+
+    parameterDictionary = dict() #create empty dictionary
+    for index, parameter in enumerate(separationParameters):
+        groupBy = dataFrame.groupby(parameter)
+        if separationRanges[index] == False:
+            parameterDictionary[parameter] = dict(zip(list(groupBy.groups.keys()),[groupBy.get_group(x) for x in groupBy.groups]))
+        else:
+            parameterDictionary[parameter] = np.split(dataFrame, separationRanges[index])
+    return parameterDictionary
 
 
-# dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
-# parameterDictionary = separateDataFrame(dataFrame, separationList = ["R-value1", "Temp."])
-# print(parameterDictionary)
+dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
+parameterDictionary = separateDataFrame(dataFrame, separationParameters = ["Temp."], separationRanges=[[0,10,50]])
+print(parameterDictionary["Temp."])
