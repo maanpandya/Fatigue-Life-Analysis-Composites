@@ -1,6 +1,6 @@
 import pandas as pd
 
-def separateDataFrame(dataFrame, separationList = ["R-value1"]):
+def separateDataFrameOLD(dataFrame, separationList = ["R-value1"]):
 
     # separationList - Parameters to separate by, r value by default
     # data2.csv has nr,Fibre Volume Fraction,Cut angle ,taverage,waverage,area,Lnominal,R-value1,Ffatigue,smax,Ncycles,f,E,Temp.
@@ -30,6 +30,11 @@ def separateDataFrame(dataFrame, separationList = ["R-value1"]):
 
     return parameterDictionary
 
+def separateDataFrame(dataFrame, separationList = ["R-value1"]):
+    groupBy = dataFrame.groupby(separationList)
+    return [groupBy.get_group(x) for x in groupBy.groups]
+
+
 # dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
-# parameterDictionary = separateDataFrame(dataFrame, separationList = ["R-value1"])
+# parameterDictionary = separateDataFrame(dataFrame, separationList = ["R-value1", "Temp."])
 # print(parameterDictionary)
