@@ -17,22 +17,22 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'data3'
-folder = 'NeuralNetworkCode/DataProcessing/processed'
+file = 'datainclstatic'
+folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
 # model parameters
-n_hidden_layers = 10                           # int (set to zero to use len(layer_sizes)
-layer_sizes = 30                            # int or list of int
+n_hidden_layers = 5                           # int (set to zero to use len(layer_sizes)
+layer_sizes = 105                            # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
 n_epochs = 2000
-loss_fn = PINNLoss            # fn
+loss_fn = nn.MSELoss()            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 pick_best_model = False
-animate = False
+animate = True
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 noisedata = (0, 0)              # start, end (if none, ==(0,0))
@@ -50,7 +50,7 @@ data = dp.dfread(path)
 traindata, testdata, scalers = dp.datasplitscale(data, test_size=test_size, exclude_columns=[])
 x_train, y_train = dp.dfxysplit(traindata, target_columns)
 x_test, y_test = dp.dfxysplit(testdata, target_columns)
-
+print(x_train)
 # create model
 if n_hidden_layers == 0:
     n_hidden_layers = len(layer_sizes)
@@ -60,6 +60,7 @@ model = f.create_model_2(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_
 model = model.double()
 model.to('cuda')
 
+model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
 # train
 if not animate:
     model = f.noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,

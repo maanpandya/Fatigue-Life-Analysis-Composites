@@ -5,8 +5,10 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = False
-tag = 'onlystatic'
+saveresult = True
+stat_ref = True
+statandfatigue = False
+tag = 'inclstatic'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -59,11 +61,12 @@ if 'Temp.' in dfnew.columns:
         env = dfnew.loc[i, 'Environment'] + dfnew.loc[i, 'Lab']
         if pd.isna(t):
             dfnew.loc[i, 'Temp.'] = tempdict[env]
-    #end of temp processing
+#end of temp processing
 
-dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
+
+dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4', 'UD5'], 'include')
 dp.dfinfo(dfnew)
-dfnew = dp.row_filter(dfnew, 'Laminate', ['MD2'], 'include')
+
 dp.dfinfo(dfnew)
 if 'Ncycles' in dfnew.columns:
     dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
@@ -72,6 +75,7 @@ if 'Ncycles' in dfnew.columns:
 if 'runout' in dfnew.columns:
     dfnew = dp.row_filter(dfnew, 'runout', ['y', 'Y'], 'exclude')
     dp.dfinfo(dfnew)
+
 
 # E column
 if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
@@ -91,30 +95,36 @@ if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
     #dfnew = dp.cleanup(dfnew, 'E', 'avg')
     dp.dfinfo(dfnew)
 
+if stat_ref:
+    stat_comp_ref = dp.row_filter(dfnew, 'Test type', ['STC'], 'include')
+    stat_tens_ref = dp.row_filter(dfnew, 'Test type', ['STT'], 'include')
+dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
 
+# static+ fatigue test processing
 
-# static test processing
-statandfatigue = False
 if statandfatigue:
     for i in dfnew.index:
         if dfnew.loc[i, 'Test type'] == 'STT' or dfnew.loc[i, 'Test type'] == 'STC':
             dfnew.loc[i, 'R-value1'] = 1.0
             dfnew.loc[i, 'f'] = 0.0
+# end of stat+fatigue
 
-
-# end of rvalue
 collums_to_exclude = ['Test type', 'Laminate', 'Eic', 'Environment', 'Lab', 'runout']
+dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
+dp.dfinfo(dfnew)
+if stat_ref:
+    extra_excl = ['runout', 'f', 'R-value1', 'Temp.', 'Ncycles']
+    stat_comp_ref = dp.big_cleanup(stat_comp_ref, 'exclude_nan', exclude_cols=collums_to_exclude + extra_excl)
+    stat_tens_ref = dp.big_cleanup(stat_tens_ref, 'exclude_nan', exclude_cols=collums_to_exclude + extra_excl)
+    col_to_compare = ['taverage', 'waverage', 'Lnominal', 'Fibre Volume Fraction', 'Cut angle ', 'Laminate']
+    tens_str = dp.find_similar(dfnew, stat_tens_ref, col_to_compare, col_to_return=['Fmax'], max_error_percent=5)
+    comp_str = dp.find_similar(dfnew, stat_comp_ref, col_to_compare, col_to_return=['Fmax'], max_error_percent=5)
+    dfnew['tens'] = tens_str['Fmax']
+    dfnew['comp'] = comp_str['Fmax']
+
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
 dp.dfinfo(dfnew)
-print()
-print('Final cleanup')
-for i in dfnew.columns:
-    b = len(dfnew.index)
-    dfnew = dp.cleanup(dfnew, i, 'exclude')
-    if len(dfnew.index) / b < 1:
-        print(i + ': ' + str(b - len(dfnew.index)) + '/' + str(b) + ' removed')
-    dfnew[i] = dfnew[i].astype(dtype=float)
-
+dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
 # log of some columns
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])

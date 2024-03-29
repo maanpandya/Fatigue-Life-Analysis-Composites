@@ -120,3 +120,73 @@ def dfxysplit(dataframe, y_columns=[]):
     x = dataframe.drop(columns=y_columns)
     y = dataframe[y_columns]
     return x, y
+
+def big_cleanup(dataframe, mode='exclude', exclude_cols=[]):
+    print('big cleanup')
+    for i in dataframe.columns:
+        if i not in exclude_cols:
+            b = len(dataframe.index)
+            dataframe = cleanup(dataframe, i, mode)
+            if len(dataframe.index) / b < 1:
+                print(i + ': ' + str(b - len(dataframe.index)) + '/' + str(b) + ' removed')
+            dataframe[i] = dataframe[i].astype(dtype=float)
+    return dataframe
+
+
+def find_similar(df1, df2, col_to_compare, col_to_return=[], max_error_percent=1):
+    # find similar rows in df2 for every row in df1, only looking at col_to_compare, and returning a dataframe with
+    # same index as df1 with data from col to return, if col_to_return is empty, return list of similar indexes
+    returnindex = False
+    if col_to_return == []:
+        col_to_return.append('indexlists')
+        returnindex = True
+    df_return = pd.DataFrame(columns=col_to_return, index=df1.index)
+    err = max_error_percent / 100
+    simlstsizes = []
+    for i in df1.index:
+        row1 = np.array(df1.loc[i].loc[col_to_compare])
+        sim_lst = []
+        err_lst = []
+        for j in df2.index:
+            is_sim = True
+            totcurerr = 0
+            row2 = np.array(df2.loc[j].loc[col_to_compare])
+            for k in range(len(row1)):
+                #print(k, ' - ', type(row1[k]))
+                val1 = row1[k]
+                val2 = row2[k]
+                if type(row1[k]) == np.float64:
+                    if row1[k] == 0:
+                        if row1[k] != row2[k]:
+                            is_sim = False
+                            break
+                    else:
+                        curr_err = np.abs((row2[k] - row1[k]) / row1[k])
+                        if curr_err > err:
+                            is_sim = False
+                            break
+                        else:
+                            totcurerr += curr_err
+                else:
+                    if row1[k] != row2[k]:
+                        is_sim = False
+                        break
+            if is_sim:
+                sim_lst.append(j)
+                err_lst.append(totcurerr)
+
+        if returnindex and sim_lst !=[]:
+            df_return.loc[i, 'indexlists'] = sim_lst
+        elif len(sim_lst) >= 1:
+            simlstsizes.append(len(sim_lst))
+            m = np.argmin(np.array(err_lst))
+            for l in col_to_return:
+                df_return.loc[i, l] = df2.loc[sim_lst[m], l]
+    print('similar result:' + str(np.mean(np.array(simlstsizes))))
+    dfinfo(df_return.dropna())
+    return df_return
+
+
+
+
+

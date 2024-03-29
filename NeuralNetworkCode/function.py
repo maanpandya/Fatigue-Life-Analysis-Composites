@@ -182,7 +182,7 @@ def test_model(model, scaler, x_test, y_test):
     plt.show()
 
 def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile='data2.csv', exportdata=False):
-    path = 'NeuralNetworkCode/DataProcessing/processed/' + testdatafile
+    path = 'DataProcessing/processed/' + testdatafile
     data = dp.dfread(path)
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
@@ -459,7 +459,7 @@ def noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_r
     losses = []
     testlosses = []
     noiselevels = []
-    bestmodeldata = [0, 10]
+    bestmodeldata = [0, 1000]
     epoch = 0
     t = time.time()
     n = 1/update_freq
