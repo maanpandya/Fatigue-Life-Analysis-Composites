@@ -17,7 +17,7 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'datainclstatic'
+file = 'data3'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
@@ -28,29 +28,26 @@ layer_sizes = 105                            # int or list of int
 act_fn = nn.Tanh()                    # fn or list of fn
 
 # training parameters
-n_epochs = 2000
+savemodel = False
+n_epochs = 5000
 loss_fn = nn.MSELoss()            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
-pick_best_model = False
-animate = True
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
-noisedata = (0, 0)              # start, end (if none, ==(0,0))
-noisedistr = (7, 0.5)              # distribution parameter(slope or exponent), -middle
-savemodel = True
+noise_fn = f.nomial(1,0, 2)                 #class with a fn(self, x) function that can use floats or arrays
+validate = True
+pick_best_model = True
+animate = True
+update_freq = 2
 
 # data loading
 path = folder + '/' + file + '.csv'
 data = dp.dfread(path)
 
-# data changes
-#data = dp.col_filter(data, ['Temp.'], 'exclude')
-
 # data splits
 traindata, testdata, scalers = dp.datasplitscale(data, test_size=test_size, exclude_columns=[])
 x_train, y_train = dp.dfxysplit(traindata, target_columns)
 x_test, y_test = dp.dfxysplit(testdata, target_columns)
-print(x_train)
 # create model
 if n_hidden_layers == 0:
     n_hidden_layers = len(layer_sizes)
@@ -60,15 +57,10 @@ model = f.create_model_2(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_
 model = model.double()
 model.to('cuda')
 
-model = f.train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train)
 # train
-if not animate:
-    model = f.noise_train_validate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
-                                    best=pick_best_model, noise=noisedata, testloss_fn=test_loss_fn, noisedistr=noisedistr)
-else:
-    model = f.noise_train_validate_animate(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
-                                           best=pick_best_model, testloss_fn=test_loss_fn, noise=noisedata, noisedistr=noisedistr,
-                                           update_freq=0.5)
+model = f.train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
+                      best=pick_best_model, testloss_fn=test_loss_fn, noise_fn=noise_fn,
+                      update_freq=update_freq, animate=animate, force_no_test=(not validate))
 # test
 f.test_model(model, scalers, x_test, y_test)
 
