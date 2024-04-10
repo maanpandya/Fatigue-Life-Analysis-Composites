@@ -8,7 +8,8 @@ file = 'Data/optimatforpy.csv'
 saveresult = True
 stat_ref = True
 statandfatigue = False
-tag = 'inclstatic'
+no_constant_cols = True
+tag = '4'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -128,6 +129,9 @@ dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
 # log of some columns
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
+# random changes
+if no_constant_cols:
+    dfnew = dp.remove_constant_cols(dfnew)
 print()
 print('Final stats')
 print(dfnew.dtypes)
@@ -140,7 +144,7 @@ name = name + tag + '.csv'
 
 print()
 if saveresult:
-    pd.DataFrame.to_csv(dfnew, 'processed\\' + name)
+    dfnew.to_csv('processed\\' + name)
     print('File saved as: ' + name)
 else:
     print('results not saved')

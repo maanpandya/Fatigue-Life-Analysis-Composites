@@ -5,7 +5,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import DataProcessing.DPfunctions as dp
 import function as f
-from PINNLoss import PINNLoss
+from customloss import PINNLoss
 
 name = '128-256x6mre3v2'
 folder = 'NNModelArchive/rev2'

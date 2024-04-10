@@ -4,7 +4,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from PINNLoss import PINNLoss
+from customloss import PINNLoss
 import DataProcessing.DPfunctions as dp
 import os
 import pickle
@@ -59,6 +59,37 @@ def create_model_2(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_fn):
     for i in range(len(layer_sizes) - 1):
         layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
         layers.append(act_fn[i + 1])
+
+    # Add output layer
+    layers.append(nn.Linear(layer_sizes[-1], n_outputs))
+
+    # Combine all layers into a sequential model
+    model = nn.Sequential(*layers)
+
+    return model
+
+
+def create_model_final(n_inputs, layer_sizes, n_outputs, n_hidden_layers, act_fn, dropout_prob=0.0):
+    if type(layer_sizes) != list:
+        layer_sizes = n_hidden_layers * [layer_sizes]
+    if type(act_fn) != list:
+        act_fn = n_hidden_layers * [act_fn]
+
+    # Define a list to hold the layers
+    layers = []
+
+    # Add input layer
+    layers.append(nn.Linear(n_inputs, layer_sizes[0]))
+    layers.append(act_fn[0])
+    if dropout_prob > 0.0:
+        layers.append(nn.Dropout(dropout_prob))
+
+    # Add hidden layers
+    for i in range(len(layer_sizes) - 1):
+        layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
+        layers.append(act_fn[i + 1])
+        if dropout_prob > 0.0:
+            layers.append(nn.Dropout(dropout_prob))
 
     # Add output layer
     layers.append(nn.Linear(layer_sizes[-1], n_outputs))
@@ -268,14 +299,31 @@ def inv_scale(data, scaler):
         data[i] = data[i] * scaler[i]['std'] + scaler[i]['mean']
     return data
 
-class spline:
+class fn_01:
+    def __repr__(s):
+        x = np.linspace(0, 1, 1000)
+        plt.plot(x, s.fn(x))
+        plt.xlim(0,1)
+        plt.ylim(0,1)
+        plt.show(block=False)
+        plt.pause(3)
+        return 'Plotted function...'
+
+class linear(fn_01):
+    def __init__(s, start=1, end=0):
+        s.b = start
+        s.a = end - start
+    def fn(s, x):
+        return s.a * x + s.b
+
+class spline(fn_01):
     def __init__(s, start=1, end=0):
         s.start=start
         s.end=end
     def fn(s,x):
         return -2 * (s.end - s.start) * np.power(x, 3) + 3 * (s.end - s.start) * np.power(x, 2) + s.start
 
-class nomial:
+class nomial(fn_01):
     def __init__(s, start=1, end=0, exponent=2):
         s.start=start - end
         s.end=end
@@ -283,7 +331,7 @@ class nomial:
     def fn(s, x):
         return s.end + s.start * np.power(1-x, s.exp)
 
-class logistic:
+class logistic(fn_01):
     def __init__(s, start=1, end=0, slope=10, middle=0.5):
         s.target_range = [start, end]
         s.m = 1 - middle
@@ -297,10 +345,37 @@ class logistic:
         y = y * (s.target_range[0] - s.target_range[1]) + s.target_range[1]
         return y
 
+class n_to_x(fn_01):
+    def __init__(self, base, xfactor):
+        self.a = xfactor
+        self.b = base
+    def fn(self, x):
+        return self.a * x * np.power(self.b, x * self.a)
+
+class wave(fn_01):
+    def __init__(s, amp=0.5, min=0, freq=0.5):
+        s.amp = amp
+        s.b = min
+        s.f = freq
+        s.shift = -0.25 / freq
+    def fn(s, x):
+        return s.amp * np.sin((x - s.shift)*s.f*2*np.pi) + s.amp + s.b
+
+class variable_top_wave(fn_01):
+    def __init__(s, topfn=linear(1,0), min=0, freq=10):
+        s.ampfn = topfn
+        s.b = min
+        s.f = freq
+        s.shift = -0.25 / freq
+    def fn(s, x):
+        amp = s.ampfn.fn(x) / 2 - s.b/2
+        return amp * np.sin((x - s.shift)*s.f*2*np.pi) + amp + s.b
+
+
 
 def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train,
                 x_test=None, y_test=None,
-                best=True, testloss_fn=None, noise_fn=None,
+                best=True, testloss_fn=None, noise_fn=None, anti_overfit=False,
                 update_freq=1, animate=False, force_no_test=False):
 
     from copy import deepcopy
@@ -324,6 +399,10 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     x_train.requires_grad = True
     y_train = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
     y_train = y_train.cuda()
+    # init some noise variables
+    if noise:
+        x_train_size = x_train.size()
+        y_train_size = y_train.size()
 
     # extract test / validation data
     if tst:
@@ -367,7 +446,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         plt.ylabel('Loss')
         plt.title('Progress: 0%, time remaining:  ...s')
         plt.legend(legend)
-        plt.ylim(0, 1)
+        plt.ylim(0, 2)
         plt.xlim(0, n_epochs)
         fig.canvas.draw()
         fig.canvas.flush_events()
@@ -381,10 +460,17 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         if noise:
             x = epoch/n_epochs
             std = noise_fn.fn(x)
+            if epoch > 2 and anti_overfit:
+                running_mean_loss = np.mean(losses[-min(epoch, 100):-1])
+                running_mean_testloss = np.mean(testlosses[-min(epoch, 100):-1])
+                p = 1
+                a = 1
+                overfit = np.power(max((running_mean_testloss / running_mean_loss) * a, 1), p) - 1
+                std = std + overfit
             noiselevels.append(std)
-            bias = (torch.rand(1) * 2 - 1) * std
-            ran = torch.randn(x_train.size()) * std + bias
-            x_train_temp = x_train + ran.cuda()
+            biasx = (torch.rand(1) * 2 - 1) * std
+            ranx = torch.randn(x_train_size) * std + biasx
+            x_train_temp = x_train + ranx.cuda()
         else:
             x_train_temp = x_train
         # Forward pass and compute the loss
@@ -440,9 +526,8 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
                 plt.legend(legend)
                 fig.canvas.draw()
                 fig.canvas.flush_events()
-            else:
-                msg = 'Progress: ' + str(progress) + '%, time remaining: ' + str(round(remaining, 2)) + 's'
-                print('\r'+msg, end='                             ')
+            msg = 'Progress: ' + str(progress) + '%, time remaining: ' + str(round(remaining, 2)) + 's'
+            print('\r'+msg, end='                             ')
 
     tot_time = round(time.time() - t, 2)
     print()
@@ -451,7 +536,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         plt.title('Progress: 100%, done in: ' + str(tot_time) + 's')
         fig.canvas.draw()
         fig.canvas.flush_events()
-        plt.pause(3)
+        plt.pause(1)
         plt.close(fig)
         plt.ioff()
     else:
@@ -470,7 +555,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         plt.ylabel('Loss')
         plt.title('n_epochs = ' + str(n_epochs) + ', lr = ' + str(learning_rate))
         plt.legend(legend)
-        plt.ylim(0, 1)
+        plt.ylim(0, 2)
         plt.show()
     # load best model
     if best:

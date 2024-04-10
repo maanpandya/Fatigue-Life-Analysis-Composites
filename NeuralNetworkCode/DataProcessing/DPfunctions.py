@@ -100,6 +100,9 @@ def datasplitscale(dataframe, test_size=0 , exclude_columns=[]):
         if i not in exclude_columns:
             mean = np.mean(dftrain[i])
             std = np.std(dftrain[i])
+            if std == 0.0 or std == 0:
+                std = 1
+                print('std of col', i, 'is 0, with mean', mean, 'whole column will be zero')
             dftrain[i] = (dftrain[i] - mean) / std
             dftest[i] = (dftest[i] - mean) / std
         else:
@@ -186,7 +189,16 @@ def find_similar(df1, df2, col_to_compare, col_to_return=[], max_error_percent=1
     dfinfo(df_return.dropna())
     return df_return
 
-
+def remove_constant_cols(dataframe):
+    remove = []
+    for i in dataframe.columns:
+        std = np.std(dataframe[i])
+        mean = np.mean(dataframe[i])
+        if std == 0:
+            print('col', i, 'has constant value of', mean, 'and will be removed')
+            remove.append(i)
+    dataframe = col_filter(dataframe, remove, 'exclude')
+    return dataframe
 
 
 

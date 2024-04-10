@@ -4,7 +4,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from PINNLoss import PINNLoss
+from customloss import PINNLoss
 import DataProcessing.DPfunctions as dp
 import os
 import pickle
