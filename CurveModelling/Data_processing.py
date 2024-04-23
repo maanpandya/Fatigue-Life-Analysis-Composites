@@ -57,7 +57,7 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
             groupBy = dataFrame.groupby(parameter) # create groupby object
             parameterDictionary[parameter] = dict(zip(list(groupBy.groups.keys()),[groupBy.get_group(x) for x in groupBy.groups])) 
         else:
-            # groupBy = dataFrame.groupby(pd.cut(dataFrame[parameter], separationRanges[index])) Other method, broken
+            # groupBy = dataFrame.groupby(pd.cut(dataFrame[parameter], separationRanges[index])) Other method, kinda works
             # parameterDictionary[parameter] = dict(zip(["a","b","c"],[groupBy.get_group(x) for x in groupBy.groups])) 
             separationRanges[index].sort() # sort list in case it's not ascending
             for separationIndex in range(len(separationRanges[index])): # go through each bound

@@ -3,7 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def regression(nArray, sArray):
-    #  Conduct linear regression, taking an array of fatigue life in log10 of N and Stress in MPa
+    """
+    Conduct linear regression, taking an array of fatigue life in log10 of N and Stress in MPa
+    INPUT \n
+    
+    """
+     
     from sklearn.linear_model import LinearRegression
 
     nArray = nArray.reshape((-1,1))
