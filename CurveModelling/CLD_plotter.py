@@ -4,13 +4,20 @@ from Data_processing import separateDataFrame
 #Import function to find the regression courve for the given load ratio
 np.set_printoptions(precision=3)
 
-def Amplitude_finder(R, N):
+
+
+
+
+
+
+def Amplitude_finder(R, N, PINN = "False"):
     """
     This function finds the amplitude of the stress for a given load ratio, mean stress and number of cycles
     """
     #Use function to separate take the stress amplitude and number of cycles for the given load ration from the pandas dataframe
     #Use function to find the regression curve for the given load ratio, x axis is number of cycles and y axis is amplitude
     #Use regression model to find the amplitude for the given number of stress cycles and load ratio
+
 
     #-----R = -1,
     if R == -1 and N == 10**7:
