@@ -19,13 +19,13 @@ if not random_seed:
 
 # input data
 file = 'datainclstatic'
-folder = 'DataProcessing/processed'
+folder = 'NeuralNetworkCode/DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
 # model parameters
-n_hidden_layers = 6                           # int (set to zero to use len(layer_sizes)
-layer_sizes = 90                           # int or list of int
+n_hidden_layers = 6                         # int (set to zero to use len(layer_sizes)
+layer_sizes = 60                           # int or list of int
 act_fn = nn.Tanh()         # fn or list of fn
 dropout_prob = 0.0
 
@@ -34,7 +34,7 @@ savemodel = True
 n_epochs = 16000
 loss_fn = nn.MSELoss()            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
-learning_rate = 0.0001
+learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
 freq = 1.2 #/1000 epchs
 incr = 0.07 #/1000 epoch
@@ -42,7 +42,7 @@ start = 0.6
 noise_fn = f.variable_top_wave(topfn=f.linear(start,start+incr*n_epochs/1000),min=0.05, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
-animate = False
+animate = True
 update_freq = 2
 
 # data loading
