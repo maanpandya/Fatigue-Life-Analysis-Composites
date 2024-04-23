@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import function as f
 import DataProcessing.DPfunctions as dp
-from PINNLoss import PINNLoss
+from customloss import PINNLoss
 
 #Get the data to test the model
 base = pd.read_csv("DataProcessing/processed/testdata2.csv")

@@ -1,0 +1,32 @@
+file = 'datainclstatic'
+folder = 'DataProcessing/processed'
+target_columns = ['Ncycles']            # max of 1 output
+test_size = 0.3
+
+# model parameters
+n_hidden_layers = 5                           # int (set to zero to use len(layer_sizes)
+layer_sizes = 90                            # int or list of int
+act_fn = nn.Tanh()                    # fn or list of fn
+
+# training parameters
+savemodel = True
+n_epochs = 15000
+loss_fn = nn.MSELoss()            # fn
+test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
+learning_rate = 0.0001
+optimizer = torch.optim.Adam            # fn
+noise_fn = f.linear(0,0)                 #class with a fn(self, x) function that can use floats or arrays
+validate = True                     # run validation with the test date set, required to pick best model based on validation
+pick_best_model = True
+animate = True
+update_freq = 2
+
+functions file:
+std = noise_fn.fn(x)
+            if epoch > 2:
+                running_mean_loss = np.mean(losses[-min(epoch, 100):-1])
+                running_mean_testloss = np.mean(testlosses[-min(epoch, 100):-1])
+                p = 1
+                a = 1
+                overfit = np.power(max((running_mean_testloss / running_mean_loss) * a, 1), p) - 1
+                std = std + overfit

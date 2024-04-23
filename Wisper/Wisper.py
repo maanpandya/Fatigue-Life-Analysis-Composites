@@ -9,7 +9,7 @@ import torch
 import pandas as pd
 import DataProcessing.DPfunctions as dp
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinlossbetter'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/mirkodisplaytest11'
 model, scaler = f.import_model(path)
 
 # Read the file
@@ -22,77 +22,90 @@ normalized_array = array / np.max(array)
 
 # Count cycles
 counted_cycles = rainflow.count_cycles(normalized_array)
-
 # Calculate the accumulated damage
-Max_Force = 330 # Mpa
-
-print(counted_cycles)
+Max_Force = 400 # Mpa
 
 stresses = []
 cycles = []
 data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/testdata2.csv')
 x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
-x['Fibre Volume Fraction'] =53.26 #Fibre Volume Fraction
+x['Fibre Volume Fraction'] =54.31 #Fibre Volume Fraction
 x['Cut angle '] = 0 #Cut angle
-x['taverage'] = 6.45 #Average thickness
-x['waverage'] = 25.25 #Average width
-x['area'] = 162.86 #Area
+x['taverage'] = 3.55 #Average thickness
+x['waverage'] = 24.88 #Average width
+x['area'] = 88.06 #Area
 x['Lnominal'] = 150 #Nominal length of sample
-x['R-value1'] = -1 #R-value
-x['Ffatigue'] = 53.75 #Fatigue force
+#x['R-value1'] = -1 #R-value
+x['Ffatigue'] = 33.55 #Fatigue force
 x['f'] = 3.63 #Frequency
-x['E'] = 30 #Young's modulus
+x['E'] = 42 #Young's modulus
 x['Temp.'] = 28 #Temperature
 x.drop(columns=['nr','Ncycles'],inplace=True)
 
 #Normalize the data except for stress
 for i in x.columns:
-    if i != 'smax':
+    if i != 'smax' and i != 'R-value1':
         x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
 
-for j in range(340):
-    Accumulated_stress = 0
-    for i in range (len(counted_cycles)):
-        N_Cycle =counted_cycles[i][1] # fatigue life at reference stress 
-        Stress = counted_cycles[i][0] * (j)# stress
-        print(Stress)
-        B = 1.69111*10**22
-        print(x)
-        x['smax'] = Stress #Max Stress
+count_2 = 0
+rng_list = []
+R_list = []
+count_dict = {}
 
+for rng, mean, count, i_start, i_end in rainflow.extract_cycles(normalized_array):
+    count_2 += 1 
+    rng_list.append(rng)
+    R = (mean - rng) / (mean + rng)
+    R_list.append(R)
+
+R_counted = []
+Rng_counted = []
+n_times_apeared = []
+for i in range(1000):
+    n_times_apeared.append(0)
+appered = 0 
+j = 0
+for i in range(len(rng_list)):
+    appered = 0
+    for j in range(len(R_counted)):
+        if rng_list[i] == Rng_counted[j] and R_list[i] == R_counted[j] and appered == 0:
+            n_times_apeared[j] = n_times_apeared[j] +1
+            appered = 1
+    if appered == 0:
+        R_counted.append(R_list[i])
+        n_times_apeared[j] = n_times_apeared[j] +1
+        Rng_counted.append(rng_list[i])
+
+print(R_counted)
+print(n_times_apeared)
+
+
+
+
+for j in range(0, 500):
+    Accumulated_stress = 0
+    for i in range(len(R_counted)):
+        N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
+        x['smax'] = Rng_counted[i]*j# stress
+        x['R-value1'] = R_counted[i]
         #Normalize the data for smax
         x['smax'] = (x['smax'] - scaler['smax']['mean']) / scaler['smax']['std']
-
+        x['R-value1'] = (x['R-value1'] - scaler['R-value1']['mean']) / scaler['R-value1']["std"]
         #Predict the number of cycles
         xtest = torch.tensor(x.values)
-
         xtest=xtest.cuda()
         N_AI = model(xtest)
         N_AI = N_AI.cpu().detach().numpy()
-        print(N_AI)
-        N_AI = np.power(10, N_AI)
-        print(N_AI)
-        Accumulated_stress += N_Cycle/N_AI
-    
+        N_AI = N_AI*scaler["Ncycles"]["std"]+scaler["Ncycles"]["mean"]
+        N_AI1 = 10**N_AI[0][0]
+        #N_AI1 = (Stress/(367.8))**(-1/0.078)
+        Accumulated_stress += N_Cycle/N_AI1
+    print(j)
+    print(1/Accumulated_stress)
+
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
-plt.plot(np.log(cycles), stresses)  # Changed the order of the axes
-plt.xlabel('N_AI')  # Updated the x-axis label
-plt.ylabel('Stress')  # Updated the y-axis label
-plt.title('N_AI vs Stress')
+plt.plot(np.log(cycles), stresses)
 plt.show()
-
-
-
-# Calculate N_AI vs stress
-stress_values = [counted_cycles[i][0] * Max_Force for i in range(len(counted_cycles))]
-N_AI_values = [(Stress / 624.49) ** (-1 / 0.088) for Stress in stress_values]
-
-# Plot N_AI vs stress
-plt.plot(N_AI_values, stress_values)  # Changed the order of the axes
-plt.xlabel('N_AI')  # Updated the x-axis label
-plt.ylabel('Stress')  # Updated the y-axis label
-plt.title('N_AI vs Stress')
-plt.show()
-
+  # Changed the order of the axes
 # Sum up the damage - according to Miner's rule, failure occurs when this sum exceeds 1
