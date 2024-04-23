@@ -31,8 +31,8 @@ act_fn = nn.Tanh()                    # fn or list of fn
 n_epochs = 2000
 loss_fn = PINNLoss            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
-pick_best_model = False
-animate = False
+pick_best_model = True
+animate = True
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 noisedata = (0, 0)              # start, end (if none, ==(0,0))
