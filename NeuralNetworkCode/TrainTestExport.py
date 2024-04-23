@@ -31,7 +31,7 @@ dropout_prob = 0.0
 
 # training parameters
 savemodel = True
-n_epochs = 16000
+n_epochs = 10000
 loss_fn = nn.MSELoss()            # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.0001
@@ -65,10 +65,9 @@ model = f.create_model_final(n_inputs, layer_sizes, n_outputs, n_hidden_layers, 
 model = model.double()
 model.to('cuda')
 
-
 # train
 model = f.train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
-                      best=pick_best_model, testloss_fn=test_loss_fn, noise_fn=noise_fn,
+                      best=pick_best_model, testloss_fn=test_loss_fn, noise_fn=noise_fn,  anti_overfit=False,
                       update_freq=update_freq, animate=animate, force_no_test=(not validate))
 # test
 f.test_model(model, scalers, x_test, y_test)
