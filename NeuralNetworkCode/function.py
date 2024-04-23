@@ -211,9 +211,8 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile='data2.csv', exportdata=False):
-    path = 'DataProcessing/processed/' + testdatafile
-    data = dp.dfread(path)
+def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportdata=False):
+    data = testdatafile
     data = data[dataindex:dataindex+1]
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
