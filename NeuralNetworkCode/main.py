@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 import function as f
 import DataProcessing.DPfunctions as dp
-import PINNLoss
+import customloss
 print(torch.cuda.is_available())
 
 # Load the data
