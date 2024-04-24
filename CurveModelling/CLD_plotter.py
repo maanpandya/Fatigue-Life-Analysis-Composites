@@ -5,11 +5,6 @@ from Data_processing import separateDataFrame
 np.set_printoptions(precision=3)
 
 
-
-
-
-
-
 def Amplitude_finder(R, N, PINN = "False"):
     """
     This function finds the amplitude of the stress for a given load ratio, mean stress and number of cycles
