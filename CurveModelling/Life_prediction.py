@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from Data_processing import separateDataFrame
+from SNCurve import regression
+np.set_printoptions(precision=4)
 #from SNCurve import SN_models
 
 """
@@ -21,23 +23,31 @@ Output:
 Fatigue life for the given stress amplitude and mean stress
 """
 
-#### IMPUT
 
-target_stress_amplitude = 100
-target_mean_stress = 50
+def convert_to_mean_stress(amp,R):
+    S_max = amp*2/(1-R)
+    S_min = S_max*R
+    Mean = (S_max + S_min)/2
+    
+    return Mean
 
-#####
-
-
-def Load_R_line_creator(model,N_to_connect):
+def Slope_R_line_creator(model,R,N_to_connect):
     intersect = 0
-    slope = model(N_to_connect)/N_to_connect
+    N_to_connect = np.array(N_to_connect).reshape(-1, 1)
+    amp = 10**(float(model.predict(N_to_connect)))
+    Mean = convert_to_mean_stress(amp,R)
+
+    if Mean == 0:
+        slope = 10**8
+    
+    else:
+        slope = amp/Mean
 
     return slope,intersect
 
-def R_line_visualizer(R_slopes_coeff,R_values):
-    fig, ax = plt.subplots()
+def R_line_visualizer(R_slopes_coeff,R_values,ax):
 
+    i = 0
     for slope in R_slopes_coeff:
         if slope[0] >= 0:
             x = np.linspace(0,600,2)
@@ -48,46 +58,112 @@ def R_line_visualizer(R_slopes_coeff,R_values):
         y = slope[0]*x + slope[1]
 
         plt.plot(x, y, label=f"R = {R_values[i]}")
+        i += 1
 
-    plt.show()
+    ax.set_ylim(0, 300)
     return
 
 
-#------------------- Split the database into dictionaries by R values and store which R values are available
-dataframe = pd.read_csv("data2.csv")
-separateDataFrame(dataframe, separationList = ["R-value1"])
+#################### Data Processing (Jan tasks)
 
+#Create a dataframe out of the csv file
+dataframe = pd.read_csv("CurveModelling/Data/data2.csv")
+
+#Find which R values are available
+R_values = list(dataframe.groupby("R-value1").groups.keys())
+print("R values available: ", R_values)
+
+#Separate the dataframe by R values and range of temperature
+seperatedDataFrame = separateDataFrame(dataframe, separationList = ["R-value1"])
+
+#Create a list of SN models for each R value and the selected temperature range
+SN_models = []
+for df in seperatedDataFrame:
+    SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
+
+print("Number of regression models available: ", len(SN_models))
 
 #------------------- Create the slopes and intersects for each R value to define the R lines
 
-
 #Define intersection point for the slopes
 N_to_connect = 10**3
+print("\nSlopes will be created in tersection the number of cycles to failure: ", N_to_connect)
 
 #Create a list of slopes and intersects for each R value
 R_slopes_coeff = []
 
-#Add slope 0 
-R_slopes_coeff.extend([0,0])
-
-for R in range(len(SN_models)):
-    slope, intersect = Load_R_line_creator(SN_models[i])
-    R_slopes_coeff.extend([slope,intersect])
-
-#Add slope 0 
-R_slopes_coeff.extend([0,0])
+for m in range(len(SN_models)):
+    slope, intersect = Slope_R_line_creator(SN_models[m],R_values[m],np.log10(N_to_connect))
+    R_slopes_coeff.append([slope,intersect])
 
 #Reshape to a 2D array
-R_slopes_coeff = np.array(R_slopes_coeff).reshape(-1,2)
+R_slopes_coeff = np.array(R_slopes_coeff)
+print("The list of slopes and intersects for each R value:\n")
+print(R_slopes_coeff)
+
+#Creates a list to sort the R lines by the inverse of the slope
+List_for_sorting = np.power(R_slopes_coeff[:, 0],-1)
+
+#Find the indices that would sort the list
+sort_indices = np.argsort(List_for_sorting)
+
+#Sort the R_values , R_slopes_coeff and the SN_models
+R_slopes_coeff = R_slopes_coeff[sort_indices]
+SN_models = np.array(SN_models)[sort_indices]
+R_values = np.array(R_values)[sort_indices]
 
 #------------------- Find where the target is in the CLD curve
+target_stress_amplitude = 250
+target_mean_stress = -200
 
-if target_stress_amplitude < 
-
+#Find the amplitude of the slopes for the given target mean stress
+Slopes_amp = []
 for slope in R_slopes_coeff:
-    area = 
-    if 
+    amp = slope[0]*target_mean_stress + slope[1]
+    Slopes_amp.append(amp)
 
-    if slope[0]*target_mean_stress + slope[1] > target_stress_amplitude:
-        break
-Slope_values = 
+#Add the amplitude of the slope 0
+Slopes_amp = np.array(Slopes_amp)
+
+Dis_abs = np.abs(target_stress_amplitude - Slopes_amp)
+Dis = target_stress_amplitude - Slopes_amp
+
+min_index = np.argmin(Dis_abs)
+
+if Dis[min_index] > 0:
+    print(f"Target is above R = {R_values[min_index]}")
+
+else:
+    print(f"Target is below R = {R_values[min_index]}")
+
+#------------------- Create constant life lines
+
+Life_lines_log = [3,4,5,6]
+amp_plot_lists = []
+mean_plot_lists = []
+
+for life in Life_lines_log:
+    amp_list = []
+    mean_list = []
+
+    for i in range(len(SN_models)):
+        amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
+        mean = convert_to_mean_stress(amp,R_values[i])
+        amp_list.append(amp)
+        mean_list.append(mean)
+
+    amp_plot_lists.append(amp_list)
+    mean_plot_lists.append(mean_list)
+
+
+#------------------ Visualize the CLD graph
+fig, ax = plt.subplots()
+ax.scatter(target_mean_stress,target_stress_amplitude, c="red", label="Target")
+
+R_line_visualizer(R_slopes_coeff,R_values,ax)
+
+for p in range(len(amp_plot_lists)):
+    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"Life = {Life_lines_log[p]}")
+    ax.legend()
+
+plt.show()
