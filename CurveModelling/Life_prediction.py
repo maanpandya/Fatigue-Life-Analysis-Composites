@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from Data_processing import separateDataFrame
+from Data_processing import separateDataFrameOLD
 from SNCurve import regression
 np.set_printoptions(precision=4)
 #from SNCurve import SN_models
@@ -63,7 +63,7 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
     ax.set_ylim(0, 300)
     return
 
-
+#------------------------------------------------------------------------------------
 #################### Data Processing (Jan tasks)
 
 #Create a dataframe out of the csv file
@@ -74,16 +74,22 @@ R_values = list(dataframe.groupby("R-value1").groups.keys())
 print("R values available: ", R_values)
 
 #Separate the dataframe by R values and range of temperature
-seperatedDataFrame = separateDataFrame(dataframe, separationList = ["R-value1"])
+seperatedDataFrame = separateDataFrameOLD(dataframe, separationList = ["R-value1"])
 
 #Create a list of SN models for each R value and the selected temperature range
 SN_models = []
+
+print(seperatedDataFrame)
+
 for df in seperatedDataFrame:
     SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
 
 print("Number of regression models available: ", len(SN_models))
 
-#------------------- Create the slopes and intersects for each R value to define the R lines
+
+
+#------------------------------------------------------------------------------------
+#################### Slope calculation and ordering
 
 #Define intersection point for the slopes
 N_to_connect = 10**3
@@ -112,6 +118,39 @@ R_slopes_coeff = R_slopes_coeff[sort_indices]
 SN_models = np.array(SN_models)[sort_indices]
 R_values = np.array(R_values)[sort_indices]
 
+
+#------------------------------------------------------------------------------------
+#################### Creation of constant life lines ands R lines
+fig, ax = plt.subplots()
+R_line_visualizer(R_slopes_coeff,R_values,ax)
+
+#------------------- Create constant life lines
+
+Life_lines_log = [3,4,5,6]
+amp_plot_lists = []
+mean_plot_lists = []
+
+for life in Life_lines_log:
+    amp_list = []
+    mean_list = []
+
+    for i in range(len(SN_models)):
+        amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
+        mean = convert_to_mean_stress(amp,R_values[i])
+        amp_list.append(amp)
+        mean_list.append(mean)
+
+    amp_plot_lists.append(amp_list)
+    mean_plot_lists.append(mean_list)
+
+for p in range(len(amp_plot_lists)):
+    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"Life = {Life_lines_log[p]}")
+    ax.legend()
+
+
+#------------------------------------------------------------------------------------
+#################### Prediction of the fatigue life for a given stress amplitude and mean stress
+
 #------------------- Find where the target is in the CLD curve
 target_stress_amplitude = 250
 target_mean_stress = -200
@@ -136,34 +175,8 @@ if Dis[min_index] > 0:
 else:
     print(f"Target is below R = {R_values[min_index]}")
 
-#------------------- Create constant life lines
-
-Life_lines_log = [3,4,5,6]
-amp_plot_lists = []
-mean_plot_lists = []
-
-for life in Life_lines_log:
-    amp_list = []
-    mean_list = []
-
-    for i in range(len(SN_models)):
-        amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
-        mean = convert_to_mean_stress(amp,R_values[i])
-        amp_list.append(amp)
-        mean_list.append(mean)
-
-    amp_plot_lists.append(amp_list)
-    mean_plot_lists.append(mean_list)
-
-
 #------------------ Visualize the CLD graph
-fig, ax = plt.subplots()
+
 ax.scatter(target_mean_stress,target_stress_amplitude, c="red", label="Target")
-
-R_line_visualizer(R_slopes_coeff,R_values,ax)
-
-for p in range(len(amp_plot_lists)):
-    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"Life = {Life_lines_log[p]}")
-    ax.legend()
 
 plt.show()
