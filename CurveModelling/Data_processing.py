@@ -35,7 +35,7 @@ def separateDataFrameOLD(dataFrame, separationList = ["R-value1"]):
 
 def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separationRanges = [False]):
     """
-    INPUT \\
+    INPUT \n
     dataFrame - dataframe on which the operation will be done \n
     separationParameters - list of parameters(as strings) to separate by, "R-value1" by default \n
         note: data2.csv has: nr,Fibre Volume Fraction,Cut angle ,taverage,waverage,area,Lnominal,R-value1,Ffatigue,smax,Ncycles,f,E,Temp. \n
@@ -46,7 +46,7 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
     parameterDictionary - dictionary with  \n
         keys - parameter by which the dataframe was separated  \n
         values - dictionary with values and separated data  \n
-            keys - value or top of separation range  \n
+            keys - value or upper bound of separation range  \n
             values - dataframe with test with the parameter of a certain value or within certain range  \n
     """
     
@@ -57,13 +57,13 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
             groupBy = dataFrame.groupby(parameter) # create groupby object
             parameterDictionary[parameter] = dict(zip(list(groupBy.groups.keys()),[groupBy.get_group(x) for x in groupBy.groups])) 
         else:
-            # groupBy = dataFrame.groupby(pd.cut(dataFrame[parameter], separationRanges[index])) Other method, kinda works
+            # groupBy = dataFrame.groupby(pd.cut(dataFrame[parameter], separationRanges[index])) # Other method, kinda works
             # parameterDictionary[parameter] = dict(zip(["a","b","c"],[groupBy.get_group(x) for x in groupBy.groups])) 
             separationRanges[index].sort() # sort list in case it's not ascending
             for separationIndex in range(len(separationRanges[index])): # go through each bound
                 parameterDictionary[parameter][separationRanges[index][separationIndex]] = pd.DataFrame() # create empty dataframe for the range with key of end of range
                 for valueIndex, value in enumerate(dataFrame[parameter]): # go through the dataframe column for the parameter
-                    print(separationRanges[index],separationIndex,separationRanges[index][separationIndex])
+                    # print(separationRanges[index],separationIndex,separationRanges[index][separationIndex]) Debugging
                     if value < separationRanges[index][separationIndex]: # if the value is smaller than the bound
                         if separationIndex == 0:
                             # print(value, "smaller than", separationRanges[index][separationIndex]) # Debugging
@@ -73,13 +73,17 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
                             parameterDictionary[parameter][separationRanges[index][separationIndex]] = parameterDictionary[parameter][separationRanges[index][separationIndex]]._append(dataFrame.iloc[valueIndex])                       
     return parameterDictionary
 
-# TESTING
-# dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
-# WITH RANGES
+# # TESTING
+dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
+# # WITH RANGES
 # parameterDictionary = separateDataFrame(dataFrame, separationParameters = ["Temp."], separationRanges=[[-20.,10.,20.,40.]])
 # print(parameterDictionary["Temp."])
-# print("hi")
 
-# WITHOUT RANGES
+# # WITHOUT RANGES
 # parameterDictionary = separateDataFrame(dataFrame)
 # print(parameterDictionary)
+
+# # MERGING
+parameterDictionary = separateDataFrame(dataFrame, separationParameters=["R-value1","Temp."], separationRanges=[False, [0,28,31]])
+print(parameterDictionary)
+print(pd.merge(parameterDictionary["R-value1"][-1.0],parameterDictionary["Temp."][0]))
