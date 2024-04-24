@@ -74,14 +74,12 @@ R_values = list(dataframe.groupby("R-value1").groups.keys())
 print("R values available: ", R_values)
 
 #Separate the dataframe by R values and range of temperature
-seperatedDataFrame = separateDataFrameOLD(dataframe, separationList = ["R-value1"])
+parameterDictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp."], separationRanges=[False, [0,30]]) # placeholder temperature
 
 #Create a list of SN models for each R value and the selected temperature range
 SN_models = []
-
-print(seperatedDataFrame)
-
-for df in seperatedDataFrame:
+for key, df in parameterDictionary["R-value1"].items(): # go through the dataframe for each r-value
+    df = pd.merge(df, parameterDictionary["Temp."][30]) # merge/take overlap of each dataframe with the desired temperature (placeholder temperature)
     SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
 
 print("Number of regression models available: ", len(SN_models))
