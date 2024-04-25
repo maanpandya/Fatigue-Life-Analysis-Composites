@@ -8,16 +8,15 @@ import function as f
 import time
 
 
-path = 'NNModelArchive/good/sinnoisefn0375'
+path = 'NNModelArchive/rev3/sinnoisefn0375'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 
-
 f.test_model(model, scaler, x_test, y_test)
 
 #sn curve
-f.sncurvetest(model,5,1,scaler, testdatafile=path+'/x_test.csv')
+#f.sncurvetest(model,11,10,scaler, testdatafile=test)
 
 x_train = dp.dfread(path + '/x_train.csv')
 

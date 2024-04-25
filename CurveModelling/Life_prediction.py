@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from Data_processing import separateDataFrameOLD
+from Data_processing import separateDataFrame
 from SNCurve import regression
 np.set_printoptions(precision=4)
 #from SNCurve import SN_models
@@ -12,7 +12,7 @@ Find the fatigue life of a material for any given load ratio and amplitude
 
 METHOD:
 Create areas of the CLD curve for the available load ratios by using the SN regression models
-Create a linear interpolation model for each of the areas for a given N falue
+Create a linear interpolation model for each of the areas for a given N value
 Interpolate the target inside the area
 
 IMPUTS:
@@ -46,21 +46,30 @@ def Slope_R_line_creator(model,R,N_to_connect):
     return slope,intersect
 
 def R_line_visualizer(R_slopes_coeff,R_values,ax):
-
+    Y_limit = 600
     i = 0
     for slope in R_slopes_coeff:
-        if slope[0] >= 0:
-            x = np.linspace(0,600,2)
+        if R_values[i] != -1:
+            if slope[0] >= 0:
+                x = np.linspace(0,600,5)
+
+            else:
+                x = np.linspace(0,-600,5)
+
+            y = slope[0]*x + slope[1]
 
         else:
-            x = np.linspace(-600,0,2)
+            y = np.linspace(0,Y_limit,5)
+            x = np.zeros(5)
+        
+        print(x)
+        print(y)
+        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)))
+        plt.plot(x, y)
 
-        y = slope[0]*x + slope[1]
-
-        plt.plot(x, y, label=f"R = {R_values[i]}")
         i += 1
-
-    ax.set_ylim(0, 300)
+    
+    ax.set_ylim(0, Y_limit)
     return
 
 #------------------------------------------------------------------------------------
@@ -74,17 +83,27 @@ R_values = list(dataframe.groupby("R-value1").groups.keys())
 print("R values available: ", R_values)
 
 #Separate the dataframe by R values and range of temperature
-parameterDictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp."], separationRanges=[False, [0,30]]) # placeholder temperature
+parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp.", "Cut angle "], separationRanges=[False, [0,40], False]) 
 
 #Create a list of SN models for each R value and the selected temperature range
 SN_models = []
-for key, df in parameterDictionary["R-value1"].items(): # go through the dataframe for each r-value
-    df = pd.merge(df, parameterDictionary["Temp."][30]) # merge/take overlap of each dataframe with the desired temperature (placeholder temperature)
+for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
+    df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+    df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
     SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
 
 print("Number of regression models available: ", len(SN_models))
 
-
+# # DEBUGGING - plot S-N curve for every R
+# dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+# dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
+# print(dftemp)
+# for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
+#     plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["smax"])))
+#     x1 = np.linspace(0,10)
+#     x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
+#     plt.plot(x1, x2, label = Rval)
+# plt.legend()
 
 #------------------------------------------------------------------------------------
 #################### Slope calculation and ordering
@@ -102,7 +121,7 @@ for m in range(len(SN_models)):
 
 #Reshape to a 2D array
 R_slopes_coeff = np.array(R_slopes_coeff)
-print("The list of slopes and intersects for each R value:\n")
+print("The list of slopes and intersects for each R line:\n")
 print(R_slopes_coeff)
 
 #Creates a list to sort the R lines by the inverse of the slope
@@ -122,7 +141,10 @@ R_values = np.array(R_values)[sort_indices]
 fig, ax = plt.subplots()
 R_line_visualizer(R_slopes_coeff,R_values,ax)
 
+
 #------------------- Create constant life lines
+
+
 
 Life_lines_log = [3,4,5,6]
 amp_plot_lists = []
@@ -133,6 +155,8 @@ for life in Life_lines_log:
     mean_list = []
 
     for i in range(len(SN_models)):
+        #----Add STC and STT points
+
         amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
         mean = convert_to_mean_stress(amp,R_values[i])
         amp_list.append(amp)
@@ -142,10 +166,11 @@ for life in Life_lines_log:
     mean_plot_lists.append(mean_list)
 
 for p in range(len(amp_plot_lists)):
-    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"Life = {Life_lines_log[p]}")
+    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
     ax.legend()
 
-
+ax.set_xlabel("Mean Stress")
+ax.set_ylabel("Stress Amplitude")
 #------------------------------------------------------------------------------------
 #################### Prediction of the fatigue life for a given stress amplitude and mean stress
 
