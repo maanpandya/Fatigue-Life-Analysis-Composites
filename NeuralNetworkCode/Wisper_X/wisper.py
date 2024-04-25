@@ -8,7 +8,7 @@ import function as f
 import torch
 import pandas as pd
 
-path = 'NeuralNetworkCode/NNModelArchive/good/sinnoisefn0375'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
 model, scaler = f.import_model(path)
 
 # Read the file
@@ -23,11 +23,10 @@ for i in range(len(array)):
     xddd.append(i)
 
 plt.plot(xddd, array, color = "black")
-plt.xlabel('Cycle Number')
-plt.ylabel('Load Level')
-
+plt.xlabel('Cycle Number', fontsize = 16)
+plt.ylabel('Load Level', fontsize = 16)
 # Title of the plot
-plt.title('Whisper X Spectrum')
+plt.gcf().set_size_inches(10, 6)
 plt.show()
 normalized_array = array/ np.max(array)
 
@@ -36,7 +35,7 @@ counted_cycles = rainflow.count_cycles(normalized_array)
 # Calculate the accumulated damage
 stresses = []
 cycles = []
-data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/datainclstatic.csv')
+data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data2.csv')
 x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
 x['Fibre Volume Fraction'] =54.31 #Fibre Volume Fraction
 x['Cut angle '] = 0 #Cut angle
@@ -49,8 +48,8 @@ x['Ffatigue'] = 33.55 #Fatigue force
 x['f'] = 3.63 #Frequency
 x['E'] = 42 #Young's modulus
 x['Temp.'] = 28 #Temperature
-x["tens"] = 75
-x["comp"]= -45
+#x["tens"] = 75
+#x["comp"]= -45
 x.drop(columns=['nr','Ncycles'],inplace=True)
 
 #Normalize the data except for stress
