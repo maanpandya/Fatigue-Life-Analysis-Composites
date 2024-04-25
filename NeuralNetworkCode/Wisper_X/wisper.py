@@ -7,27 +7,35 @@ import matplotlib.pyplot as plt
 import function as f
 import torch
 import pandas as pd
-import DataProcessing.DPfunctions as dp
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/mirkodisplaytest11'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
 model, scaler = f.import_model(path)
 
 # Read the file
-with open('Wisper/WISPER', 'r') as file:
+with open('NeuralNetworkCode\Wisper_X\WISPERX', 'r') as file:
     file_contents = file.readlines()
 array = np.array([float(x) for x in file_contents[1:]])
 
 # Normalize the array to the maximum value
-normalized_array = array / np.max(array)
+array = array-25
+xddd = []
+for i in range(len(array)):
+    xddd.append(i)
+
+plt.plot(xddd, array, color = "black")
+plt.xlabel('Cycle Number', fontsize = 16)
+plt.ylabel('Load Level', fontsize = 16)
+# Title of the plot
+plt.gcf().set_size_inches(10, 6)
+plt.show()
+normalized_array = array/ np.max(array)
 
 # Count cycles
 counted_cycles = rainflow.count_cycles(normalized_array)
 # Calculate the accumulated damage
-Max_Force = 400 # Mpa
-
 stresses = []
 cycles = []
-data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/testdata2.csv')
+data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data2.csv')
 x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
 x['Fibre Volume Fraction'] =54.31 #Fibre Volume Fraction
 x['Cut angle '] = 0 #Cut angle
@@ -40,6 +48,8 @@ x['Ffatigue'] = 33.55 #Fatigue force
 x['f'] = 3.63 #Frequency
 x['E'] = 42 #Young's modulus
 x['Temp.'] = 28 #Temperature
+#x["tens"] = 75
+#x["comp"]= -45
 x.drop(columns=['nr','Ncycles'],inplace=True)
 
 #Normalize the data except for stress
@@ -50,18 +60,21 @@ for i in x.columns:
 count_2 = 0
 rng_list = []
 R_list = []
-count_dict = {}
-
+xd  = []
 for rng, mean, count, i_start, i_end in rainflow.extract_cycles(normalized_array):
     count_2 += 1 
     rng_list.append(rng)
-    R = (mean - rng) / (mean + rng)
+    R = (mean- rng/2) / (mean + rng/2) 
     R_list.append(R)
+    xd.append(count_2)
+
+plt.plot(xd, R_list)
+plt.show()
 
 R_counted = []
 Rng_counted = []
 n_times_apeared = []
-for i in range(1000):
+for i in range(118):
     n_times_apeared.append(0)
 appered = 0 
 j = 0
@@ -76,11 +89,11 @@ for i in range(len(rng_list)):
         n_times_apeared[j] = n_times_apeared[j] +1
         Rng_counted.append(rng_list[i])
 
-print(R_counted)
-print(n_times_apeared)
-
-
-
+plt.bar(Rng_counted, n_times_apeared)
+plt.xlabel('Rng_counted')
+plt.ylabel('n_times_appeared')
+plt.title('Histogram of Rng_counted with n_times_appeared')
+plt.show()
 
 for j in range(0, 500):
     Accumulated_stress = 0
@@ -107,5 +120,5 @@ for j in range(0, 500):
     stresses.append(j)
 plt.plot(np.log(cycles), stresses)
 plt.show()
-  # Changed the order of the axes
+# Changed the order of the axes
 # Sum up the damage - according to Miner's rule, failure occurs when this sum exceeds 1
