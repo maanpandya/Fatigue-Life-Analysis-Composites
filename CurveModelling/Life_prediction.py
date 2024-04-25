@@ -144,7 +144,8 @@ R_line_visualizer(R_slopes_coeff,R_values,ax)
 
 #------------------- Create constant life lines
 
-
+UTS = 820
+UCS = -490
 
 Life_lines_log = [3,4,5,6]
 amp_plot_lists = []
@@ -154,6 +155,9 @@ for life in Life_lines_log:
     amp_list = []
     mean_list = []
 
+    mean_list.append(UCS)
+    amp_list.append(0)
+
     for i in range(len(SN_models)):
         #----Add STC and STT points
 
@@ -161,6 +165,9 @@ for life in Life_lines_log:
         mean = convert_to_mean_stress(amp,R_values[i])
         amp_list.append(amp)
         mean_list.append(mean)
+    
+    mean_list.append(UTS)
+    amp_list.append(0)
 
     amp_plot_lists.append(amp_list)
     mean_plot_lists.append(mean_list)
