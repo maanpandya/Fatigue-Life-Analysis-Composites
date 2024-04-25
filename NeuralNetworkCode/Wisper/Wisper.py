@@ -8,7 +8,7 @@ import function as f
 import torch
 import pandas as pd
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/data4best'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/nicesncurvemaybe'
 model, scaler = f.import_model(path)
 
 # Read the file
