@@ -8,7 +8,7 @@ import function as f
 import torch
 import pandas as pd
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
+path = 'NeuralNetworkCode/NNModelArchive/rev2/nicesncurvemaybe'
 model, scaler = f.import_model(path)
 
 # Read the file
@@ -39,21 +39,21 @@ counted_cycles = rainflow.count_cycles(normalized_array)
 # Calculate the accumulated damage
 stresses = []
 cycles = []
-data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data2.csv')
+data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data4.csv')
 x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
 x['Fibre Volume Fraction'] =50.92 #Fibre Volume Fraction
 x['Cut angle '] = 0 #Cut angle
 x['taverage'] = 3.83 #Average thickness
 x['waverage'] = 24.86 #Average width
 x['area'] = 95.21 #Area
-x['Lnominal'] = 145 #Nominal length of sample
+#x['Lnominal'] = 145 #Nominal length of sample
 #x['R-value1'] = -1 #R-value
-x['Ffatigue'] = 36.08 #Fatigue force
+x['Fmax'] = 36.08 #Fatigue force
 x['f'] = 3.44 #Frequency
 x['E'] = 37.46 #Young's modulus
 x['Temp.'] = 28 #Temperature
-#x["tens"] = 75
-#x["comp"]= -45
+x["tens"] = 75
+x["comp"]= -45
 x.drop(columns=['nr','Ncycles'],inplace=True)
 
 #Normalize the data except for stress
@@ -100,7 +100,8 @@ plt.ylabel('n_times_appeared')
 plt.title('Histogram of Rng_counted with n_times_appeared')
 plt.show()
 
-for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.57, 469.89, 466.83, 470.06, 342.82, 443.18, 444.34, 446.66, 357.72, 356.78]:
+#for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.57, 469.89, 466.83, 470.06, 342.82, 443.18, 444.34, 446.66, 357.72, 356.78]:
+for j in range(500):
     Accumulated_stress = 0
     for i in range(len(R_counted)):
         N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
@@ -119,7 +120,8 @@ for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.5
         N_AI1 = 10**N_AI[0][0]
         #N_AI1 = (Stress/(367.8))**(-1/0.078)
         Accumulated_stress += N_Cycle/N_AI1
-
+    print(j)
+    print(Accumulated_stress)
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
 anotherone = [46.63400685, 30.53759847, 60.13090802 , 86.38254409, 30.11657662, 36.04822509, 25.01408323, 24.02818907, 42.03037427, 2.819182283, 8.159798359, 3.860663396 , 65.88812532 ,11.30806298, 11.0245947, 10.94091318, 69.13812292, 83.13420841 ]
