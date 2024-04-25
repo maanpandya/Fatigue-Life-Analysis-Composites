@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from Data_processing import separateDataFrameOLD
+from Data_processing import separateDataFrame
 from SNCurve import regression
 np.set_printoptions(precision=4)
 #from SNCurve import SN_models
@@ -46,21 +46,30 @@ def Slope_R_line_creator(model,R,N_to_connect):
     return slope,intersect
 
 def R_line_visualizer(R_slopes_coeff,R_values,ax):
-
+    Y_limit = 600
     i = 0
     for slope in R_slopes_coeff:
-        if slope[0] >= 0:
-            x = np.linspace(0,600,2)
+        if R_values[i] != -1:
+            if slope[0] >= 0:
+                x = np.linspace(0,600,5)
+
+            else:
+                x = np.linspace(0,-600,5)
+
+            y = slope[0]*x + slope[1]
 
         else:
-            x = np.linspace(-600,0,2)
+            y = np.linspace(0,Y_limit,5)
+            x = np.zeros(5)
+        
+        print(x)
+        print(y)
+        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)))
+        plt.plot(x, y)
 
-        y = slope[0]*x + slope[1]
-
-        plt.plot(x, y, label=f"R = {R_values[i]}")
         i += 1
-
-    ax.set_ylim(0, 300)
+    
+    ax.set_ylim(0, Y_limit)
     return
 
 #------------------------------------------------------------------------------------
@@ -85,7 +94,6 @@ for key, df in parameterDictionary["R-value1"].items(): # go through the datafra
 print("Number of regression models available: ", len(SN_models))
 
 
-
 #------------------------------------------------------------------------------------
 #################### Slope calculation and ordering
 
@@ -102,7 +110,7 @@ for m in range(len(SN_models)):
 
 #Reshape to a 2D array
 R_slopes_coeff = np.array(R_slopes_coeff)
-print("The list of slopes and intersects for each R value:\n")
+print("The list of slopes and intersects for each R line:\n")
 print(R_slopes_coeff)
 
 #Creates a list to sort the R lines by the inverse of the slope
@@ -122,7 +130,10 @@ R_values = np.array(R_values)[sort_indices]
 fig, ax = plt.subplots()
 R_line_visualizer(R_slopes_coeff,R_values,ax)
 
+
 #------------------- Create constant life lines
+
+
 
 Life_lines_log = [3,4,5,6]
 amp_plot_lists = []
@@ -133,6 +144,8 @@ for life in Life_lines_log:
     mean_list = []
 
     for i in range(len(SN_models)):
+        #----Add STC and STT points
+
         amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
         mean = convert_to_mean_stress(amp,R_values[i])
         amp_list.append(amp)
@@ -142,10 +155,11 @@ for life in Life_lines_log:
     mean_plot_lists.append(mean_list)
 
 for p in range(len(amp_plot_lists)):
-    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"Life = {Life_lines_log[p]}")
+    ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
     ax.legend()
 
-
+ax.set_xlabel("Mean Stress")
+ax.set_ylabel("Stress Amplitude")
 #------------------------------------------------------------------------------------
 #################### Prediction of the fatigue life for a given stress amplitude and mean stress
 
