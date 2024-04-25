@@ -14,7 +14,7 @@ tag = 'none'
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
 dfbase = dfbase.set_index('nr')
-dp.dfinfo(dfbase)
+dp.dfinfo(dfbase, 'base')
 print()
 print('DataProcessing:')
 collums_to_include = [
@@ -25,8 +25,9 @@ collums_to_include = [
     'runout', 'f', 'R-value1', 'Temp.', 'Ncycles'
 ]
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
-dp.dfinfo(dfnew)
+dp.dfinfo(dfnew, 'col selection')
 dfnew = dp.cleanup(dfnew, 'Test type', 'exclude_nan')
+dp.dfinfo(dfnew, 'clean test type')
 
 #temp column
 if 'Temp.' in dfnew.columns:
@@ -67,16 +68,15 @@ if 'Temp.' in dfnew.columns:
 
 
 dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4', 'UD5'], 'include')
-dp.dfinfo(dfnew)
+dp.dfinfo(dfnew, 'filter on laminate')
 
-dp.dfinfo(dfnew)
 if 'Ncycles' in dfnew.columns:
     dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
     dfnew = dp.row_filter(dfnew, 'Ncycles', [0.0, 0], 'exclude')
-    dp.dfinfo(dfnew)
+    dp.dfinfo(dfnew, 'clean ncycles')
 if 'runout' in dfnew.columns:
     dfnew = dp.row_filter(dfnew, 'runout', ['y', 'Y'], 'exclude')
-    dp.dfinfo(dfnew)
+    dp.dfinfo(dfnew, 'remove runout rows')
 
 
 # E column
@@ -95,13 +95,13 @@ if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
         dfnew.loc[i, 'Eit'] = c
     dfnew = dfnew.rename(columns={'Eit': 'E'})
     #dfnew = dp.cleanup(dfnew, 'E', 'avg')
-    dp.dfinfo(dfnew)
+    dp.dfinfo(dfnew, 'after E processing')
 
 if stat_ref:
     stat_comp_ref = dp.row_filter(dfnew, 'Test type', ['STC'], 'include')
     stat_tens_ref = dp.row_filter(dfnew, 'Test type', ['STT'], 'include')
 dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
-
+dp.dfinfo(dfnew, 'filter on test type')
 # static+ fatigue test processing
 if statandfatigue:
     for i in dfnew.index:
@@ -112,7 +112,6 @@ if statandfatigue:
 
 collums_to_exclude = ['Test type', 'Laminate', 'Eic', 'Environment', 'Lab', 'runout']
 dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
-dp.dfinfo(dfnew)
 if stat_ref:
     extra_excl = ['runout', 'f', 'R-value1', 'Temp.', 'Ncycles']
     stat_comp_ref = dp.big_cleanup(stat_comp_ref, 'exclude_nan', exclude_cols=collums_to_exclude + extra_excl)
@@ -124,9 +123,10 @@ if stat_ref:
     dfnew['ftens'] = tens_str['Fmax']
     dfnew['scomp'] = comp_str['smax']
     dfnew['fcomp'] = comp_str['Fmax']
+    dp.dfinfo(dfnew, 'after stat ref')
 
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
-dp.dfinfo(dfnew)
+dp.dfinfo(dfnew, 'exclude unneeded ,cols')
 dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
 # log of some columns
 if 'Ncycles' in dfnew.columns:
@@ -135,9 +135,9 @@ if 'Ncycles' in dfnew.columns:
 if no_constant_cols:
     dfnew = dp.remove_constant_cols(dfnew)
 print()
-print('Final stats')
+dp.dfinfo(dfnew, 'Final stats')
 print(dfnew.dtypes)
-dp.dfinfo(dfnew)
+
 
 name = 'data'
 if tag == '':

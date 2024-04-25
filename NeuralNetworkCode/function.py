@@ -213,8 +213,9 @@ def test_model(model, scaler, x_test, y_test):
 
 def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportdata=False):
     data = testdatafile
-    data = data[dataindex:dataindex+1]
-    print(data['R-value1'])
+    data = data.loc[dataindex]
+    data = data.to_frame().T
+    print(data)
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
     data['smax']=0
@@ -222,7 +223,7 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportd
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
-    iterations = math.ceil(smax)*maxstressratio
+    iterations = math.ceil(smax*maxstressratio)
     for i in range(iterations):
         data['smax'] = int(i)
         #Append the data to the dataframe x as a row
@@ -231,17 +232,17 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportd
     
     xorig = x.copy()
 
-    print(x)
+    #print(x)
 
     #Scale x using the values in scalers
     for i in x.columns:
         x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
 
-    print(x)
+    #print(x)
     #Predict the number of cycles
     model.eval()
     #print dtype of x
-    print(x.dtypes)
+    #print(x.dtypes)
     x = torch.tensor(x.values)
     x = x.cuda()
     x.requires_grad = True

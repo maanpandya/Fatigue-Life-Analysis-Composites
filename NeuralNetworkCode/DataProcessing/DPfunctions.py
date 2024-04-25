@@ -58,8 +58,8 @@ def col_filter(dataframe, columns, mode):
             dfnew = pd.DataFrame.join(self=dfnew, other=dataframe[i])
     return dfnew
 
-def dfinfo(dataframe):
-    print(str(len(dataframe.index)) + ' rows x ' + str(len(dataframe.columns)) + ' columns ')
+def dfinfo(dataframe, tag=''):
+    print(tag + ' : ' + str(len(dataframe.index)) + ' rows x ' + str(len(dataframe.columns)) + ' columns ')
     return [len(dataframe.index), len(dataframe.columns)]
 
 def row_filter(dataframe, column, filters, mode):
