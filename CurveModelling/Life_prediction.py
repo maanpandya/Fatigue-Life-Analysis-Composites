@@ -12,7 +12,7 @@ Find the fatigue life of a material for any given load ratio and amplitude
 
 METHOD:
 Create areas of the CLD curve for the available load ratios by using the SN regression models
-Create a linear interpolation model for each of the areas for a given N falue
+Create a linear interpolation model for each of the areas for a given N value
 Interpolate the target inside the area
 
 IMPUTS:
@@ -83,16 +83,27 @@ R_values = list(dataframe.groupby("R-value1").groups.keys())
 print("R values available: ", R_values)
 
 #Separate the dataframe by R values and range of temperature
-parameterDictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp."], separationRanges=[False, [0,30]]) # placeholder temperature
+parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp.", "Cut angle "], separationRanges=[False, [0,40], False]) 
 
 #Create a list of SN models for each R value and the selected temperature range
 SN_models = []
-for key, df in parameterDictionary["R-value1"].items(): # go through the dataframe for each r-value
-    df = pd.merge(df, parameterDictionary["Temp."][30]) # merge/take overlap of each dataframe with the desired temperature (placeholder temperature)
+for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
+    df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+    df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
     SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
 
 print("Number of regression models available: ", len(SN_models))
 
+# # DEBUGGING - plot S-N curve for every R
+# dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+# dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
+# print(dftemp)
+# for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
+#     plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["smax"])))
+#     x1 = np.linspace(0,10)
+#     x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
+#     plt.plot(x1, x2, label = Rval)
+# plt.legend()
 
 #------------------------------------------------------------------------------------
 #################### Slope calculation and ordering
