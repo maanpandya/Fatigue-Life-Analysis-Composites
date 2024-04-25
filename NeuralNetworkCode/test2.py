@@ -8,7 +8,7 @@ import function as f
 import time
 
 
-path = 'NNModelArchive/good/sinnoisefn0375'
+path = 'NNModelArchive/rev3/sinnoisefn0375'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
