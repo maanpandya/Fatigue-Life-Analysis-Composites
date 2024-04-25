@@ -214,6 +214,7 @@ def test_model(model, scaler, x_test, y_test):
 def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportdata=False):
     data = testdatafile
     data = data[dataindex:dataindex+1]
+    print(data['R-value1'])
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
     data['smax']=0

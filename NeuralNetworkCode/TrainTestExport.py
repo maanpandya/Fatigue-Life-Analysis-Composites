@@ -32,7 +32,7 @@ dropout_prob = 0.0
 # training parameters
 savemodel = True
 n_epochs = 16000
-loss_fn = nn.MSELoss()            # fn
+loss_fn = cl.PINNLoss           # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
