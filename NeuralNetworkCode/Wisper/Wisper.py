@@ -105,7 +105,8 @@ for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.5
     for i in range(len(R_counted)):
         N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
         x['smax'] = Rng_counted[i]*j# stress
-        x['R-value1'] = R_counted[i]
+        x['R-value1'] = 1
+        #R_counted[i]
         #Normalize the data for smax
         x['smax'] = (x['smax'] - scaler['smax']['mean']) / scaler['smax']['std']
         x['R-value1'] = (x['R-value1'] - scaler['R-value1']['mean']) / scaler['R-value1']["std"]
@@ -118,21 +119,19 @@ for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.5
         N_AI1 = 10**N_AI[0][0]
         #N_AI1 = (Stress/(367.8))**(-1/0.078)
         Accumulated_stress += N_Cycle/N_AI1
-    print(j)
-    print(1/Accumulated_stress)
 
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
 anotherone = [46.63400685, 30.53759847, 60.13090802 , 86.38254409, 30.11657662, 36.04822509, 25.01408323, 24.02818907, 42.03037427, 2.819182283, 8.159798359, 3.860663396 , 65.88812532 ,11.30806298, 11.0245947, 10.94091318, 69.13812292, 83.13420841 ]
 plt.scatter(np.log(anotherone), np.log(stresses), color = "black")
-plt.xlabel("Logarithm scale number of cycles Optidat")
-plt.ylabel("Logarithm scale number of cycles Wisper-PINN")
+plt.xlabel("Logarithm scale number of cycles Optidat", fontsize = 12)
+plt.ylabel("Logarithm scale number of cycles Wisper-PINN", fontsize = 12)
 plt.xlim(0, 10)
 plt.ylim(0, 10)
 x_values = np.linspace(0, 10, 200)  # Creating an array of x values from 0 to 5
 y_values = x_values  # Since x = y, y values will be the same as x values
 
 
-plt.plot(x_values, y_values, color='red')
+plt.plot(x_values, y_values, color='red', linestyle='--')
 
 plt.show()
