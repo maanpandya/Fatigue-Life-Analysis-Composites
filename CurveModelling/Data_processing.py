@@ -35,6 +35,8 @@ def separateDataFrameOLD(dataFrame, separationList = ["R-value1"]):
 
 def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separationRanges = [False]):
     """
+    Separates the dataframe into an organised dictionary of dataframes
+
     INPUT \n
     dataFrame - dataframe on which the operation will be done \n
     separationParameters - list of parameters(as strings) to separate by, "R-value1" by default \n
@@ -74,7 +76,7 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
     return parameterDictionary
 
 # # TESTING
-dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
+# dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
 # # WITH RANGES
 # parameterDictionary = separateDataFrame(dataFrame, separationParameters = ["Temp."], separationRanges=[[-20.,10.,20.,40.]])
 # print(parameterDictionary["Temp."])
@@ -84,6 +86,6 @@ dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
 # print(parameterDictionary)
 
 # # MERGING
-parameterDictionary = separateDataFrame(dataFrame, separationParameters=["R-value1","Temp."], separationRanges=[False, [0,28,31]])
-print(parameterDictionary)
-print(pd.merge(parameterDictionary["R-value1"][-1.0],parameterDictionary["Temp."][0]))
+# parameterDictionary = separateDataFrame(dataFrame, separationParameters=["R-value1","Temp."], separationRanges=[False, [0,28,31]])
+# print(parameterDictionary)
+# print(pd.merge(parameterDictionary["R-value1"][-1.0],parameterDictionary["Temp."][0]))

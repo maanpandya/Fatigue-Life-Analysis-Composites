@@ -30,8 +30,8 @@ def plotStd(X,Y, dev=3):
     Under construction, not sure if even needed as a function; has useful stuff inside though, works as a nice example \n
     Plot linear regression curve with uncertainties \n
     INPUT \n
-        X - x values, for S-N curve, log10 of fatigue life, column is already log10 in data
-        Y - y values, for S-N curve, log10 of stress, need to take log10 of column
+        X - x values, for S-N curve, log10 of fatigue life, column is already log10 in data \n
+        Y - y values, for S-N curve, log10 of stress, need to take log10 of column \n
         std - number of standard deviations
     """
     X_with_intercept = sm.add_constant(X)
