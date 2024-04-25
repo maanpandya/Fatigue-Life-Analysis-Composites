@@ -5,11 +5,11 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
+saveresult = False
 stat_ref = True
 statandfatigue = False
 no_constant_cols = True
-tag = '4'
+tag = 'none'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -27,6 +27,7 @@ collums_to_include = [
 dfnew = dp.col_filter(dfbase, collums_to_include, 'include')
 dp.dfinfo(dfnew)
 dfnew = dp.cleanup(dfnew, 'Test type', 'exclude_nan')
+
 #temp column
 if 'Temp.' in dfnew.columns:
     for i in dfnew.index:
@@ -102,7 +103,6 @@ if stat_ref:
 dfnew = dp.row_filter(dfnew, 'Test type', ['CA'], 'include')
 
 # static+ fatigue test processing
-
 if statandfatigue:
     for i in dfnew.index:
         if dfnew.loc[i, 'Test type'] == 'STT' or dfnew.loc[i, 'Test type'] == 'STC':
@@ -118,10 +118,12 @@ if stat_ref:
     stat_comp_ref = dp.big_cleanup(stat_comp_ref, 'exclude_nan', exclude_cols=collums_to_exclude + extra_excl)
     stat_tens_ref = dp.big_cleanup(stat_tens_ref, 'exclude_nan', exclude_cols=collums_to_exclude + extra_excl)
     col_to_compare = ['taverage', 'waverage', 'Lnominal', 'Fibre Volume Fraction', 'Cut angle ', 'Laminate']
-    tens_str = dp.find_similar(dfnew, stat_tens_ref, col_to_compare, col_to_return=['Fmax'], max_error_percent=5)
-    comp_str = dp.find_similar(dfnew, stat_comp_ref, col_to_compare, col_to_return=['Fmax'], max_error_percent=5)
-    dfnew['tens'] = tens_str['Fmax']
-    dfnew['comp'] = comp_str['Fmax']
+    tens_str = dp.find_similar(dfnew, stat_tens_ref, col_to_compare, col_to_return=['Fmax', 'smax'], max_error_percent=5)
+    comp_str = dp.find_similar(dfnew, stat_comp_ref, col_to_compare, col_to_return=['Fmax', 'smax'], max_error_percent=5)
+    dfnew['stens'] = tens_str['smax']
+    dfnew['ftens'] = tens_str['Fmax']
+    dfnew['scomp'] = comp_str['smax']
+    dfnew['fcomp'] = comp_str['Fmax']
 
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
 dp.dfinfo(dfnew)
