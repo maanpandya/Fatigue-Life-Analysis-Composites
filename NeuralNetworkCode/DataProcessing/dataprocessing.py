@@ -5,11 +5,12 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = False
+saveresult = True
 stat_ref = True
 statandfatigue = False
 no_constant_cols = True
-tag = 'none'
+no_related_cols = True
+tag = '6'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -127,6 +128,12 @@ if stat_ref:
 
 dfnew = dp.col_filter(dfnew, collums_to_exclude, 'exclude')
 dp.dfinfo(dfnew, 'exclude unneeded ,cols')
+# directly related cols
+if no_related_cols:
+    rel_cols = ['smax', 'area', 'stens', 'scomp']
+    dfnew = dp.col_filter(dfnew, rel_cols, 'exclude')
+    dp.dfinfo(dfnew, 'removed directly related cols')
+
 dfnew = dp.big_cleanup(dfnew, 'exclude', collums_to_exclude)
 # log of some columns
 if 'Ncycles' in dfnew.columns:

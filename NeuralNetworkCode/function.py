@@ -218,14 +218,14 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportd
     print(data)
     data = data.drop(columns=['Ncycles'])
     smax = data['smax']
-    data['smax']=0
+    data['smax']=0.0
 
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     iterations = math.ceil(smax*maxstressratio)
     for i in range(iterations):
-        data['smax'] = int(i)
+        data['smax'] = float(i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
@@ -242,8 +242,11 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportd
     #Predict the number of cycles
     model.eval()
     #print dtype of x
-    #print(x.dtypes)
-    x = torch.tensor(x.values)
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
     x = x.cuda()
     x.requires_grad = True
     y = model(x)
@@ -259,7 +262,7 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportd
     #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
     #Range should be more than 0 and less than the maximum value of smax
     plt.xlim(0, np.max(y))
-    plt.ylim(0, iterations)
+    #plt.ylim(0, iterations)
     plt.show()
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
