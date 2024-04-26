@@ -9,7 +9,7 @@ import time
 import random as rd
 
 
-path = 'NNModelArchive/rev3/data5_0.434'
+path = 'NNModelArchive/rev3/data6_0468'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -22,8 +22,8 @@ while ca != 0:
     i = rd.choice(indexes)
     datapoint = data.loc[i]
     ca = datapoint['Cut angle ']
-print(f"R = {datapoint['R-value1']}, cut angle = {ca}, smax = {datapoint['smax']}")
-f.sncurvetest(model,5, i, scaler, testdatafile=data)
+print(f"R = {datapoint['R-value1']}, cut angle = {ca}")
+f.sncurvetest(model, 5, i, scaler, orig_data=data)
 # maybe this function gives an error when smax < 0 which goes together with r=10
 
 
