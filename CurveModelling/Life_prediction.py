@@ -76,7 +76,13 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
 #################### Data Processing (Jan tasks)
 
 #Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/data2.csv")
+dataframe = pd.read_csv("CurveModelling/Data/altdata.csv")
+dataframe["amp"] = 0.
+for index, row in dataframe.iterrows():
+    if row["smax"] < 0:
+        dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
+    else:
+        dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
 
 #Find which R values are available
 R_values = list(dataframe.groupby("R-value1").groups.keys())
@@ -90,7 +96,7 @@ SN_models = []
 for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
     df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
     df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
-    SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["smax"])))
+    SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
 
 print("Number of regression models available: ", len(SN_models))
 
@@ -98,11 +104,12 @@ print("Number of regression models available: ", len(SN_models))
 dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
 dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
 print(dftemp)
+colors = ["tab:orange","tab:green","tab:blue"]
 for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
-    plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["smax"])))
+    plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["amp"])), c=colors[valIndex])
     x1 = np.linspace(0,10)
     x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
-    plt.plot(x1, x2, label = Rval)
+    plt.plot(x1, x2, label = Rval, c=colors[valIndex])
 plt.legend()
 
 #------------------------------------------------------------------------------------
