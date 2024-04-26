@@ -95,15 +95,15 @@ for key, df in parameter_dictionary["R-value1"].items(): # go through the datafr
 print("Number of regression models available: ", len(SN_models))
 
 # # DEBUGGING - plot S-N curve for every R
-# dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
-# dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
-# print(dftemp)
-# for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
-#     plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["smax"])))
-#     x1 = np.linspace(0,10)
-#     x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
-#     plt.plot(x1, x2, label = Rval)
-# plt.legend()
+dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
+print(dftemp)
+for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
+    plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["smax"])))
+    x1 = np.linspace(0,10)
+    x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
+    plt.plot(x1, x2, label = Rval)
+plt.legend()
 
 #------------------------------------------------------------------------------------
 #################### Slope calculation and ordering
