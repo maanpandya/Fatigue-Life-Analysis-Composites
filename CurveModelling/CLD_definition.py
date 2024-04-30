@@ -73,13 +73,17 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
     return
 
 
-def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
-
+def add_amplitudecol(dataframe):
+    dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
             dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
             dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+    return dataframe
+
+def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
+
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
