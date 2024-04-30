@@ -5,12 +5,12 @@ import DPfunctions as dp
 
 
 file = 'Data/optimatforpy.csv'
-saveresult = True
-stat_ref = True
+saveresult = False
+stat_ref = False
 statandfatigue = False
 no_constant_cols = True
-no_related_cols = True
-tag = '6'
+no_related_cols = False
+tag = '7'
 
 print('initial data from ' + file)
 dfbase = pd.read_csv(file)
@@ -68,8 +68,10 @@ if 'Temp.' in dfnew.columns:
 #end of temp processing
 
 
-dfnew = dp.row_filter(dfnew, 'Laminate', ['UD1', 'UD2', 'UD3', 'UD4', 'UD5'], 'include')
+dfnew = dp.row_filter(dfnew, 'Laminate', ['MD2'], 'include')
 dp.dfinfo(dfnew, 'filter on laminate')
+dfnew = dp.row_filter(dfnew, 'Cut angle ', [0, 0.0, '0', '0.0'], 'include')
+dp.dfinfo(dfnew, 'filter on 0 cut angle')
 
 if 'Ncycles' in dfnew.columns:
     dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
@@ -83,8 +85,14 @@ if 'runout' in dfnew.columns:
 # E column
 if 'Eit' in dfnew.columns and 'Eic' in dfnew.columns:
     for i in dfnew.index:
-        a = float(dfnew.loc[i, 'Eit'])
-        b = float(dfnew.loc[i, 'Eic'])
+        try:
+            a = float(dfnew.loc[i, 'Eit'])
+        except:
+            a = np.nan
+        try:
+            b = float(dfnew.loc[i, 'Eic'])
+        except:
+            b = np.nan
         if pd.isna(a) and pd.isna(b):
             c = np.nan
         elif pd.isna(a) and not pd.isna(b):
