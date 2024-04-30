@@ -13,8 +13,7 @@ def PINNLoss(output, target, inputs):
 
     Constraint 1: The first derivative of the S-N curve must be negative.
     Constraint 2: The second derivative of the S-N curve must be positive.
-    Constraint 3: The S-N curve's slope must be 0 at 0 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 0 cycles.
-    Constraint 4: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
+    Constraint 3: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
 
     '''
     indexsmax = 8
@@ -42,16 +41,14 @@ def PINNLoss(output, target, inputs):
     #print(loss2)
     loss += loss2
 
-    #Constraint 3: The S-N curve's slope must be 0 at 0 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 0 cycles.
-    # Penalize non-infinite gradients at 0 cycles
-    loss3 = c*torch.mean(abs(1/(np.array([i for i in gradient1[:, indexsmax] if i == 0]))))
+    #Constraint 3: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
+    # Penalize non-infinite gradients at 10^7 cycles
+    gradientvalues = np.array([])
+    for i in range(len(output)):
+        if output[i] > 9999999.9:
+            gradientvalues = np.append(gradientvalues, gradient1[i, indexsmax])
+    loss3 = c*torch.mean(abs(1/gradientvalues))
     #print(loss3)
     loss += loss3
 
-    #Constraint 4: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
-    # Penalize non-infinite gradients at 10^7 cycles
-    loss4 = c*torch.mean(abs(1/(np.array([i for i in gradient1[:, indexsmax] if i >= 10000000]))))
-    #print(loss4)
-    loss += loss4
-    
     return loss
