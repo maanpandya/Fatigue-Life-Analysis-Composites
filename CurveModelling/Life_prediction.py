@@ -177,6 +177,15 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
+
+    #------------------ Visualize the CLD graph
+    plt.show()
+
+    return R_values, R_slopes_coeff, SN_models, ax
+
+CLD_definition("CurveModelling/Data/altdata.csv")
+
+def Target_boundaries_detector(R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
     #################### Prediction of the fatigue life for a given stress amplitude and mean stress
 
@@ -200,16 +209,10 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
     if Dis[min_index] > 0:
         print(f"Target is above R = {R_values[min_index]}")
+        Above = True
+        return R_values[min_index],Above
 
     else:
         print(f"Target is below R = {R_values[min_index]}")
-
-    #------------------ Visualize the CLD graph
-
-    ax.scatter(target_mean_stress,target_stress_amplitude, c="red", label="Target")
-
-    plt.show()
-
-    return R_values, R_slopes_coeff, SN_models
-
-CLD_definition("CurveModelling/Data/altdata.csv")
+        Above = False
+        return R_values[min_index],Above
