@@ -73,10 +73,8 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
     return
 
 
-def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7]):
-    #Create a dataframe out of the csv file
-    dataframe = pd.read_csv("CurveModelling/Data/altdata.csv")
-    dataframe["amp"] = 0.
+def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
+
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
             dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
@@ -171,19 +169,20 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
         amp_plot_lists.append(amp_list)
         mean_plot_lists.append(mean_list)
 
-    for p in range(len(amp_plot_lists)):
-        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
-        ax.legend()
+    if plot:
+        for p in range(len(amp_plot_lists)):
+            ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
+            ax.legend()
 
-    ax.set_xlabel("Mean Stress")
-    ax.set_ylabel("Stress Amplitude")
+        ax.set_xlabel("Mean Stress")
+        ax.set_ylabel("Stress Amplitude")
 
-    #------------------ Visualize the CLD graph
-    plt.show()
+        #------------------ Visualize the CLD graph
+        plt.show()
 
     return R_values, R_slopes_coeff, SN_models, ax
 
-CLD_definition("CurveModelling/Data/altdata.csv")
+# CLD_definition("CurveModelling/Data/altdata.csv")
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
