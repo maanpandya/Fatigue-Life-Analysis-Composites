@@ -185,13 +185,9 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
 CLD_definition("CurveModelling/Data/altdata.csv")
 
-def Target_boundaries_detector(R_values,R_slopes_coeff):
+def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
     #################### Prediction of the fatigue life for a given stress amplitude and mean stress
-
-    #------------------- Find where the target is in the CLD curve
-    target_stress_amplitude = 250
-    target_mean_stress = -200
 
     #Find the amplitude of the slopes for the given target mean stress
     Slopes_amp = []
