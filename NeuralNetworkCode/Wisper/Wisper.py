@@ -8,7 +8,7 @@ import function as f
 import torch
 import pandas as pd
 
-path = 'NeuralNetworkCode/NNModelArchive/rev2/nicesncurvemaybe'
+path = 'NeuralNetworkCode/NNModelArchive/rev3/data4best'
 model, scaler = f.import_model(path)
 
 # Read the file
@@ -101,14 +101,15 @@ plt.title('Histogram of Rng_counted with n_times_appeared')
 plt.show()
 
 #for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.57, 469.89, 466.83, 470.06, 342.82, 443.18, 444.34, 446.66, 357.72, 356.78]:
-for j in range(500):
+for j in range(15):
     Accumulated_stress = 0
     for i in range(len(R_counted)):
         N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
         x['smax'] = Rng_counted[i]*j# stress
-        x['R-value1'] = 1
-        #R_counted[i]
+        x['Fmax'] = Rng_counted[i]*j*95.21
+        x['R-value1'] = R_counted[i]
         #Normalize the data for smax
+        x['Fmax'] = (x['Fmax'] - scaler['Fmax']['mean']) / scaler['Fmax']['std']
         x['smax'] = (x['smax'] - scaler['smax']['mean']) / scaler['smax']['std']
         x['R-value1'] = (x['R-value1'] - scaler['R-value1']['mean']) / scaler['R-value1']["std"]
         #Predict the number of cycles
@@ -124,6 +125,18 @@ for j in range(500):
     print(Accumulated_stress)
     cycles.append(1/Accumulated_stress)
     stresses.append(j)
+
+print(cycles)
+print(stresses)
+
+plt.plot(cycles, stresses, color = "black")
+plt.xlabel("Logarithm scale number of cycles Optidat", fontsize = 12)
+plt.ylabel("Logarithm scale number of cycles Wisper-PINN", fontsize = 12)
+
+
+
+plt.show()
+
 anotherone = [46.63400685, 30.53759847, 60.13090802 , 86.38254409, 30.11657662, 36.04822509, 25.01408323, 24.02818907, 42.03037427, 2.819182283, 8.159798359, 3.860663396 , 65.88812532 ,11.30806298, 11.0245947, 10.94091318, 69.13812292, 83.13420841 ]
 plt.scatter(np.log(anotherone), np.log(stresses), color = "black")
 plt.xlabel("Logarithm scale number of cycles Optidat", fontsize = 12)
