@@ -211,54 +211,78 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers, testdatafile, exportdata=False):
-    data = testdatafile
-    data = data[dataindex:dataindex+1]
+def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata=False):
+    data = orig_data
+    data = data.loc[dataindex]
+    data = data.to_frame().T
+    print(data)
     data = data.drop(columns=['Ncycles'])
-    smax = data['smax']
-    data['smax']=0
+    if 'smax' in data.columns:
+        smax_for_nn = True
+        smax = data['smax']
+    else:
+        # calc smax if smax col doesnt exist
+        smax_for_nn = False
+        smax = ((data['Fmax']* 10**3) / (data['taverage'] * data['waverage'] * 10**-6))*10**-6
+    smax = smax.values[0]
+    smax_sign = smax >= 0
+    data['smax']=0.0
 
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
-    iterations = math.ceil(smax)*maxstressratio
+    # if smax is negative, do everything in negative numbers
+    iterations = np.abs(math.ceil(smax*maxstressratio))
     for i in range(iterations):
-        data['smax'] = int(i)
+        if smax_sign:
+            data['smax'] = float(i)
+        else:
+            data['smax'] = float(-i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
-    
+    # adjust fmax according to smax
+    if 'Fmax' in x.columns:
+        x['Fmax'] = x['smax'] * (data['taverage'] * data['waverage']) * 10**-3
     xorig = x.copy()
+    # remove smax if it wasnt in the original set
+    if not smax_for_nn:
+        x = x.drop(columns=['smax'])
 
-    print(x)
+    #print(x)
 
     #Scale x using the values in scalers
     for i in x.columns:
         x[i] = (x[i] - scalers[i]['mean']) / scalers[i]['std']
 
-    print(x)
+    #print(xorig)
     #Predict the number of cycles
     model.eval()
     #print dtype of x
-    print(x.dtypes)
-    x = torch.tensor(x.values)
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
     x = x.cuda()
     x.requires_grad = True
     y = model(x)
     #Unscale the predicted number of cycles
     y = y.cpu().detach().numpy()
     y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
-
-    #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
-    plt.scatter(y, xorig['smax'])
-    plt.xlabel('log of Ncycles')
-    plt.ylabel('smax')
-    #Set domain and range of the plot
-    #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
-    #Range should be more than 0 and less than the maximum value of smax
-    plt.xlim(0, np.max(y))
-    plt.ylim(0, iterations)
-    plt.show()
+    if exportdata:
+        return y, xorig['smax']
+    else:
+        #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
+        plt.scatter(y, xorig['smax'])
+        plt.xlabel('log of Ncycles')
+        plt.ylabel('smax')
+        #Set domain and range of the plot
+        #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
+        #Range should be more than 0 and less than the maximum value of smax
+        plt.xlim(0, np.max(y))
+        #plt.ylim(0, iterations)
+        plt.show()
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:

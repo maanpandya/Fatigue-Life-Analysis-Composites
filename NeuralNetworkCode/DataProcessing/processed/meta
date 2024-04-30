@@ -1,0 +1,16 @@
+data2: 273 rows UD CA
+oldest with simple temp fill
+
+data3: 273 rows UD CA
+better temp fill
+
+data4: 253 rows UD CA
+data3 but with Fmax instead of Ffatigue, removed lnominal as it is constant for this set
+and with tensile and compressive strenght in kN
+
+data5: 253 rows UD CA (most complete set)
+data4, but with tens and comp in both force and stress
+
+data6: 253 rows UD CA
+data5, but no directly related cols: only forces and absolute dimensions
+
