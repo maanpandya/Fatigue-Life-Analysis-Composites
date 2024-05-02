@@ -20,7 +20,7 @@ z-axis - stress amplitude
 
 
 #Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/altdata.csv")
+dataframe = pd.read_csv("CurveModelling/Data/data8.csv")
 UTS = 820
 UCS = -490
 CLD_definition.add_amplitudecol(dataframe)
