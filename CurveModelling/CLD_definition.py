@@ -89,24 +89,24 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
     R_values = list(dataframe.groupby("R-value1").groups.keys())
     print("R values available: ", R_values)
 
-    parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1", "Temp.", "Cut angle "], separationRanges=[False, [0,40], False]) 
+    parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
     
     SN_models = []
 
     for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
-        df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
-        df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
+        # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+        # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
 
     print("Number of regression models available: ", len(SN_models))
 
         # # DEBUGGING - plot S-N curve for every R
-    dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
-    dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
-    print(dftemp)
-    colors = ["tab:orange","tab:green","tab:blue"]
+    # dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+    # dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
+    # print(dftemp)
+    colors = ['#9467bd','#d62728','#2ca02c','#ff7f0e','#1f77b4','#e377c2','#8c564b','#7f7f7f', '#bcbd22', '#17becf']
     for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
-        plt.scatter(pd.merge(parameter_dictionary["R-value1"][Rval], parameter_dictionary["Cut angle "][0.0])["Ncycles"], (np.absolute(pd.merge(parameter_dictionary["R-value1"][Rval],parameter_dictionary["Cut angle "][0.0])["amp"])), c=colors[valIndex])
+        plt.scatter(parameter_dictionary["R-value1"][Rval]["Ncycles"], parameter_dictionary["R-value1"][Rval]["amp"], c=colors[valIndex])
         x1 = np.linspace(0,10)
         x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
         plt.plot(x1, x2, label = Rval, c=colors[valIndex])

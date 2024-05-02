@@ -20,7 +20,7 @@ z-axis - stress amplitude
 
 
 #Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/data8.csv")
+dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
 UTS = 820
 UCS = -490
 CLD_definition.add_amplitudecol(dataframe)
@@ -55,9 +55,9 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
-colors = ["tab:blue","tab:orange","tab:green"]
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2','#7f7f7f', '#bcbd22', '#17becf']
 for i in range(len(SN_models)):
-    ax.plot(x[i::3], z[i::3], y[i::3], c=colors[i])
+    ax.plot(x[i::7], z[i::7], y[i::7], c=colors[i])
 
 ax.set_xlabel('mean stress')
 ax.set_ylabel('log number of cycles')
