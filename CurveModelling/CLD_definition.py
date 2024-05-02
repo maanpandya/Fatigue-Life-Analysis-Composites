@@ -184,17 +184,9 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
         #------------------ Visualize the CLD graph
         plt.show()
 
-    items = list(parameter_dictionary.items())
+    return R_values, R_slopes_coeff, SN_models, ax
 
-    # Sort the list of items by sort_indices
-    sorted_items = [items[i] for i in sort_indices]
-
-    # Convert the sorted list of items back to a dictionary
-    sorted_dict = dict(sorted_items)
-
-    return R_values, R_slopes_coeff, SN_models, ax, sorted_dict
-
-CLD_definition("CurveModelling/Data/altdata.csv")
+# CLD_definition("CurveModelling/Data/altdata.csv")
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------

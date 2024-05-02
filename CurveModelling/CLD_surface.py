@@ -1,8 +1,23 @@
-import scipy as sp
+import scipy as sc
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
+from matplotlib import cm
 
 import CLD_definition
+
+"""processing - x and y chosen because of similiar scales, otherwise it doesn't work
+x  - mean stress
+y  - stress amplitude
+z  - log number of cycles
+
+plotting - to match the video
+x-axis - mean stress
+y-axis - log number of cycles
+z-axis - stress amplitude
+"""
+
 
 #Create a dataframe out of the csv file
 dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
@@ -44,9 +59,9 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 for i in range(len(SN_models)):
     ax.plot(x[i::7], z[i::7], y[i::7], c=colors[i])
 
-ax.set_xlabel('Mean stress')
-ax.set_ylabel('log Number of cycles')
-ax.set_zlabel('Stress amplitude')
+ax.set_xlabel('mean stress')
+ax.set_ylabel('log number of cycles')
+ax.set_zlabel('stress amplitude')
 
 plt.show()
 
