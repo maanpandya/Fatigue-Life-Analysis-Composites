@@ -19,7 +19,7 @@ if not random_seed:
 
 # input data
 file = 'data8'
-folder = 'DataProcessing/processed'
+folder = 'NeuralNetworkCode/DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
