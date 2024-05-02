@@ -18,11 +18,34 @@ y-axis - log number of cycles
 z-axis - stress amplitude
 """
 
+def makeSurface(dataframe):
+    R_values, _, SN_models, _ = CLD_definition.CLD_definition(dataframe, plot=False)
+
+    lives = [x/10. for x in range(1,80)]
+
+    x = []
+    y = []
+    z = []
+
+    for life in lives:
+        for i in range(len(SN_models)):
+            amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
+            mean = CLD_definition.convert_to_mean_stress(amp,R_values[i])
+
+            x.append(mean)
+            y.append(amp)
+            z.append(life)
+
+    x = np.array(x)
+    y = np.array(y)
+    z = np.array(z)
+
+    surface = sc.interpolate.Rbf(x,y,z)
+
+    return surface
 
 #Create a dataframe out of the csv file
 dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
-UTS = 820
-UCS = -490
 CLD_definition.add_amplitudecol(dataframe)
 
 R_values, R_slopes_coeff, SN_models, ax = CLD_definition.CLD_definition(dataframe, plot=False)
@@ -46,7 +69,7 @@ x = np.array(x)
 y = np.array(y)
 z = np.array(z)
 
-surface = sc.interpolate.Rbf(x,y,z)
+surface = makeSurface(dataframe)
 
 xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
 zPlot = surface(xPlot, yPlot)
