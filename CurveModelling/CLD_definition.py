@@ -73,13 +73,17 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
     return
 
 
-def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
-
+def add_amplitudecol(dataframe):
+    dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
             dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
             dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+    return dataframe
+
+def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
+
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
@@ -169,14 +173,14 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
         amp_plot_lists.append(amp_list)
         mean_plot_lists.append(mean_list)
 
+    for p in range(len(amp_plot_lists)):
+        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
+        ax.legend()
+
+    ax.set_xlabel("Mean Stress")
+    ax.set_ylabel("Stress Amplitude")
+
     if plot:
-        for p in range(len(amp_plot_lists)):
-            ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
-            ax.legend()
-
-        ax.set_xlabel("Mean Stress")
-        ax.set_ylabel("Stress Amplitude")
-
         #------------------ Visualize the CLD graph
         plt.show()
 
