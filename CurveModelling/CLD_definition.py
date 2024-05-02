@@ -104,12 +104,13 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
     # dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
     # dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
     # print(dftemp)
-    colors = ['#9467bd','#d62728','#2ca02c','#ff7f0e','#1f77b4','#e377c2','#8c564b','#7f7f7f', '#bcbd22', '#17becf']
+    colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
+
     for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
         plt.scatter(parameter_dictionary["R-value1"][Rval]["Ncycles"], parameter_dictionary["R-value1"][Rval]["amp"], c=colors[valIndex])
         x1 = np.linspace(0,10)
         x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
-        plt.plot(x1, x2, label = Rval, c=colors[valIndex])
+        plt.plot(x1, x2, label ="R = " + str(Rval), c=colors[valIndex])
     plt.legend()
 
     #------------------------------------------------------------------------------------
