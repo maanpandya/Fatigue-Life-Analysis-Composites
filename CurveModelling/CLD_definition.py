@@ -173,14 +173,14 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
         amp_plot_lists.append(amp_list)
         mean_plot_lists.append(mean_list)
 
+    for p in range(len(amp_plot_lists)):
+        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
+        ax.legend()
+
+    ax.set_xlabel("Mean Stress")
+    ax.set_ylabel("Stress Amplitude")
+
     if plot:
-        for p in range(len(amp_plot_lists)):
-            ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
-            ax.legend()
-
-        ax.set_xlabel("Mean Stress")
-        ax.set_ylabel("Stress Amplitude")
-
         #------------------ Visualize the CLD graph
         plt.show()
 
