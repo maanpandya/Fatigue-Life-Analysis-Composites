@@ -20,14 +20,14 @@ z-axis - stress amplitude
 
 
 #Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/data8.csv")
+dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
 UTS = 820
 UCS = -490
 CLD_definition.add_amplitudecol(dataframe)
 
 R_values, R_slopes_coeff, SN_models, ax = CLD_definition.CLD_definition(dataframe, plot=False)
 
-lives = [x/10. for x in range(1,100)]
+lives = [x/10. for x in range(1,80)]
 
 x = []
 y = []
@@ -55,13 +55,12 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
-colors = ["tab:blue","tab:orange","tab:green"]
 for i in range(len(SN_models)):
-    ax.plot(x[i::3], z[i::3], y[i::3], c=colors[i])
+    ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
 
-ax.set_xlabel('mean stress')
-ax.set_ylabel('log number of cycles')
-ax.set_zlabel('stress amplitude')
+ax.set_xlabel('Mean stress MPa')
+ax.set_ylabel('log Number of cycles')
+ax.set_zlabel('Stress amplitude MPa')
 
 plt.show()
 
