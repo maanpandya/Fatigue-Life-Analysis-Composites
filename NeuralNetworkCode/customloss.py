@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs):
+def PINNLoss(output, target, inputs, sevencutoff=2,indexsmax=6, a=10000, b=10000, c=10000):
     # Mean squared error
     loss = torch.mean((output - target)**2)
 
@@ -16,11 +16,6 @@ def PINNLoss(output, target, inputs):
     Constraint 3: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
 
     '''
-    indexsmax = 8
-    a=10000
-    b=10000
-    c=10000
-
     # Compute gradients
     inputs.requires_grad_(True)
     outputmean = torch.mean(output)
@@ -43,11 +38,11 @@ def PINNLoss(output, target, inputs):
 
     #Constraint 3: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
     # Penalize non-infinite gradients at 10^7 cycles
-    gradientvalues = np.array([])
-    for i in range(len(output)):
-        if output[i] > 9999999.9:
-            gradientvalues = np.append(gradientvalues, gradient1[i, indexsmax])
-    loss3 = c*torch.mean(abs(1/gradientvalues))
+    loss3list = []
+    for i in range(len(target)):
+        if target[i] >= sevencutoff:
+            loss3list.append(gradient1[i, indexsmax])
+    loss3 = c*torch.mean(abs(1/torch.tensor(loss3list)))
     #print(loss3)
     loss += loss3
 

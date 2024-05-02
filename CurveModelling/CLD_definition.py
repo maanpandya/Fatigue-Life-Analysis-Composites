@@ -186,7 +186,7 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
     return R_values, R_slopes_coeff, SN_models, ax
 
-# CLD_definition("CurveModelling/Data/altdata.csv")
+CLD_definition("CurveModelling/Data/altdata.csv")
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------

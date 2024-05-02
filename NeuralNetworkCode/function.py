@@ -233,9 +233,9 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
     iterations = np.abs(math.ceil(smax*maxstressratio))
-    iterations = 1500
+    iterations = 800
     for i in range(iterations):
-        i = i - iterations/2
+        i = i
         data['smax'] = float(i)
         # if smax_sign:
         #     data['smax'] = float(i)
@@ -283,13 +283,14 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
         #Set domain and range of the plot
         #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
         #Range should be more than 0 and less than the maximum value of smax
-        plt.xlim(0, 8)
+        plt.xlim(0, 7)
         #plt.ylim(0, iterations)
         plt.show()
 
 def sncurvereal(data, R, export_data=False):
     df = data.loc[data['R-value1'] == float(R)]
-    df = df.loc[df['Cut angle '] == 0.0]
+    if 'Cut angle ' in df.columns:
+        df = df.loc[df['Cut angle '] == 0.0]
     if 'smax' in df.columns:
         s = df['smax']
     else:
@@ -540,7 +541,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         # Forward pass and compute the loss
         y_pred_train = model(x_train_temp)
         if loss_fn == PINNLoss:
-            loss = loss_fn(y_pred_train, y_train, x_train)
+            loss = loss_fn(y_pred_train, y_train, x_train, sevencutoff=1.9, indexsmax=6)
         else:
             loss = loss_fn(y_pred_train, y_train)
         losses.append(loss.item())
@@ -548,7 +549,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         if tst:
             y_pred_test = model(x_test)
             if testloss_fn == PINNLoss:
-                testloss = testloss_fn(y_pred_test, y_test, x_test)
+                testloss = testloss_fn(y_pred_test, y_test, x_test, sevencutoff=1.9, indexsmax=6)
             else:
                 testloss = testloss_fn(y_pred_test, y_test)
             testloss = testloss.item()
