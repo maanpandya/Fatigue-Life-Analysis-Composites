@@ -1,23 +1,8 @@
-import scipy as sc
+import scipy as sp
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
-from matplotlib import cm
 
 import CLD_definition
-
-"""processing - x and y chosen because of similiar scales, otherwise it doesn't work
-x  - mean stress
-y  - stress amplitude
-z  - log number of cycles
-
-plotting - to match the video
-x-axis - mean stress
-y-axis - log number of cycles
-z-axis - stress amplitude
-"""
-
 
 #Create a dataframe out of the csv file
 dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
