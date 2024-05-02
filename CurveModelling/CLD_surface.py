@@ -59,9 +59,9 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 for i in range(len(SN_models)):
     ax.plot(x[i::7], z[i::7], y[i::7], c=colors[i])
 
-ax.set_xlabel('mean stress')
-ax.set_ylabel('log number of cycles')
-ax.set_zlabel('stress amplitude')
+ax.set_xlabel('Mean stress')
+ax.set_ylabel('log Number of cycles')
+ax.set_zlabel('Stress amplitude')
 
 plt.show()
 
