@@ -9,7 +9,7 @@ import time
 import random as rd
 
 
-path = 'NNModelArchive/rev3/fatstat7'
+path = 'NNModelArchive/rev3/fatstat10'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -28,6 +28,17 @@ if 'Cut angle ' in data.columns:
         print(f"i = {i}, R = {R}, cut angle = {ca}")
         f.sncurvereal(data, R)
         f.sncurvetest(model, 5, i, scaler, orig_data=data)
+elif 'R-value1' in data.columns:
+    targetR = 0.1
+    while True:
+        indexes = list(x_test.index)
+        if targetR is not None:
+            indexes = list(data.loc[data['R-value1'] == targetR].index)
+        i = rd.choice(indexes)
+        datapoint = data.loc[i]
+        R = datapoint['R-value1']
+        f.sncurvereal(data, R)
+        f.sncurvetest(model, 5, i, scaler, orig_data=data)
 else:
     while True:
         indexes = list(x_test.index)
@@ -35,5 +46,6 @@ else:
         datapoint = data.loc[i]
         f.sncurverealbasic(data)
         f.sncurvetest(model, 5, i, scaler, orig_data=data)
+
 
 
