@@ -14,3 +14,6 @@ data4, but with tens and comp in both force and stress
 data6: 253 rows UD CA
 data5, but no directly related cols: only forces and absolute dimensions
 
+data7: 155 rows MD2 CA
+first MD2 set
+

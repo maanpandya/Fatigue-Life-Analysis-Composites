@@ -75,6 +75,28 @@ def row_filter(dataframe, column, filters, mode):
                 dataframe = pd.DataFrame.drop(dataframe, i)
     return dataframe
 
+
+def row_filter_remove(dataframe, column, filters, mode):
+    df = row_filter(dataframe, column, filters, mode)
+    return col_filter(df, [column], 'exclude')
+
+def label_col(dataframe, column, possible_values=None):
+    if possible_values == None:
+        possible_values = []
+        for i in dataframe.index:
+            val = dataframe[column].loc[i]
+            if val not in possible_values:
+                possible_values.append(val)
+    labels = {}
+    for i in range(len(possible_values)):
+        labels[possible_values[i]] = float(i)
+    col_out = []
+    for i in dataframe.index:
+        col_out.append(labels[dataframe[column].loc[i]])
+    dataframe[column] = col_out
+    return dataframe, labels
+
+
 def timetag(format=False, day=True, currtime=True, bracket=False):
     f = ''
     if format:
@@ -201,4 +223,11 @@ def remove_constant_cols(dataframe):
     return dataframe
 
 
+def filter_dataframe_by_cutoff(df, column, cutoff):
+    # Filter rows above the cutoff
+    above_cutoff = df[df[column] >= cutoff]
 
+    # Filter rows below or equal to the cutoff
+    below_cutoff = df[df[column] < cutoff]
+
+    return above_cutoff, below_cutoff
