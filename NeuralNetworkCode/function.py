@@ -233,11 +233,14 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
     iterations = np.abs(math.ceil(smax*maxstressratio))
+    iterations = 1500
     for i in range(iterations):
-        if smax_sign:
-            data['smax'] = float(i)
-        else:
-            data['smax'] = float(-i)
+        i = i - iterations/2
+        data['smax'] = float(i)
+        # if smax_sign:
+        #     data['smax'] = float(i)
+        # else:
+        #     data['smax'] = float(-i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
@@ -280,9 +283,47 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
         #Set domain and range of the plot
         #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
         #Range should be more than 0 and less than the maximum value of smax
-        plt.xlim(0, np.max(y))
+        plt.xlim(0, 8)
         #plt.ylim(0, iterations)
         plt.show()
+
+def sncurvereal(data, R, export_data=False):
+    df = data.loc[data['R-value1'] == float(R)]
+    df = df.loc[df['Cut angle '] == 0.0]
+    if 'smax' in df.columns:
+        s = df['smax']
+    else:
+        s = (df['Fmax'] * 10**3) / (df['taverage'] * df['waverage'])
+    n = df['Ncycles']
+    if export_data:
+        return s, n
+    else:
+        plt.title(f'R = {R}')
+        plt.scatter(n, s)
+        #plt.show()
+
+
+def sncurvereal2(data, i, err=5, export_data=False):
+    datapoint = data.loc[i]
+    datapoint = datapoint.to_frame().T
+    if 'smax' not in data.columns:
+        data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
+    df = dp.find_similar(datapoint, data,
+                         ['R-value1', 'Cut angle ', 'taverage', 'waverage'],
+                         [], max_error_percent=err)
+    indexes = df['indexlists'].to_list()[0] + [i]
+    df = data.loc[indexes]
+    s = df['smax']
+    n = df['Ncycles']
+    if export_data:
+        return s, n
+    else:
+        plt.scatter(n, s)
+
+def sncurverealbasic(data):
+    s = data['smax']
+    n = data['Ncycles']
+    plt.scatter(n, s)
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:

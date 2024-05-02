@@ -73,15 +73,17 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
     return
 
 
-def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7]):
-    #Create a dataframe out of the csv file
-    dataframe = pd.read_csv("CurveModelling/Data/altdata.csv")
+def add_amplitudecol(dataframe):
     dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
             dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
             dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+    return dataframe
+
+def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
+
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
@@ -178,8 +180,9 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
 
-    #------------------ Visualize the CLD graph
-    plt.show()
+    if plot:
+        #------------------ Visualize the CLD graph
+        plt.show()
 
     return R_values, R_slopes_coeff, SN_models, ax
 
