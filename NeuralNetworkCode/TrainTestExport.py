@@ -36,14 +36,14 @@ loss_fn = nn.MSELoss()           # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
-freq = 1 #/1000 epchs
+freq = 1.2 #/1000 epchs
 incr = 0.07 #/1000 epoch
-start = 0.2
-noise_fn = f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0.05, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
+start = 0.5
+noise_fn = f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0.02, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
-animate = False
-update_freq = 4
+animate = True
+update_freq = 0.5
 
 # data loading
 path = folder + '/' + file + '.csv'
