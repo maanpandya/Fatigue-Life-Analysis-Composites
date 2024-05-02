@@ -27,7 +27,7 @@ CLD_definition.add_amplitudecol(dataframe)
 
 R_values, R_slopes_coeff, SN_models, ax = CLD_definition.CLD_definition(dataframe, plot=False)
 
-lives = [x/10. for x in range(1,100)]
+lives = [x/10. for x in range(1,80)]
 
 x = []
 y = []
@@ -55,13 +55,12 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2','#7f7f7f', '#bcbd22', '#17becf']
 for i in range(len(SN_models)):
-    ax.plot(x[i::7], z[i::7], y[i::7], c=colors[i])
+    ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
 
-ax.set_xlabel('mean stress')
-ax.set_ylabel('log number of cycles')
-ax.set_zlabel('stress amplitude')
+ax.set_xlabel('Mean stress MPa')
+ax.set_ylabel('log Number of cycles')
+ax.set_zlabel('Stress amplitude MPa')
 
 plt.show()
 
