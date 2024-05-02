@@ -8,7 +8,7 @@ cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '8'
+tag = '42'
 save = True
 
 
