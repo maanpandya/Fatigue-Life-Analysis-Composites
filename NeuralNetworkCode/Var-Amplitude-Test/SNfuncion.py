@@ -2,12 +2,10 @@ import math
 import numpy as np
 import rainflow 
 import matplotlib.pyplot as plt
-import function as f
-import torch
 import pandas as pd
 from   NNfuncion import NNfuntion 
 
-def SNfunction(normalized_array):  
+def SNfunction(normalized_array, wawas):  
     count_2 = 0
     rng_list = []
     R_list = []
@@ -39,7 +37,7 @@ def SNfunction(normalized_array):
                 Rng_counted.append(rng_list[i])
     cycles = []
     stresses = []
-    for j in range(500):
+    for j in wawas:
         Accumulated_stress = 0
         for i in range(len(R_counted)):
             N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
