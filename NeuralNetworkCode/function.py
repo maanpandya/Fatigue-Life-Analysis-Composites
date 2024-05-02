@@ -541,7 +541,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         # Forward pass and compute the loss
         y_pred_train = model(x_train_temp)
         if loss_fn == PINNLoss:
-            loss = loss_fn(y_pred_train, y_train, x_train)
+            loss = loss_fn(y_pred_train, y_train, x_train, sevencutoff=1.9, indexsmax=6)
         else:
             loss = loss_fn(y_pred_train, y_train)
         losses.append(loss.item())
@@ -549,7 +549,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         if tst:
             y_pred_test = model(x_test)
             if testloss_fn == PINNLoss:
-                testloss = testloss_fn(y_pred_test, y_test, x_test)
+                testloss = testloss_fn(y_pred_test, y_test, x_test, sevencutoff=1.9, indexsmax=6)
             else:
                 testloss = testloss_fn(y_pred_test, y_test)
             testloss = testloss.item()

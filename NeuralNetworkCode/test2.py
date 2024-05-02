@@ -14,6 +14,7 @@ model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
+print(scaler['Ncycles'])
 f.test_model(model, scaler, x_test, y_test)
 #sn curve
 if 'Cut angle ' in data.columns:

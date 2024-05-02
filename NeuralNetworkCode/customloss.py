@@ -42,7 +42,7 @@ def PINNLoss(output, target, inputs, sevencutoff=7,indexsmax=0, a=10000, b=10000
     for i in range(len(target)):
         if target[i] >= sevencutoff:
             loss3list.append(gradient1[i, indexsmax])
-    loss3 = c*np.mean(abs(1/np.array(loss3list)))
+    loss3 = c*torch.mean(abs(1/torch.tensor(loss3list)))
     #print(loss3)
     loss += loss3
 
