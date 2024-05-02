@@ -16,9 +16,14 @@ y-axis - log number of cycles
 z-axis - stress amplitude
 """
 
-def makeSurface(dataframe, plot=False):
-    """Create Radial Basis Function interpolated surface from the data in the dataframe"""
-
+def makeSurface(dataframe, makeplot=False):
+    """Create Radial Basis Function interpolated surface from the data in the dataframe\n
+    INPUT \n
+    dataframe - dataframe with data on all R-values \n
+    makeplot - True/False whether to make plot; doesn't show the plot, use plt.show() if you want to see it \n
+    OUTPUT \n
+    surface - function: takes two arguments - mean stress in MPa and Stress Amplitude in MPa and returns log number of cycles 
+    """
 
     R_values, _, SN_models, _ = CLD_definition.CLD_definition(dataframe, plot=False)
 
@@ -43,7 +48,7 @@ def makeSurface(dataframe, plot=False):
 
     surface = sc.interpolate.Rbf(x,y,z)
 
-    if plot:
+    if makeplot:
         xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
         zPlot = surface(xPlot, yPlot)
 
@@ -54,11 +59,9 @@ def makeSurface(dataframe, plot=False):
         for i in range(len(SN_models)):
             ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
 
-        ax.set_xlabel('Mean stress MPa')
-        ax.set_ylabel('log Number of cycles')
-        ax.set_zlabel('Stress amplitude MPa')
-
-        plt.show()
+        ax.set_xlabel('Mean stress [MPa]')
+        ax.set_ylabel('Number of cycles [log] ')
+        ax.set_zlabel('Stress amplitude [MPa]')
 
     return surface
 
@@ -67,7 +70,7 @@ dataframe = pd.read_csv("CurveModelling/Data/data42.csv")
 dataframe.drop(dataframe.loc[dataframe['R-value1']==0].index, inplace=True)
 CLD_definition.add_amplitudecol(dataframe)
 
-surface = makeSurface(dataframe, plot=True)
+surface = makeSurface(dataframe, makeplot=True)
 
 
 # Alternate RBFInterpolator code, doesn't plot
