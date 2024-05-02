@@ -283,7 +283,7 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
         #Set domain and range of the plot
         #Domain should be more than 0 and less than the maximum value of the predicted number of cycles
         #Range should be more than 0 and less than the maximum value of smax
-        plt.xlim(0, 7)
+        plt.xlim(0, 10)
         #plt.ylim(0, iterations)
         plt.show()
 
@@ -541,7 +541,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         # Forward pass and compute the loss
         y_pred_train = model(x_train_temp)
         if loss_fn == PINNLoss:
-            loss = loss_fn(y_pred_train, y_train, x_train, sevencutoff=1.9, indexsmax=6)
+            loss = loss_fn(y_pred_train, y_train, x_train, sevencutoff=1.4, indexsmax=6)
         else:
             loss = loss_fn(y_pred_train, y_train)
         losses.append(loss.item())
