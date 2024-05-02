@@ -31,7 +31,7 @@ dropout_prob = 0.0
 
 # training parameters
 savemodel = True
-n_epochs = 10000
+n_epochs = 5000
 loss_fn = cl.PINNLoss           # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.001
