@@ -9,7 +9,7 @@ import time
 import random as rd
 
 
-path = 'NNModelArchive/rev3/statfat4'
+path = 'NNModelArchive/rev3/fatstat7'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -33,6 +33,7 @@ else:
         indexes = list(x_test.index)
         i = rd.choice(indexes)
         datapoint = data.loc[i]
+        f.sncurverealbasic(data)
         f.sncurvetest(model, 5, i, scaler, orig_data=data)
 
 

@@ -223,4 +223,11 @@ def remove_constant_cols(dataframe):
     return dataframe
 
 
+def filter_dataframe_by_cutoff(df, column, cutoff):
+    # Filter rows above the cutoff
+    above_cutoff = df[df[column] >= cutoff]
 
+    # Filter rows below or equal to the cutoff
+    below_cutoff = df[df[column] < cutoff]
+
+    return above_cutoff, below_cutoff

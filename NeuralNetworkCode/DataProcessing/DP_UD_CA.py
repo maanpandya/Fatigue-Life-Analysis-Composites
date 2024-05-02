@@ -4,17 +4,18 @@ import DPfunctions as dp
 
 
 # ,taverage,waverage,area,
-cols = ['Ncycles', 'smax', 'smean']
-laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
+cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 'Fmax', 'R-value1']
+#laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
+laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
 tag = '8'
 save = True
 
 
 collums_to_include = [
-    'Lnominal', 'Test type',
-    'smax', 'Laminate', 'Cut angle ',
-    'R-value1', 'Ncycles'
+    'Lnominal', 'taverage', 'waverage', 'area',
+    'Test type', 'Laminate', 'Cut angle ',
+    'R-value1', 'Ncycles', 'smax', 'Fmax'
     ,'runout'
 ]
 
@@ -27,6 +28,8 @@ dp.dfinfo(dfnew, 'col selection')
 
 dfnew = dp.row_filter(dfnew, 'Laminate', laminates, 'include')
 dp.dfinfo(dfnew, 'filter on laminate')
+
+dfnew = dp.row_filter_remove(dfnew, 'Test type', tests, 'include')
 
 dfnew = dp.cleanup(dfnew, 'Ncycles', 'exclude_nan')
 dfnew = dp.row_filter(dfnew, 'Ncycles', [0.0, 0], 'exclude')
@@ -48,12 +51,19 @@ for i in dfnew.index:
 dfnew = dp.col_filter(dfnew, cols+['R-value1'], 'include')
 dfnew = dp.big_cleanup(dfnew)
 dfnew['smean'] = ((1+dfnew['R-value1']) / 2) * dfnew['smax']
+for i in dfnew.index:
+    smax = dfnew['smax'].loc[i]
+    R = dfnew['R-value1'].loc[i]
+    if smax < 0 and R != 0:
+        dfnew.loc[i, 'smean'] = (smax / 2)*(1 + (1 / R))
 dfnew = dp.col_filter(dfnew, cols, 'include')
-print(dfnew['Ncycles'])
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
 dp.dfinfo(dfnew, 'final')
 
+dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
+dfnew = dfup
+dp.dfinfo(dfnew, 'final final')
 name = 'data'
 if tag == '':
     tag = dp.timetag()
