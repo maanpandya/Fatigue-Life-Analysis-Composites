@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from matplotlib import cm
-
 import CLD_definition
 
 """processing - x and y chosen because of similiar scales, otherwise it doesn't work
@@ -18,7 +16,10 @@ y-axis - log number of cycles
 z-axis - stress amplitude
 """
 
-def makeSurface(dataframe):
+def makeSurface(dataframe, plot=False):
+    """Create Radial Basis Function interpolated surface from the data in the dataframe"""
+
+
     R_values, _, SN_models, _ = CLD_definition.CLD_definition(dataframe, plot=False)
 
     lives = [x/10. for x in range(1,80)]
@@ -42,50 +43,31 @@ def makeSurface(dataframe):
 
     surface = sc.interpolate.Rbf(x,y,z)
 
+    if plot:
+        xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+        zPlot = surface(xPlot, yPlot)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
+        for i in range(len(SN_models)):
+            ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
+
+        ax.set_xlabel('Mean stress MPa')
+        ax.set_ylabel('log Number of cycles')
+        ax.set_zlabel('Stress amplitude MPa')
+
+        plt.show()
+
     return surface
 
-#Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
+# DEBUGGING - make and plot a surface from data42
+dataframe = pd.read_csv("CurveModelling/Data/data42.csv")
+dataframe.drop(dataframe.loc[dataframe['R-value1']==0].index, inplace=True)
 CLD_definition.add_amplitudecol(dataframe)
 
-R_values, R_slopes_coeff, SN_models, ax = CLD_definition.CLD_definition(dataframe, plot=False)
-
-lives = [x/10. for x in range(1,80)]
-
-x = []
-y = []
-z = []
-
-for life in lives:
-    for i in range(len(SN_models)):
-        amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
-        mean = CLD_definition.convert_to_mean_stress(amp,R_values[i])
-
-        x.append(mean)
-        y.append(amp)
-        z.append(life)
-
-x = np.array(x)
-y = np.array(y)
-z = np.array(z)
-
-surface = makeSurface(dataframe)
-
-xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
-zPlot = surface(xPlot, yPlot)
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
-for i in range(len(SN_models)):
-    ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
-
-ax.set_xlabel('Mean stress MPa')
-ax.set_ylabel('log Number of cycles')
-ax.set_zlabel('Stress amplitude MPa')
-
-plt.show()
+surface = makeSurface(dataframe, plot=True)
 
 
 # Alternate RBFInterpolator code, doesn't plot
