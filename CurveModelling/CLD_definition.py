@@ -132,6 +132,7 @@ def CLD_definition(dataframe):
     print("-----------------------------\n")
     return R_values, R_slopes_coeff, SN_models,parameter_dictionary
 
+
 def plot_regression_models(SN_models, R_values,parameter_dictionary):
     colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
 
@@ -145,6 +146,7 @@ def plot_regression_models(SN_models, R_values,parameter_dictionary):
     ax.legend()
 
     return
+
 
 def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490):
 
@@ -185,6 +187,7 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
     ax.set_ylabel("Stress Amplitude")
     
     return ax
+
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
