@@ -19,7 +19,7 @@ if not random_seed:
 
 # input data
 file = 'data8'
-folder = 'NeuralNetworkCode/DataProcessing/processed'
+folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
@@ -32,7 +32,7 @@ dropout_prob = 0.0
 # training parameters
 savemodel = True
 n_epochs = 5000
-loss_fn = cl.PINNLoss           # fn
+loss_fn = cl.PINNLoss          # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
@@ -42,7 +42,7 @@ start = 0.5
 noise_fn = f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0.02, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
-animate = True
+animate = False
 update_freq = 0.5
 
 # data loading

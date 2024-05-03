@@ -3,7 +3,6 @@ import numpy as np
 import DPfunctions as dp
 
 
-# ,taverage,waverage,area,
 cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 'Fmax', 'R-value1']
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
