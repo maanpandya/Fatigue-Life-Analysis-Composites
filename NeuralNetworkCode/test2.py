@@ -9,7 +9,7 @@ import time
 import random as rd
 
 
-path = 'NNModelArchive/rev3/shalalalalalala'
+path = 'NNModelArchive/rev3/fatstat320'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')

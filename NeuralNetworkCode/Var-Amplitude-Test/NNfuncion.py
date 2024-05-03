@@ -8,7 +8,7 @@ import function as f
 import torch
 import pandas as pd
 
-def NNfuntion(normalized_array):
+def NNfuntion(normalized_array, wawas):
 
 
     path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
@@ -68,7 +68,7 @@ def NNfuntion(normalized_array):
             Rng_counted.append(rng_list[i])
 
     #for j in [378.90 , 371.15, 379.23, 355.52, 381.00, 365.03, 374.66, 376.13, 349.57, 469.89, 466.83, 470.06, 342.82, 443.18, 444.34, 446.66, 357.72, 356.78]:
-    for j in range(500):
+    for j in wawas:
         Accumulated_stress = 0
         for i in range(len(R_counted)):
             N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
