@@ -56,9 +56,9 @@ def plotStd(X,Y, dev=3):
     plt.title('Linear Regression with Statsmodels')
     plt.legend()
 
-    # Show plot
-    plt.show()
+    ax = plt.gca()# get the current axes
 
+    return ax
 
 # # DEBUGGING
 # X = np.array([1,4,6,7,10,17]).reshape((-1, 1))
