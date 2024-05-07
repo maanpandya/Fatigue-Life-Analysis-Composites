@@ -11,30 +11,32 @@ import pandas as pd
 def NNfuntion(normalized_array, wawas):
 
 
-    path = 'NeuralNetworkCode/NNModelArchive/rev2/10x30pinloss'
+    path = 'NeuralNetworkCode/NNModelArchive/rev3/goodname1'
     model, scaler = f.import_model(path)
     stresses = []
     cycles = []
-    data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data2.csv')
+    data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data11.csv')
     x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
-    x['Fibre Volume Fraction'] =50.92 #Fibre Volume Fraction
-    x['Cut angle '] = 0 #Cut angle
+    #x['Fibre Volume Fraction'] =50.92 #Fibre Volume Fraction
+    #x['Cut angle '] = 0 #Cut angle
     x['taverage'] = 3.83 #Average thickness
     x['waverage'] = 24.86 #Average width
     x['area'] = 95.21 #Area
     x['Lnominal'] = 145 #Nominal length of sample
-    #x['R-value1'] = -1 #R-value
-    x['Ffatigue'] = 36.08 #Fatigue force
-    x['f'] = 3.44 #Frequency
-    x['E'] = 37.46 #Young's modulus
-    x['Temp.'] = 28 #Temperature
+    x['R-value1'] = -1 #R-value
+    x['Fmax'] = 36.08 #Fatigue force
+    x['smax'] = 0
+    x['smean'] = 0
+    #x['f'] = 3.44 #Frequency
+    #x['E'] = 37.46 #Young's modulus
+    #x['Temp.'] = 28 #Temperature
     #x["tens"] = 75
     #x["comp"]= -45
     x.drop(columns=['nr','Ncycles'],inplace=True)
 
     #Normalize the data except for stress
     for i in x.columns:
-        if i != 'smax' and i != 'R-value1' and i != 'Ffatigue':
+        if i != 'smax' and i != 'R-value1' and i != 'Fmax':
             x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
 
     count_2 = 0
@@ -73,10 +75,10 @@ def NNfuntion(normalized_array, wawas):
         for i in range(len(R_counted)):
             N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
             x['smax'] = Rng_counted[i]*j# stress
-            x['Ffatigue'] = Rng_counted[i]*j*95.21/1000
+            x['Fmax'] = Rng_counted[i]*j*95.21/1000
             x['R-value1'] = R_counted[i]
             #Normalize the data for smax
-            x['Ffatigue'] = (x['Ffatigue'] - scaler['Ffatigue']['mean']) / scaler['Ffatigue']['std']
+            x['Fmax'] = (x['Fmax'] - scaler['Fmax']['mean']) / scaler['Fmax']['std']
             x['smax'] = (x['smax'] - scaler['smax']['mean']) / scaler['smax']['std']
             x['R-value1'] = (x['R-value1'] - scaler['R-value1']['mean']) / scaler['R-value1']["std"]
             #Predict the number of cycles
