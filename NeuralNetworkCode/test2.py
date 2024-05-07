@@ -8,16 +8,29 @@ import function as f
 import time
 import random as rd
 
-
-path = 'NNModelArchive/rev3/fatstat320'
+complete = True
+path = 'NeuralNetworkCode/NNModelArchive/rev3/RIPdrake'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
-print(scaler['Ncycles'])
 f.test_model(model, scaler, x_test, y_test)
 #sn curve
-if 'Cut angle ' in data.columns:
+if complete:
+    targetR = None
+    while True:
+        indexes = list(x_test.index)
+        if 'R-value1' in data.columns:
+            if targetR is not None:
+                indexes = list(data.loc[data['R-value1'] == targetR].index)
+            else:
+                indexes = list(data.loc[data['R-value1'] != 0].index)
+        i = rd.choice(indexes)
+        datapoint = data.loc[i]
+        datapoint = datapoint.to_frame().T
+        print(datapoint)
+        f.complete_sn_curve(model, scaler, data, datapoint, err=5)
+elif 'Cut angle ' in data.columns:
     while True:
         indexes = list(x_test.index)
         ca = 90.0
@@ -30,16 +43,19 @@ if 'Cut angle ' in data.columns:
         f.sncurvereal(data, R)
         f.sncurvetest(model, 5, i, scaler, orig_data=data)
 elif 'R-value1' in data.columns:
-    targetR = 0.1
+    targetR = None
     while True:
         indexes = list(x_test.index)
         if targetR is not None:
             indexes = list(data.loc[data['R-value1'] == targetR].index)
+        else:
+            indexes = list(data.loc[data['R-value1'] != 0].index)
         i = rd.choice(indexes)
         datapoint = data.loc[i]
         R = datapoint['R-value1']
+        datapoint = datapoint.to_frame().T
         f.sncurvereal(data, R)
-        f.sncurvetest(model, 5, i, scaler, orig_data=data)
+        f.sncurvetest(model, 800, datapoint, scaler)
 else:
     while True:
         indexes = list(x_test.index)

@@ -2,7 +2,6 @@ import scipy as sc
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 import CLD_definition
 
 """processing - x and y chosen because of similiar scales, otherwise it doesn't work
@@ -16,16 +15,18 @@ y-axis - log number of cycles
 z-axis - stress amplitude
 """
 
-def makeSurface(dataframe, makeplot=False):
+def makeSurface(R_values,SN_models):
     """Create Radial Basis Function interpolated surface from the data in the dataframe\n
     INPUT \n
-    dataframe - dataframe with data on all R-values \n
-    makeplot - True/False whether to make plot; doesn't show the plot, use plt.show() if you want to see it \n
+    R-values \n
+    SN_models \n
     OUTPUT \n
-    surface - function: takes two arguments - mean stress in MPa and Stress Amplitude in MPa and returns log number of cycles 
+    surface - function: takes two arguments - mean stress in MPa and Stress Amplitude in MPa and returns log number of cycles \n
+    x,y,z - sampled points of the S-N curves, for plotting
     """
-
-    R_values, _, SN_models, _ = CLD_definition.CLD_definition(dataframe, plot=False)
+    print("-----------------------------")
+    print("Creating CLD surface...")
+    print("\n")
 
     lives = [x/10. for x in range(1,80)]
 
@@ -48,49 +49,24 @@ def makeSurface(dataframe, makeplot=False):
 
     surface = sc.interpolate.Rbf(x,y,z)
 
-    if makeplot:
-        xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
-        zPlot = surface(xPlot, yPlot)
+    print("\nSurface created.")
+    print("-----------------------------\n")
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+    return surface,x,y,z
 
-        ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
-        for i in range(len(SN_models)):
-            ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
+def plotSurface(SN_models,R_values,surface,x,y,z):
+    xPlot, yPlot = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+    zPlot = surface(xPlot, yPlot)
 
-        ax.set_xlabel('Mean stress [MPa]')
-        ax.set_ylabel('Number of cycles [log] ')
-        ax.set_zlabel('Stress amplitude [MPa]')
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
-    return surface
+    ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
+    for i in range(len(SN_models)):
+        ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
 
-# DEBUGGING - make and plot a surface from data42
-dataframe = pd.read_csv("CurveModelling/Data/data42.csv")
-dataframe.drop(dataframe.loc[dataframe['R-value1']==0].index, inplace=True)
-CLD_definition.add_amplitudecol(dataframe)
+    ax.set_xlabel('Mean stress MPa')
+    ax.set_ylabel('log Number of cycles')
+    ax.set_zlabel('Stress amplitude MPa')
 
-surface = makeSurface(dataframe, makeplot=True)
-
-
-# Alternate RBFInterpolator code, doesn't plot
-
-        # coords.append([mean, amp])
-
-# coords = np.array(coords)
-
-# surface = sp.interpolate.RBFInterpolator(coords, values)
-
-# X = np.arange(-800, 800, 10)
-# Y = np.arange(0, 800, 10)
-# gridList= np.vstack(list(map(np.ravel, np.meshgrid(X, Y)))).T
-# Z = surface(gridList)
-# X, Y = np.meshgrid(X, Y)
-# print(X,Y,Z)
-
-
-# fig = plt.figure()
-# ax = fig.add_subplot(projection='3d')
-# ax.scatter(X, Y, Z)
-
-# plt.show()s
+    return ax
