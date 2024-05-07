@@ -222,7 +222,7 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
         smax_for_nn = False
         smax = ((data['Fmax']* 10**3) / (data['taverage'] * data['waverage'] * 10**-6))*10**-6
     smax = smax.values[0]
-    R = data['R-value1']
+    R = data['R-value1'].values[0]
     iscompressive = R >= 1
     data['smax']=0.0
 
@@ -235,9 +235,9 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
         i = i/2
         data['smax'] = float(i)
         if iscompressive:
-             data['smean'] = (i/2)*(1-1/R)
+             data['smean'] = (i/2)*(1+1/R)
         else:
-             data['smean'] = (i/2)*(1-R)
+             data['smean'] = (i/2)*(1+R)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
