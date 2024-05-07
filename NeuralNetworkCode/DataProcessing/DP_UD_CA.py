@@ -7,8 +7,9 @@ cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '10'
+tag = '11'
 save = True
+absmax = True
 
 
 collums_to_include = [
@@ -59,6 +60,10 @@ dfnew = dp.col_filter(dfnew, cols, 'include')
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
 dp.dfinfo(dfnew, 'final')
+
+if absmax:
+    dfnew['smax'] = np.abs(dfnew['smax'])
+    dfnew['smean'] = np.abs(dfnew['smean'])
 
 dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
 #dfnew = dfdown

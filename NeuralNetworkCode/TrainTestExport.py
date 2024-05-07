@@ -18,7 +18,7 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'data10'
+file = 'data11'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
@@ -31,15 +31,15 @@ dropout_prob = 0.0
 
 # training parameters
 savemodel = True
-n_epochs = 5000
-loss_fn = nn.MSELoss()          # fn
+n_epochs = 7000
+loss_fn = cl.PINNLoss          # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
 freq = 1.2 #/1000 epchs
 incr = 0.07 #/1000 epoch
 start = 0.5
-noise_fn = f.linear(0.05, 0.05)#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0.02, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
+noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0.02, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
 animate = True
@@ -55,6 +55,7 @@ data = dp.remove_constant_cols(data)
 traindata, testdata, scalers = dp.datasplitscale(data, test_size=test_size, exclude_columns=[])
 x_train, y_train = dp.dfxysplit(traindata, target_columns)
 x_test, y_test = dp.dfxysplit(testdata, target_columns)
+print(x_train.columns)
 
 # create model
 if n_hidden_layers == 0:

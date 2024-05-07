@@ -229,14 +229,14 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
-    iterations = np.abs(maxstress)
+    iterations = maxstress * 2
     for i in range(iterations):
-        i = i
+        i = i - iterations/2
         data['smax'] = float(i)
-        if smax_sign:
-            data['smax'] = float(i)
-        else:
-            data['smax'] = float(-i)
+        # if smax_sign:
+        #     data['smax'] = float(i)
+        # else:
+        #     data['smax'] = float(-i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
@@ -317,26 +317,42 @@ def sncurvereal2(data, i, err=5, export_data=False):
     else:
         plt.scatter(n, s)
 
-def sncurverealbasic(data):
+def sncurverealbasic(data, export_data=False):
     s = data['smax']
     n = data['Ncycles']
-    plt.scatter(n, s)
+    if export_data:
+        return s, n
+    else:
+        plt.scatter(n, s)
 
 
 def complete_sn_curve(model, scaler, data, datapoint, err=3):
     if 'smax' not in data.columns:
         data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
         datapoint['smax'] = (datapoint['Fmax'] * 10 ** 3) / (datapoint['taverage'] * datapoint['waverage'])
+    cols = ['taverage', 'waverage', 'Lnominal']
+    if 'R-value1' in data.columns:
+        cols.append('R-value1')
     df = dp.find_similar(datapoint, data,
-                         ['R-value1', 'taverage', 'waverage', 'Lnominal'],
+                         cols,
                          [], max_error_percent=err)
     indexes = df['indexlists'].to_list()[0]
     df = data.loc[indexes]
     stat = datapoint
     srs = df['smax']
     nrs = df['Ncycles']
-    R = datapoint['R-value1'].values[0]
-    src, nrc = sncurvereal(data, R, export_data=True)
+    if 'R-value1' in data.columns:
+        R = datapoint['R-value1'].values[0]
+        src, nrc = sncurvereal(data, R, export_data=True)
+    else:
+        max = datapoint['smax'].values[0]
+        mean = datapoint['smean'].values[0]
+        mini = 2 * mean - max
+        r = mini / max
+        if max < 0:
+            r = 1 / r
+        R = r
+        src, nrc = sncurverealbasic(data, export_data=True)
     srp, nrp = sncurvetest(model, 800, datapoint, scaler, exportdata=True)
     plt.scatter(nrc, src, color='black')
     plt.scatter(nrs, srs, color='orange')
