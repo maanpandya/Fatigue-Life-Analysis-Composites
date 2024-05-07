@@ -3,26 +3,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from Data_processing import separateDataFrame
 from SNCurve import regression
+import random as rd
+
+pd.options.mode.chained_assignment = None
 np.set_printoptions(precision=4)
-#from SNCurve import SN_models
-
-"""
-GOAL:
-Find the fatigue life of a material for any given load ratio and amplitude
-
-METHOD:
-Create areas of the CLD curve for the available load ratios by using the SN regression models
-Create a linear interpolation model for each of the areas for a given N value
-Interpolate the target inside the area
-
-IMPUTS:
-SN regression models for all the R values.
-Target stress amplitude and mean stress
-
-Output:
-Fatigue life for the given stress amplitude and mean stress
-"""
-
 
 def convert_to_mean_stress(amp,R):
     S_max = amp*2/(1-R)
@@ -46,24 +30,23 @@ def Slope_R_line_creator(model,R,N_to_connect):
     return slope,intersect
 
 def R_line_visualizer(R_slopes_coeff,R_values,ax):
-    Y_limit = 600
+    Y_limit = 450
+    Y_base = 250
     i = 0
     for slope in R_slopes_coeff:
         if R_values[i] != -1:
             if slope[0] >= 0:
-                x = np.linspace(0,600,5)
+                x = np.linspace(0,Y_base/abs(slope[0]) + 50,5)
 
             else:
-                x = np.linspace(0,-600,5)
+                x = np.linspace(0,-Y_base/abs(slope[0]) - 50,5)
 
             y = slope[0]*x + slope[1]
 
         else:
             y = np.linspace(0,Y_limit,5)
             x = np.zeros(5)
-        
-        print(x)
-        print(y)
+
         ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)))
         plt.plot(x, y)
 
@@ -77,17 +60,21 @@ def add_amplitudecol(dataframe):
     dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
-            dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
+            dataframe.loc[index, "amp"] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
-            dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+            dataframe.loc[index, "amp"] = row["smax"] / 2 * (1 - row["R-value1"])
     return dataframe
 
-def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7], plot = True):
 
+def CLD_definition(dataframe):
+    print("-----------------------------")
+    print("Running CLD definition...")
+    print("\n")
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
-    print("R values available: ", R_values)
+    print("The dictionary contains the following R values: ")
+    print(R_values)
 
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
     
@@ -100,26 +87,24 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
     print("Number of regression models available: ", len(SN_models))
 
-        # # DEBUGGING - plot S-N curve for every R
-    # dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
-    # dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
-    # print(dftemp)
-    colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
+    #     # # DEBUGGING - plot S-N curve for every R
+    # # dftemp = pd.merge(parameter_dictionary["R-value1"][10], parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
+    # # dftemp = pd.merge(dftemp, parameter_dictionary["Cut angle "][0.0])
+    # # print(dftemp)
+    # colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
 
-    for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
-        plt.scatter(parameter_dictionary["R-value1"][Rval]["Ncycles"], parameter_dictionary["R-value1"][Rval]["amp"], c=colors[valIndex])
-        x1 = np.linspace(0,10)
-        x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
-        plt.plot(x1, x2, label ="R = " + str(Rval), c=colors[valIndex])
-    plt.legend()
+    # for valIndex, Rval in enumerate(parameter_dictionary["R-value1"].keys()):
+    #     plt.scatter(parameter_dictionary["R-value1"][Rval]["Ncycles"], parameter_dictionary["R-value1"][Rval]["amp"], c=colors[valIndex])
+    #     x1 = np.linspace(0,10)
+    #     x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
+    #     plt.plot(x1, x2, label ="R = " + str(Rval), c=colors[valIndex])
+    # plt.legend()
 
     #------------------------------------------------------------------------------------
     #################### Slope calculation and ordering
 
     #Define intersection point for the slopes
     N_to_connect = 10**3
-    print("\nSlopes will be created in tersection the number of cycles to failure: ", N_to_connect)
-
     #Create a list of slopes and intersects for each R value
     R_slopes_coeff = []
 
@@ -143,8 +128,26 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
     SN_models = np.array(SN_models)[sort_indices]
     R_values = np.array(R_values)[sort_indices]
 
+    print("\nCLD is fully defined.")
+    print("-----------------------------\n")
+    return R_values, R_slopes_coeff, SN_models,parameter_dictionary
 
-    #------------------------------------------------------------------------------------
+def plot_regression_models(SN_models, R_values,parameter_dictionary):
+    colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
+
+    fig, ax = plt.subplots()
+
+    for valIndex, Rval in enumerate(R_values):
+        ax.scatter(parameter_dictionary["R-value1"][Rval]["Ncycles"], parameter_dictionary["R-value1"][Rval]["amp"], c=colors[valIndex])
+        x1 = np.linspace(0,10)
+        x2 = np.power(10,SN_models[valIndex].predict(x1.reshape(-1,1)))
+        ax.plot(x1, x2, label ="R = " + str(Rval), c=colors[valIndex])
+    ax.legend()
+
+    return
+
+def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490):
+
     #################### Creation of constant life lines ands R lines
     fig, ax = plt.subplots()
     R_line_visualizer(R_slopes_coeff,R_values,ax)
@@ -180,14 +183,8 @@ def CLD_definition(dataframe, UTS = 820, UCS = -490, Life_lines_log = [3,4,5,6,7
 
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
-
-    if plot:
-        #------------------ Visualize the CLD graph
-        plt.show()
-
-    return R_values, R_slopes_coeff, SN_models, ax
-
-# CLD_definition("CurveModelling/Data/altdata.csv")
+    
+    return ax
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
@@ -216,3 +213,4 @@ def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slo
         print(f"Target is below R = {R_values[min_index]}")
         Above = False
         return R_values[min_index],Above
+    

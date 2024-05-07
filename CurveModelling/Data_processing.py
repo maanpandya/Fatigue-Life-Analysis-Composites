@@ -75,6 +75,13 @@ def separateDataFrame(dataFrame, separationParameters = ["R-value1"], separation
                             parameterDictionary[parameter][separationRanges[index][separationIndex]] = parameterDictionary[parameter][separationRanges[index][separationIndex]]._append(dataFrame.iloc[valueIndex])                       
     return parameterDictionary
 
+def removeStaticTests(dataframe):
+    """Removes static tests datapoints from the dataframe (when R-value is 0) \n
+    INPUT dataframe \n
+    OUTPUT dataframe"""
+    return dataframe.drop(dataframe.loc[dataframe['R-value1']==0].index, inplace=True)
+
+
 # # TESTING
 # dataFrame = pd.read_csv("CurveModelling\Data\data2.csv")
 # # WITH RANGES
