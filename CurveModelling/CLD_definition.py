@@ -79,12 +79,17 @@ def CLD_definition(dataframe):
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
     
     SN_models = []
+    std = []
+    from SNCurve import getStd
 
+    i = 0
     for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
         # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
         # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
-
+        std.append(getStd(np.array(df["Ncycles"]), np.array(df["amp"]),SN_models[i]))
+        i += 1
+ 
     print("Number of regression models available: ", len(SN_models))
 
     #     # # DEBUGGING - plot S-N curve for every R
@@ -130,7 +135,7 @@ def CLD_definition(dataframe):
 
     print("\nCLD is fully defined.")
     print("-----------------------------\n")
-    return R_values, R_slopes_coeff, SN_models,parameter_dictionary
+    return R_values, R_slopes_coeff, SN_models, parameter_dictionary, std
 
 def plot_regression_models(SN_models, R_values,parameter_dictionary):
     colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']

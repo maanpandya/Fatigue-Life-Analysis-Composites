@@ -24,10 +24,18 @@ def regression(nArray, sArray):
 
     return model
 
+def getStd(nArray, sArray, model):
+    nArray = nArray.reshape((-1,1))
+    sArray = np.log10(np.absolute(sArray))
+    pred = model.predict(nArray)
+    res = sArray - pred
+    return np.std(res)
+
+
 # Plotting S-N Curve with prediction error
 def plotStd(X,Y, dev=3):
     """
-    Under construction, not sure if even needed as a function; has useful stuff inside though, works as a nice example \n
+    (Under construction, not sure if even needed as a function; has useful stuff inside though, works as a nice example) \n
     Plot linear regression curve with uncertainties \n
     INPUT \n
         X - x values, for S-N curve, log10 of fatigue life, column is already log10 in data \n
@@ -56,7 +64,7 @@ def plotStd(X,Y, dev=3):
     plt.title('Linear Regression with Statsmodels')
     plt.legend()
 
-    ax = plt.gca()# get the current axes
+    ax = plt.gca() # get the current axes
 
     return ax
 
