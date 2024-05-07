@@ -211,11 +211,8 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata=False):
-    data = orig_data
-    data = data.loc[dataindex]
-    data = data.to_frame().T
-    print(data)
+def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
+    data = datapoint
     data = data.drop(columns=['Ncycles'])
     if 'smax' in data.columns:
         smax_for_nn = True
@@ -232,15 +229,14 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
-    iterations = np.abs(math.ceil(smax*maxstressratio))
-    iterations = 800
+    iterations = np.abs(maxstress)
     for i in range(iterations):
         i = i
         data['smax'] = float(i)
-        # if smax_sign:
-        #     data['smax'] = float(i)
-        # else:
-        #     data['smax'] = float(-i)
+        if smax_sign:
+            data['smax'] = float(i)
+        else:
+            data['smax'] = float(-i)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
@@ -274,7 +270,7 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
     y = y.cpu().detach().numpy()
     y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
     if exportdata:
-        return y, xorig['smax']
+        return xorig['smax'], y
     else:
         #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
         plt.scatter(y, xorig['smax'])
@@ -325,6 +321,32 @@ def sncurverealbasic(data):
     s = data['smax']
     n = data['Ncycles']
     plt.scatter(n, s)
+
+
+def complete_sn_curve(model, scaler, data, datapoint, err=3):
+    if 'smax' not in data.columns:
+        data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
+        datapoint['smax'] = (datapoint['Fmax'] * 10 ** 3) / (datapoint['taverage'] * datapoint['waverage'])
+    df = dp.find_similar(datapoint, data,
+                         ['R-value1', 'taverage', 'waverage', 'Lnominal'],
+                         [], max_error_percent=err)
+    indexes = df['indexlists'].to_list()[0]
+    df = data.loc[indexes]
+    stat = datapoint
+    srs = df['smax']
+    nrs = df['Ncycles']
+    R = datapoint['R-value1'].values[0]
+    src, nrc = sncurvereal(data, R, export_data=True)
+    srp, nrp = sncurvetest(model, 800, datapoint, scaler, exportdata=True)
+    plt.scatter(nrc, src, color='black')
+    plt.scatter(nrs, srs, color='orange')
+    plt.plot(nrp, srp, color='red')
+    plt.xlim(0,8)
+    plt.title(f'R = {R}')
+    plt.xlabel('log(N) [-]')
+    plt.ylabel('Maximum stress [MPa]')
+    plt.legend(['All experimental', 'Similar experimental', 'Model prediction'])
+    plt.show()
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:

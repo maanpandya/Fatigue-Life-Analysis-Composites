@@ -7,7 +7,7 @@ cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '42'
+tag = '10'
 save = True
 
 
@@ -61,7 +61,7 @@ if 'Ncycles' in dfnew.columns:
 dp.dfinfo(dfnew, 'final')
 
 dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
-dfnew = dfup
+#dfnew = dfdown
 dp.dfinfo(dfnew, 'final final')
 name = 'data'
 if tag == '':
