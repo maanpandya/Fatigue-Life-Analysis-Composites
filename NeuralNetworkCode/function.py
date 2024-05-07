@@ -211,11 +211,8 @@ def test_model(model, scaler, x_test, y_test):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
-def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata=False):
-    data = orig_data
-    data = data.loc[dataindex]
-    data = data.to_frame().T
-    print(data)
+def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
+    data = datapoint
     data = data.drop(columns=['Ncycles'])
     if 'smax' in data.columns:
         smax_for_nn = True
@@ -225,22 +222,22 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
         smax_for_nn = False
         smax = ((data['Fmax']* 10**3) / (data['taverage'] * data['waverage'] * 10**-6))*10**-6
     smax = smax.values[0]
-    smax_sign = smax >= 0
+    R = data['R-value1'].values[0]
+    iscompressive = R >= 1
     data['smax']=0.0
 
     #Let x be a dataframe with the same columns as data but empty
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
-    iterations = np.abs(math.ceil(smax*maxstressratio))
-    iterations = 800
+    iterations = maxstress * 2
     for i in range(iterations):
-        i = i
+        i = i/2
         data['smax'] = float(i)
-        # if smax_sign:
-        #     data['smax'] = float(i)
-        # else:
-        #     data['smax'] = float(-i)
+        if iscompressive:
+             data['smean'] = (i/2)*(1+1/R)
+        else:
+             data['smean'] = (i/2)*(1+R)
         #Append the data to the dataframe x as a row
         x = pd.concat([x, data])
         x['smax'] = x['smax'].astype(float)
@@ -274,7 +271,7 @@ def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata
     y = y.cpu().detach().numpy()
     y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
     if exportdata:
-        return y, xorig['smax']
+        return xorig['smax'], y
     else:
         #Plot the results, the column smax from x on the y axis and the predicted number of cycles on the x axis
         plt.scatter(y, xorig['smax'])
@@ -321,10 +318,52 @@ def sncurvereal2(data, i, err=5, export_data=False):
     else:
         plt.scatter(n, s)
 
-def sncurverealbasic(data):
+def sncurverealbasic(data, export_data=False):
     s = data['smax']
     n = data['Ncycles']
-    plt.scatter(n, s)
+    if export_data:
+        return s, n
+    else:
+        plt.scatter(n, s)
+
+
+def complete_sn_curve(model, scaler, data, datapoint, err=3):
+    if 'smax' not in data.columns:
+        data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
+        datapoint['smax'] = (datapoint['Fmax'] * 10 ** 3) / (datapoint['taverage'] * datapoint['waverage'])
+    cols = ['taverage', 'waverage', 'Lnominal']
+    if 'R-value1' in data.columns:
+        cols.append('R-value1')
+    df = dp.find_similar(datapoint, data,
+                         cols,
+                         [], max_error_percent=err)
+    indexes = df['indexlists'].to_list()[0]
+    df = data.loc[indexes]
+    stat = datapoint
+    srs = df['smax']
+    nrs = df['Ncycles']
+    if 'R-value1' in data.columns:
+        R = datapoint['R-value1'].values[0]
+        src, nrc = sncurvereal(data, R, export_data=True)
+    else:
+        max = datapoint['smax'].values[0]
+        mean = datapoint['smean'].values[0]
+        mini = 2 * mean - max
+        r = mini / max
+        if max < 0:
+            r = 1 / r
+        R = r
+        src, nrc = sncurverealbasic(data, export_data=True)
+    srp, nrp = sncurvetest(model, 800, datapoint, scaler, exportdata=True)
+    plt.scatter(nrc, src, color='black')
+    plt.scatter(nrs, srs, color='orange')
+    plt.plot(nrp, srp, color='red')
+    plt.xlim(0,8)
+    plt.title(f'R = {R}')
+    plt.xlabel('log(N) [-]')
+    plt.ylabel('Maximum stress [MPa]')
+    plt.legend(['All experimental', 'Similar experimental', 'Model prediction'])
+    plt.show()
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:
@@ -500,7 +539,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         legend = ['Training loss']
         if tst:
             line2, = ax.plot(list(range(epoch)), testlosses)
-            legend.append('Test loss')
+            legend.append('Validation loss')
         if noise:
             line3, = ax.plot(list(range(epoch)), noiselevels)
             legend.append('Noise level')

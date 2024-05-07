@@ -207,8 +207,9 @@ def find_similar(df1, df2, col_to_compare, col_to_return=[], max_error_percent=1
             m = np.argmin(np.array(err_lst))
             for l in col_to_return:
                 df_return.loc[i, l] = df2.loc[sim_lst[m], l]
-    print('similar result:' + str(np.mean(np.array(simlstsizes))))
-    dfinfo(df_return.dropna())
+    if not returnindex:
+        print('similar result:' + str(np.mean(np.array(simlstsizes))))
+        dfinfo(df_return.dropna())
     return df_return
 
 def remove_constant_cols(dataframe):

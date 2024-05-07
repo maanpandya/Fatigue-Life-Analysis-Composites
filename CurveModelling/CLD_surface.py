@@ -16,6 +16,14 @@ z-axis - stress amplitude
 """
 
 def makeSurface(R_values,SN_models):
+    """Create Radial Basis Function interpolated surface from the data in the dataframe\n
+    INPUT \n
+    R-values \n
+    SN_models \n
+    OUTPUT \n
+    surface - function: takes two arguments - mean stress in MPa and Stress Amplitude in MPa and returns log number of cycles \n
+    x,y,z - sampled points of the S-N curves, for plotting
+    """
     print("-----------------------------")
     print("Creating CLD surface...")
     print("\n")
