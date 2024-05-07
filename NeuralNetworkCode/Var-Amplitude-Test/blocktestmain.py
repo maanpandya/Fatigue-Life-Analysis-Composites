@@ -11,47 +11,151 @@ from CLD_interpolator import CLD_interpolator_log
 
 surface = CLD_interpolator.surface
 
-code ='RBTE1b2'.lower()   
-R = 0.1
+
 Fmax1 = np.arange(30, 70)  # MPa Maximum force of first block
 Fmax2 = np.arange(30, 70)  # kN Maximum force of second block
 Area = 169.524      #mm^2   Area of specimen
 Smax1 = Fmax1 / Area  * (10**3) #MPa
 Smax2 = Fmax2 / Area  * (10**3) #MPa
-Smax1test = [328.39, 332.74, 337.90, 355.12, 356.22]
-Smax2test = [260.61, 263.98, 268.22, 281.89, 282.76]
-Resultstest = [10511, 13130, 22500, 980, 7431]
 
-cycles1_array, cycles2_array, x, y = Calculations(Smax1, Smax2, code, surface, R)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_wireframe(x, y, np.log(cycles1_array), rstride=5, cstride=5, linewidth=0.5, color='blue', alpha=0.8, cmap='viridis')
-ax.plot_wireframe(x, y, np.log(cycles2_array), rstride=5, cstride=5, linewidth=0.5, color='red', alpha=0.8, cmap='viridis')
-ax.scatter(Smax1test, Smax2test, np.log(Resultstest), color='red')
-ax.set_xlabel('Smax1 (MPa)')
-ax.set_ylabel('Smax2 (MPa)')
-ax.set_zlabel('Cycles')
-plt.show()
+#General testing data
+code = ['BTC1B2'.lower(), 'BTF31B'.lower(), 'RBTD1B3'.lower(), 'RBTE1B2'.lower()]
+R = [-1, 0.1, -1, 0.1]
+Smax1test = []
+Smax2test = []
+Resultstest = []
+ResultsNN = []
+ResultsCLD = []
+#TEST 1
+Smax1test.append([225.0128139,
+230.165805,
+244.0899847,
+241.1486273,
+234.0905047,
+236.3007464,
+])
+Smax2test.append([176.5476394,
+180.602603,
+191.535333,
+189.207952,
+181.00943,
+184.4772134
+])
+Resultstest.append([49855,
+39934,
+44062,
+22546,
+68475,
+56668
+])
+
+#TEST 2
+Smax1test.append([203.0884705,
+198.4728235,
+198.478812,
+195.460943,
+191.5176763
+
+])
+Smax2test.append([345.7610434,
+337.9028379,
+337.8606785,
+332.7468919,
+324.0756813
+])
+Resultstest.append([501225,
+503699,
+504274,
+501546,
+500907
+
+])
+
+#TEST 3
+Smax1test.append([233.1056794,
+242.2183794,
+240.329117,
+226.0538642,
+230.9340954,
+227.0480226,
+229.0764577,
+227.3982259
+
+
+])
+Smax2test.append([133.8365684,
+139.0810277,
+137.9712637,
+129.3911007,
+132.1664583,
+129.9435028,
+131.0872531,
+130.1180755
+
+
+])
+Resultstest.append([232957,
+106460,
+80412,
+311578,
+278832,
+231160,
+231172,
+314343
+
+])
+
+
+#TEST 4
+Smax1test.append([328.3978292,
+332.7348893,
+338.1107886,
+355.1194106,
+356.221257
+
+
+])
+Smax2test.append([260.6182161,
+263.9736685,
+268.3841316,
+281.8851626,
+282.7669903
+
+])
+Resultstest.append([10511,
+14304,
+22574,
+5982,
+7431
+
+
+])
+
+
+
+for i in range(4):
+    cycles1_array, cycles2_array, x, y = Calculations(Smax1test[i], Smax2test[i], code[i], surface, R[i])
+    ResultsCLD.append(np.diag(cycles1_array))
+    ResultsNN.append(np.diag(cycles2_array))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_wireframe(x, y, np.log(cycles1_array), rstride=5, cstride=5, linewidth=0.5, color='blue', alpha=0.8, cmap='viridis')
+    ax.plot_wireframe(x, y, np.log(cycles2_array), rstride=5, cstride=5, linewidth=0.5, color='red', alpha=0.8, cmap='viridis')
+    ax.scatter(Smax1test[i], Smax2test[i], np.log(Resultstest[i]), color='red')
+    ax.set_xlabel('Smax1 (MPa)')
+    ax.set_ylabel('Smax2 (MPa)')
+    ax.set_zlabel('Cycles')
+    plt.show()
 
 
 ######################################################################################################################################
-code ='RBTE1b2'.lower()  
 
-Smax1 = [328.39, 332.74, 337.90, 355.12, 356.22]
-Smax2 = [260.61, 263.98, 268.22, 281.89, 282.76]
-Results = [10511, 13130, 22500, 980, 7431]
-
-
-
-cycles1_array, cycles2_array, x, y = Calculations(Smax1, Smax2, code, surface, R)
-cycles1_array = np.diag(cycles1_array)
-cycles2_array = np.diag(cycles2_array)
 x_values = np.linspace(0, 20, 200)  
 y_values = x_values 
 
-
-plt.scatter(np.log(Results), np.log(cycles1_array), label = "CLD predictions")
-plt.scatter(np.log(Results), np.log(cycles2_array), label = "NN predictions")
+for i in range(4):
+    plt.scatter(np.log(Resultstest[i]), np.log(ResultsCLD[i]), label = f"CLD predictions{code[i]}")
+    plt.scatter(np.log(Resultstest[i]), np.log(ResultsNN[i]), label = f"NN predictions{code[i]}")
 plt.legend()
 plt.xlim(0, 20)
 plt.ylim(0, 20)
