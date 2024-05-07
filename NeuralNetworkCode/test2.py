@@ -9,7 +9,7 @@ import time
 import random as rd
 
 complete = True
-path = 'NNModelArchive/rev3/pltest1'
+path = 'NNModelArchive/rev3/RIPtupac'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -17,7 +17,7 @@ data = dp.dfread(path + '/data.csv')
 f.test_model(model, scaler, x_test, y_test)
 #sn curve
 if complete:
-    targetR = None
+    targetR = 10
     while True:
         indexes = list(x_test.index)
         if 'R-value1' in data.columns:
