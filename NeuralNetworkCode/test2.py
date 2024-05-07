@@ -30,7 +30,7 @@ if 'Cut angle ' in data.columns:
         f.sncurvereal(data, R)
         f.sncurvetest(model, 5, i, scaler, orig_data=data)
 elif 'R-value1' in data.columns:
-    targetR = 0.1
+    targetR = -0.
     while True:
         indexes = list(x_test.index)
         if targetR is not None:
