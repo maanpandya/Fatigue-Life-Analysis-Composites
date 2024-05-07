@@ -63,6 +63,7 @@ dp.dfinfo(dfnew, 'final')
 
 if absmax:
     dfnew['smax'] = np.abs(dfnew['smax'])
+    dfnew['Fmax'] = np.abs(dfnew['Fmax'])
     dfnew['smean'] = np.abs(dfnew['smean'])
 
 dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)

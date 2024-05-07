@@ -19,7 +19,7 @@ if not random_seed:
 
 # input data
 file = 'data11'
-folder = 'NeuralNetworkCode/DataProcessing/processed'
+folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
@@ -79,7 +79,7 @@ if savemodel:
     if name != '':
         if name == 't':
             name = None
-        f.export_model(model, 'NeuralNetworkCode/NNModelArchive/rev3', scalers, name=name, data=data,
+        f.export_model(model, 'NNModelArchive/rev3', scalers, name=name, data=data,
                        x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
 
 
