@@ -60,9 +60,9 @@ def add_amplitudecol(dataframe):
     dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
-            dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
+            dataframe.loc[index, "amp"] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
-            dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+            dataframe.loc[index, "amp"] = row["smax"] / 2 * (1 - row["R-value1"])
     return dataframe
 
 
@@ -73,7 +73,7 @@ def CLD_definition(dataframe):
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
-    print("The dictionary contains the followin R values: ")
+    print("The dictionary contains the following R values: ")
     print(R_values)
 
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
