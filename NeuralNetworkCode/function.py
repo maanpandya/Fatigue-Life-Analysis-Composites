@@ -156,7 +156,7 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     return model
 
 
-def test_model(model, scaler, x_test, y_test):
+def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
@@ -169,27 +169,26 @@ def test_model(model, scaler, x_test, y_test):
     pred_eval = pred_eval.join(y_test)
     pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'real_scaled'})
     scaler = scaler[y_test.columns[0]]
-    pred_eval['pred_log'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
-    pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
-    pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
-    pred_eval['real'] = np.power(10, pred_eval['real_log'])
+    if n_is_log:
+        pred_eval['pred_log'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
+        pred_eval['real'] = np.power(10, pred_eval['real_log'])
+    else:
+        pred_eval['pred'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['real'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['pred_log'] = np.log10(pred_eval['pred'])
+        pred_eval['real_log'] = np.log10(pred_eval['real'])
 
     # print various measures of accuracy
+    error_dict = {
+        'lMSE': np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)),
+        'lRMSE': np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))),
+        'lMAE': np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log'])),
+        'MRE': np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))
+    }
     print('Measures of error:')
-    print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
-    print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
-    print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
-    lMRE = np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))
-    a = 0
-    for i in lMRE.index:
-        if lMRE[i] == np.inf or lMRE[i] == -np.inf:
-            a+=1
-    if a/len(lMRE.index) > 0.1:
-        print('a lot of inf in lMRE')
-    lMRE = lMRE.replace([np.inf, -np.inf], np.nan)
-    print('lMRE = ' + str(np.nanmean(lMRE)))
-    print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
-
+    print(error_dict)
     # outlier detection
     lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
     lAE = lAE.sort_values(ascending=False)
@@ -198,18 +197,24 @@ def test_model(model, scaler, x_test, y_test):
     print(lE.loc[lAE.index[0:5:]])
 
     # plot errors
-    plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-    plt.plot([-100, 100], [-100, 100], color='red', linestyle='--')
-    plt.plot([-100, 100], [-101, 99], color='darkred', linestyle='--')
-    plt.plot([-100, 100], [-99, 101], color='darkred', linestyle='--')
-    plt.xlabel('y_test')
-    plt.ylabel('predicted')
-    plt.legend()
-    plt.xlim(0, 10)
-    plt.ylim(0, 10)
-    ax = plt.gca()
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
+    if plot:
+        bound1 = error_dict['lMAE']
+        bound2 = 1
+        plt.plot([-100, 100], [-100, 100], color='red', linestyle='--')
+        plt.plot([-100, 100], [-100-bound1, 100-bound1], color='darkred', linestyle='--')
+        plt.plot([-100, 100], [-100+bound1, 100+bound1], color='darkred', linestyle='--')
+        plt.plot([-100, 100], [-100-bound2, 100-bound2], color='black', linestyle='--')
+        plt.plot([-100, 100], [-100+bound2, 100+bound2], color='black', linestyle='--')
+        plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
+        plt.xlabel('y_test')
+        plt.ylabel('predicted')
+        plt.legend()
+        plt.xlim(0, 10)
+        plt.ylim(0, 10)
+        ax = plt.gca()
+        ax.set_aspect('equal', adjustable='box')
+        plt.show()
+    return error_dict
 
 def sncurvetest(model, maxstressratio, dataindex, scalers, orig_data, exportdata=False):
     data = orig_data
@@ -434,6 +439,7 @@ class variable_top_wave(fn_01):
         s.shift = -0.25 / freq
     def fn(s, x):
         amp = s.ampfn.fn(x) / 2 - s.b/2
+        amp = amp * (amp>0)
         return amp * np.sin((x - s.shift)*s.f*2*np.pi) + amp + s.b
 
 
@@ -572,17 +578,17 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
             progress = round((epoch/n_epochs) * 100, 1)
             remaining = (elapsed / (epoch+1)) * (n_epochs - epoch)
             if animate:
-                legend = ['Training loss']
+                legend = [f'Training loss = {round(losses[-1],3)}']
                 line1.set_xdata(list(range(epoch + 1)))
                 line1.set_ydata(losses)
                 if tst:
                     line2.set_xdata(list(range(epoch + 1)))
                     line2.set_ydata(testlosses)
-                    legend.append('Test loss')
+                    legend.append(f'Test loss = {round(testlosses[-1],3)}')
                 if noise:
                     line3.set_xdata(list(range(epoch + 1)))
                     line3.set_ydata(noiselevels)
-                    legend.append('Noise level')
+                    legend.append(f'Noise level = {round(noiselevels[-1],3)}')
                 if best:
                     line4.set_xdata(bestmodeldata[0])
                     line4.set_ydata(bestmodeldata[1])
