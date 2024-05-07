@@ -7,9 +7,9 @@ cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '11'
+tag = '9'
 save = True
-absmax = True
+absmax = False
 
 
 collums_to_include = [
@@ -67,7 +67,7 @@ if absmax:
     dfnew['smean'] = np.abs(dfnew['smean'])
 
 dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
-#dfnew = dfdown
+dfnew = dfdown
 dp.dfinfo(dfnew, 'final final')
 name = 'data'
 if tag == '':
@@ -75,7 +75,7 @@ if tag == '':
 name = name + tag + '.csv'
 print()
 if save:
-    dfnew.to_csv('processed\\' + name)
+    dfnew.to_csv('processed/' + name)
     print('File saved as: ' + name)
 else:
     print('results not saved')
