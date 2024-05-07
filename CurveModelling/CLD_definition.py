@@ -5,8 +5,8 @@ from Data_processing import separateDataFrame
 from SNCurve import regression
 import random as rd
 
-pd.options.mode.chained_assignment = None
-np.set_printoptions(precision=4)
+# pd.options.mode.chained_assignment = None
+# np.set_printoptions(precision=4)
 
 def convert_to_mean_stress(amp,R):
     S_max = amp*2/(1-R)
@@ -60,9 +60,9 @@ def add_amplitudecol(dataframe):
     dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
-            dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
+            dataframe.loc[index, "amp"] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
-            dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
+            dataframe.loc[index, "amp"] = row["smax"] / 2 * (1 - row["R-value1"])
     return dataframe
 
 
@@ -73,7 +73,7 @@ def CLD_definition(dataframe):
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
-    print("The dictionary contains the followin R values: ")
+    print("The dictionary contains the following R values: ")
     print(R_values)
 
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
