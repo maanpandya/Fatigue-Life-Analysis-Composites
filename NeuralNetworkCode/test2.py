@@ -9,7 +9,7 @@ import time
 import random as rd
 
 complete = True
-path = 'NNModelArchive/rev3/goodname1'
+path = 'NeuralNetworkCode/NNModelArchive/rev3/RIPdrake'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
