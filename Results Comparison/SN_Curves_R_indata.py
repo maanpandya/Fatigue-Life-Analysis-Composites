@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Get the current directory
 current_directory = os.getcwd()
@@ -11,23 +12,50 @@ sys.path.append(os.path.join(current_directory, 'CurveModelling'))
 # Now you can import your modules as if they were in the same folder
 import CLD_definition
 
-######################################
+#################################################
 #Define which R value to plot
-######################################
-R_value_to_plot = 0.5
+#################################################
+R_value_to_plot = 10
 
-######################################
-#Set up the 
-######################################
+#################################################
+#Obtain the data and model for the chosen R value
+#################################################
 
 dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
 CLD_definition.add_amplitudecol(dataframe)
-R_values, R_slopes_coeff, SN_models,parameter_dictionary = CLD_definition.CLD_definition(dataframe)
+R_values, R_slopes_coeff, SN_models,parameter_dictionary,std = CLD_definition.CLD_definition(dataframe)
 
 R_index = np.where(R_values == R_value_to_plot)[0][0]
+Reg_model_to_plot = SN_models[R_index]
 Data_to_plot = parameter_dictionary["R-value1"][R_value_to_plot]
+std_to_plot = std[R_index]
 
 print(Data_to_plot)
+
+######################################
+#Get the pinn model 
+######################################
+
+
+
+######################################
+#Get the pinn model 
+######################################
+
+
+fig, ax = plt.subplots()
+
+ax.scatter(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"], parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
+n_list_reg = np.linspace(0,10)
+amp_list_reg = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)))
+amp_list_reg_upper = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)) + std_to_plot)
+amp_list_reg_lower = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)) - std_to_plot)
+
+ax.plot(n_list_reg, amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot))
+ax.fill_between(n_list_reg, amp_list_reg_upper, amp_list_reg_lower, alpha=0.5)
+ax.legend()
+
+plt.show()
 
 
 
