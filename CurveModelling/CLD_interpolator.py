@@ -20,17 +20,15 @@ surface,x,y,z = makeSurface(R_values,SN_models)
 
 plotSurface(SN_models,R_values,surface,x,y,z)
 
-plt.show()
-
 def CLD_interpolator_log(surface,amp_stress,R_value):
     mean_stress = CLD_definition.convert_to_mean_stress(amp_stress,R_value)
     return surface(mean_stress,amp_stress)
 
-# Life = CLD_interpolator_log(surface,134,-378)
-# print("Amplitude: 134, Mean stress: -378, Life:")
-# print(Life)
+Life = CLD_interpolator_log(surface,50,0.5)
+print("Amplitude: 134, Mean stress: -378, Life:")
+print(Life)
 
 
-
+plt.show()
 
 
