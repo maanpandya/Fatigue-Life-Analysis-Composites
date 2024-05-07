@@ -55,7 +55,9 @@ data = dp.remove_constant_cols(data)
 traindata, testdata, scalers = dp.datasplitscale(data, test_size=test_size, exclude_columns=[])
 x_train, y_train = dp.dfxysplit(traindata, target_columns)
 x_test, y_test = dp.dfxysplit(testdata, target_columns)
-print(x_train.columns)
+sco = (6 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
+zco = (3 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
+print(zco, sco)
 
 # create model
 if n_hidden_layers == 0:
