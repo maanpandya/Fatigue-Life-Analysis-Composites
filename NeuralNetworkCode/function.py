@@ -538,7 +538,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         legend = ['Training loss']
         if tst:
             line2, = ax.plot(list(range(epoch)), testlosses)
-            legend.append('Test loss')
+            legend.append('Validation loss')
         if noise:
             line3, = ax.plot(list(range(epoch)), noiselevels)
             legend.append('Noise level')
