@@ -9,6 +9,7 @@ import DataProcessing.DPfunctions as dp
 import os
 import pickle
 import math
+import copy
 
 def create_model(n_inputs, layers=None, n_outputs=1):
     if layers is None:
@@ -235,9 +236,10 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
-    iterations = maxstress * 2
+    extra = 2
+    iterations = maxstress * extra
     for i in range(iterations):
-        i = i/2
+        i = i/extra
         data['smax'] = float(i)
         if iscompressive:
              data['smean'] = (i/2)*(1+1/R)
@@ -272,9 +274,20 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     x = x.cuda()
     x.requires_grad = True
     y = model(x)
+
+    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
+    #gradient test
+    gradient1 = torch.autograd.grad(torch.mean(y), x, create_graph=True)[0][:, 6].cpu().detach().numpy()
+    S = np.linspace(0, maxstress, num=iterations)
+    center = 0
+    offset = 0
+    amp = 2*10**3
+    plt.plot((gradient1+offset) * amp + center, S, label='1st gradient')
+    plt.plot(center*S/S, S, linestyle='--', color='grey', label='zero gradient')
+
     #Unscale the predicted number of cycles
     y = y.cpu().detach().numpy()
-    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
+    #y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
     if exportdata:
         return xorig['smax'], y
     else:
@@ -332,19 +345,32 @@ def sncurverealbasic(data, export_data=False):
         plt.scatter(n, s)
 
 
-def complete_sn_curve(model, scaler, data, datapoint, err=3):
+def complete_sn_curve(model, scaler, data, datapoint):
     if 'smax' not in data.columns:
         data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
         datapoint['smax'] = (datapoint['Fmax'] * 10 ** 3) / (datapoint['taverage'] * datapoint['waverage'])
     cols = ['taverage', 'waverage', 'Lnominal']
+    i = datapoint.index[0]
+    statindexes = []
     if 'R-value1' in data.columns:
         cols.append('R-value1')
+        statdp = copy.deepcopy(datapoint)
+        print(statdp['R-value1'])
+        statdp.loc[i, 'R-value1'] = 0
+        print(statdp['R-value1'])
+        df = dp.find_similar(statdp, data,
+                             cols,
+                             [], max_error_percent=1)
+        statindexes = df['indexlists'].to_list()[0]
+        if type(statindexes) != list:
+            statindexes = []
     df = dp.find_similar(datapoint, data,
                          cols,
-                         [], max_error_percent=err)
+                         [], max_error_percent=2)
     indexes = df['indexlists'].to_list()[0]
-    df = data.loc[indexes]
-    stat = datapoint
+    if type(indexes) != list:
+        indexes = []
+    df = data.loc[indexes + statindexes]
     srs = df['smax']
     nrs = df['Ncycles']
     if 'R-value1' in data.columns:
@@ -360,14 +386,14 @@ def complete_sn_curve(model, scaler, data, datapoint, err=3):
         R = r
         src, nrc = sncurverealbasic(data, export_data=True)
     srp, nrp = sncurvetest(model, 800, datapoint, scaler, exportdata=True)
-    plt.scatter(nrc, src, color='black')
-    plt.scatter(nrs, srs, color='orange')
-    plt.plot(nrp, srp, color='red')
-    plt.xlim(0,8)
+    plt.scatter(nrc, src, color='black', label='All experimental')
+    plt.scatter(nrs, srs, color='orange', label='Similar experimental')
+    plt.plot(nrp, srp, color='red', label='Model prediction')
+    plt.xlim(-2,8)
     plt.title(f'R = {R}')
     plt.xlabel('log(N) [-]')
     plt.ylabel('Maximum stress [MPa]')
-    plt.legend(['All experimental', 'Similar experimental', 'Model prediction'])
+    plt.legend()
     plt.show()
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):

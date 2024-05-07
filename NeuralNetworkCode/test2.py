@@ -9,7 +9,7 @@ import time
 import random as rd
 
 complete = True
-path = 'NeuralNetworkCode/NNModelArchive/rev3/RIPdrake'
+path = 'NNModelArchive/rev3/pinnlossbest'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -17,7 +17,7 @@ data = dp.dfread(path + '/data.csv')
 f.test_model(model, scaler, x_test, y_test)
 #sn curve
 if complete:
-    targetR = None
+    targetR = 0.1
     while True:
         indexes = list(x_test.index)
         if 'R-value1' in data.columns:
@@ -29,7 +29,7 @@ if complete:
         datapoint = data.loc[i]
         datapoint = datapoint.to_frame().T
         print(datapoint)
-        f.complete_sn_curve(model, scaler, data, datapoint, err=5)
+        f.complete_sn_curve(model, scaler, data, datapoint)
 elif 'Cut angle ' in data.columns:
     while True:
         indexes = list(x_test.index)
