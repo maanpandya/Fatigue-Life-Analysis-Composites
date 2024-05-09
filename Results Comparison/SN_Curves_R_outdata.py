@@ -16,8 +16,8 @@ from Data_processing import separateDataFrame
 #################################################
 #Settings
 #################################################
-R_value_to_plot   = 10
-R_to_remove       = 10 # Put 0 if you don't want to remove any R value
+R_value_to_plot   = 0.1
+R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
 
 #################################################
