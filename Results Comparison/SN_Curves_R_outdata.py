@@ -19,6 +19,7 @@ from Data_processing import separateDataFrame
 R_value_to_plot   = 0.1
 R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
+std_num           = 2 # number of standard deviations for uncertainty
 
 #################################################
 #Get the data from dataframe for R value to plot
@@ -48,6 +49,22 @@ amp_cld   = np.linspace(0,max_amp_to_plot,200)
 mean_cld  = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
 n_cld     = surface(mean_cld ,amp_cld)
 
+#Get the lower surface 
+for index, model in enumerate(SN_models):
+    model.intercept_ = model.intercept_ - std[index]*std_num
+lower_surface, xl, yl, zl = makeSurface(R_values,SN_models)
+n_cld_l = lower_surface(mean_cld,amp_cld)
+
+#Get the upper surface 
+for index, model in enumerate(SN_models):
+    model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
+upper_surface, xu, yu, zu = makeSurface(R_values,SN_models)
+n_cld_u = upper_surface(mean_cld,amp_cld)
+
+#Return SN_ models back to normal
+for index, model in enumerate(SN_models):
+    model.intercept_ = model.intercept_ - std[index]*std_num
+
 ####################################################
 #PINN prediction
 ####################################################
@@ -63,6 +80,8 @@ n_pinn      = [0,1]
 fig, ax = plt.subplots()
 ax.scatter(np.power(10,Data_Ncycles), Data_amp )
 ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
+ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds σ = " + str(std_num), c="red")
+ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
 ax.plot(np.power(10,n_pinn), amp_pinn , label ="PINN prediction R = " + str(R_value_to_plot))
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
