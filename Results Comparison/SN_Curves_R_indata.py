@@ -51,9 +51,12 @@ amp_list_reg_lower = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1
 #Get the pinn model trained on all R values
 fig, ax = plt.subplots()
 
-ax.scatter(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"], parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
-ax.plot(n_list_reg, amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot))
-ax.fill_between(n_list_reg, amp_list_reg_upper, amp_list_reg_lower, alpha=0.5)
+ax.scatter(np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"]), parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
+ax.plot(np.power(10,n_list_reg), amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot))
+ax.fill_between(np.power(10,n_list_reg),amp_list_reg_upper, amp_list_reg_lower, alpha=0.5)
+ax.set_xscale('log')
+ax.set_xlabel('Number of Cycles')
+ax.set_ylabel('Amplitude Stress')
 ax.legend()
 
 plt.show()

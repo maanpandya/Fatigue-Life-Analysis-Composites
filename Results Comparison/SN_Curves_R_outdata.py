@@ -52,17 +52,26 @@ n_cld   = surface(mean_cld ,amp_cld)
 #PINN prediction
 ####################################################
 
-
+amp_pinn =[0,0]
+n_pinn = [0,1]
 
 ####################################################
 #Plotting
 ####################################################
 
-
 #Get the pinn model trained on all R values
 fig, ax = plt.subplots()
-ax.scatter(Data_Ncycles , Data_amp )
-ax.plot(n_cld, amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
+ax.scatter(np.power(10,Data_Ncycles), Data_amp )
+ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
+ax.plot(np.power(10,n_pinn), amp_pinn , label ="PINN prediction R = " + str(R_value_to_plot))
+ax.set_xscale('log')
+ax.set_xlabel('Number of Cycles')
+ax.set_ylabel('Amplitude Stress')
 ax.legend()
 
+# Add a comment to the graph saying R_to_remove was removed from the models
+ax.text(0.8, 0.7, f"R value = {R_to_remove} \n was removed from models",
+        transform=ax.transAxes, ha='center', 
+        bbox=dict(facecolor='white', alpha=1, edgecolor='black'),
+        fontsize=8)
 plt.show()
