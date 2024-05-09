@@ -16,8 +16,8 @@ from Data_processing import separateDataFrame
 #################################################
 #Settings
 #################################################
-R_value_to_plot   = 0.1
-R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
+R_value_to_plot   = 10
+R_to_remove       = 10 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
 
 #################################################
@@ -44,16 +44,16 @@ R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.
 surface,x,y,z       = makeSurface(R_values,SN_models)
 
 #Create CLD points curve points
-amp_cld             = np.linspace(0,max_amp_to_plot,200)
-mean_cld            = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
-n_cld   = surface(mean_cld ,amp_cld)
+amp_cld   = np.linspace(0,max_amp_to_plot,200)
+mean_cld  = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
+n_cld     = surface(mean_cld ,amp_cld)
 
 ####################################################
 #PINN prediction
 ####################################################
 
-amp_pinn =[0,0]
-n_pinn = [0,1]
+amp_pinn    = [0,0]
+n_pinn      = [0,1]
 
 ####################################################
 #Plotting
