@@ -137,6 +137,7 @@ def CLD_definition(dataframe):
     print("-----------------------------\n")
     return R_values, R_slopes_coeff, SN_models, parameter_dictionary, std
 
+
 def plot_regression_models(SN_models, R_values,parameter_dictionary):
     colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
 
@@ -151,12 +152,8 @@ def plot_regression_models(SN_models, R_values,parameter_dictionary):
 
     return
 
-def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490):
 
-    #################### Creation of constant life lines ands R lines
-    fig, ax = plt.subplots()
-    R_line_visualizer(R_slopes_coeff,R_values,ax)
-
+def plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, color="blue"):
     #------------------- Create constant life lines
     amp_plot_lists = []
     mean_plot_lists = []
@@ -183,13 +180,34 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
         mean_plot_lists.append(mean_list)
 
     for p in range(len(amp_plot_lists)):
-        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
+        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}", c=color)
         ax.legend()
+
+    return 
+
+def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, with_bounds = False, std =[], std_num=0):
+
+    #################### Creation of constant life lines ands R lines
+    fig, ax = plt.subplots()
+    R_line_visualizer(R_slopes_coeff,R_values,ax)
+
+    #------------------- Create constant life lines
+    plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="green")
+
+    if with_bounds:
+        for index, model in enumerate(SN_models):
+            model.intercept_ = model.intercept_ - std[index]*std_num
+        plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="blue")
+
+        for index, model in enumerate(SN_models):
+            model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
+        plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="red")
 
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
     
     return ax
+
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------

@@ -9,6 +9,7 @@ import DataProcessing.DPfunctions as dp
 import os
 import pickle
 import math
+import copy
 
 def create_model(n_inputs, layers=None, n_outputs=1):
     if layers is None:
@@ -156,7 +157,7 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     return model
 
 
-def test_model(model, scaler, x_test, y_test):
+def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
@@ -169,27 +170,26 @@ def test_model(model, scaler, x_test, y_test):
     pred_eval = pred_eval.join(y_test)
     pred_eval = pred_eval.rename(columns={pred_eval.columns[-1]: 'real_scaled'})
     scaler = scaler[y_test.columns[0]]
-    pred_eval['pred_log'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
-    pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
-    pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
-    pred_eval['real'] = np.power(10, pred_eval['real_log'])
+    if n_is_log:
+        pred_eval['pred_log'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['real_log'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['pred'] = np.power(10, pred_eval['pred_log'])
+        pred_eval['real'] = np.power(10, pred_eval['real_log'])
+    else:
+        pred_eval['pred'] = pred_eval['pred_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['real'] = pred_eval['real_scaled'] * scaler['std'] + scaler['mean']
+        pred_eval['pred_log'] = np.log10(pred_eval['pred'])
+        pred_eval['real_log'] = np.log10(pred_eval['real'])
 
     # print various measures of accuracy
+    error_dict = {
+        'lMSE': np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)),
+        'lRMSE': np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))),
+        'lMAE': np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log'])),
+        'MRE': np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))
+    }
     print('Measures of error:')
-    print('lMSE = ' + str(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2))))
-    print('lRMSE = ' + str(np.sqrt(np.mean(np.power(pred_eval['pred_log'] - pred_eval['real_log'], 2)))))
-    print('lMAE = ' + str(np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log']))))
-    lMRE = np.abs((pred_eval['pred_log'] - pred_eval['real_log']) / (pred_eval['real_log']))
-    a = 0
-    for i in lMRE.index:
-        if lMRE[i] == np.inf or lMRE[i] == -np.inf:
-            a+=1
-    if a/len(lMRE.index) > 0.1:
-        print('a lot of inf in lMRE')
-    lMRE = lMRE.replace([np.inf, -np.inf], np.nan)
-    print('lMRE = ' + str(np.nanmean(lMRE)))
-    print('MRE = ' + str(np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))))
-
+    print(error_dict)
     # outlier detection
     lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
     lAE = lAE.sort_values(ascending=False)
@@ -198,18 +198,24 @@ def test_model(model, scaler, x_test, y_test):
     print(lE.loc[lAE.index[0:5:]])
 
     # plot errors
-    plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-    plt.plot([-100, 100], [-100, 100], color='red', linestyle='--')
-    plt.plot([-100, 100], [-101, 99], color='darkred', linestyle='--')
-    plt.plot([-100, 100], [-99, 101], color='darkred', linestyle='--')
-    plt.xlabel('y_test')
-    plt.ylabel('predicted')
-    plt.legend()
-    plt.xlim(0, 10)
-    plt.ylim(0, 10)
-    ax = plt.gca()
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
+    if plot:
+        bound1 = error_dict['lMAE']
+        bound2 = 1
+        plt.plot([-100, 100], [-100, 100], color='red', linestyle='--')
+        plt.plot([-100, 100], [-100-bound1, 100-bound1], color='darkred', linestyle='--')
+        plt.plot([-100, 100], [-100+bound1, 100+bound1], color='darkred', linestyle='--')
+        plt.plot([-100, 100], [-100-bound2, 100-bound2], color='black', linestyle='--')
+        plt.plot([-100, 100], [-100+bound2, 100+bound2], color='black', linestyle='--')
+        plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
+        plt.xlabel('y_test')
+        plt.ylabel('predicted')
+        plt.legend()
+        plt.xlim(0, 10)
+        plt.ylim(0, 10)
+        ax = plt.gca()
+        ax.set_aspect('equal', adjustable='box')
+        plt.show()
+    return error_dict
 
 def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     data = datapoint
@@ -230,9 +236,10 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     x = pd.DataFrame(columns=data.columns)
     #Keep increasing smax from 0 to the initial smax and appending the data to x
     # if smax is negative, do everything in negative numbers
-    iterations = maxstress * 2
+    extra = 2
+    iterations = maxstress * extra
     for i in range(iterations):
-        i = i/2
+        i = i/extra
         data['smax'] = float(i)
         if iscompressive:
              data['smean'] = (i/2)*(1+1/R)
@@ -267,9 +274,20 @@ def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     x = x.cuda()
     x.requires_grad = True
     y = model(x)
+
+    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
+    #gradient test
+    gradient1 = torch.autograd.grad(torch.mean(y), x, create_graph=True)[0][:, 6].cpu().detach().numpy()
+    S = np.linspace(0, maxstress, num=iterations)
+    center = 0
+    offset = 0
+    amp = 2*10**3
+    plt.plot((gradient1+offset) * amp + center, S, label='1st gradient')
+    plt.plot(center*S/S, S, linestyle='--', color='grey', label='zero gradient')
+
     #Unscale the predicted number of cycles
     y = y.cpu().detach().numpy()
-    y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
+    #y = y * scalers['Ncycles']['std'] + scalers['Ncycles']['mean']
     if exportdata:
         return xorig['smax'], y
     else:
@@ -327,19 +345,32 @@ def sncurverealbasic(data, export_data=False):
         plt.scatter(n, s)
 
 
-def complete_sn_curve(model, scaler, data, datapoint, err=3):
+def complete_sn_curve(model, scaler, data, datapoint):
     if 'smax' not in data.columns:
         data['smax'] = (data['Fmax'] * 10 ** 3) / (data['taverage'] * data['waverage'])
         datapoint['smax'] = (datapoint['Fmax'] * 10 ** 3) / (datapoint['taverage'] * datapoint['waverage'])
     cols = ['taverage', 'waverage', 'Lnominal']
+    i = datapoint.index[0]
+    statindexes = []
     if 'R-value1' in data.columns:
         cols.append('R-value1')
+        statdp = copy.deepcopy(datapoint)
+        print(statdp['R-value1'])
+        statdp.loc[i, 'R-value1'] = 0
+        print(statdp['R-value1'])
+        df = dp.find_similar(statdp, data,
+                             cols,
+                             [], max_error_percent=1)
+        statindexes = df['indexlists'].to_list()[0]
+        if type(statindexes) != list:
+            statindexes = []
     df = dp.find_similar(datapoint, data,
                          cols,
-                         [], max_error_percent=err)
+                         [], max_error_percent=2)
     indexes = df['indexlists'].to_list()[0]
-    df = data.loc[indexes]
-    stat = datapoint
+    if type(indexes) != list:
+        indexes = []
+    df = data.loc[indexes + statindexes]
     srs = df['smax']
     nrs = df['Ncycles']
     if 'R-value1' in data.columns:
@@ -355,15 +386,75 @@ def complete_sn_curve(model, scaler, data, datapoint, err=3):
         R = r
         src, nrc = sncurverealbasic(data, export_data=True)
     srp, nrp = sncurvetest(model, 800, datapoint, scaler, exportdata=True)
-    plt.scatter(nrc, src, color='black')
-    plt.scatter(nrs, srs, color='orange')
-    plt.plot(nrp, srp, color='red')
-    plt.xlim(0,8)
+    plt.scatter(nrc, src, color='black', label='All experimental')
+    plt.scatter(nrs, srs, color='orange', label='Similar experimental')
+    plt.plot(nrp, srp, color='red', label='Model prediction')
+    plt.xlim(-2,8)
     plt.title(f'R = {R}')
     plt.xlabel('log(N) [-]')
     plt.ylabel('Maximum stress [MPa]')
-    plt.legend(['All experimental', 'Similar experimental', 'Model prediction'])
+    plt.legend()
     plt.show()
+
+def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True):
+    data = copy.deepcopy(data)
+    noR = False
+    if 'R-value1' not in data.columns:
+        noR = True
+        data['R-value1'] = dp.rmath({'smean':data['smean'], 'smax':data['smax']}, 'R')
+    if exp:
+        expdata = data[data['R-value1']==R]
+        expn = expdata['Ncycles']
+        if R <= 1:
+            exps = expdata['smax']
+        else:
+            exps = expdata['smin']
+        plt.scatter(expn, exps, label=f'experimental R = {R}')
+    if 'Ncycles' in datapoint.columns:
+        datapoint = datapoint.drop(columns=['Ncycles'])
+    datapoint['R-value1'] = R
+    x = pd.DataFrame(columns=datapoint.columns)
+    if R <= 1:
+        stressrange = np.arange(0, maxstress, 1)
+    else:
+        stressrange = np.arange(-maxstress/R, 0, 1/R)
+    for i in stressrange:
+        datapoint['smax'] = float(i)
+        x = pd.concat([x, datapoint])
+        x['smax'] = x['smax'].astype(float)
+    if 'smean' in x.columns:
+        x['smean'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'smean')
+        x['smean'] = x['smean'].astype(float)
+    if 'smin' in x.columns:
+        x['smin'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'smin')
+        x['smin'] = x['smin'].astype(float)
+    if 'samp' in x.columns:
+        x['samp'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'samp')
+        x['samp'] = x['samp'].astype(float)
+    if 'Fmax' in x.columns:
+        x['Fmax'] = x['smax'] * (data['taverage'] * data['waverage']) * 10**-3
+    if noR:
+        x = x.drop(columns=['R-value1'])
+    else:
+        x['R-value1'] = x['R-value1'].astype(float)
+    for i in x.columns:
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
+    model.eval()
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
+    x = x.cuda()
+    x.requires_grad = True
+    npred = model(x).cpu().detach().numpy()
+    npred = npred * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
+    if R <= 1:
+        spred = stressrange
+    else:
+        spred = -R * stressrange
+    plt.scatter(npred, spred, label=f'predicted R = {R}')
+
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:
@@ -473,6 +564,7 @@ class variable_top_wave(fn_01):
         s.shift = -0.25 / freq
     def fn(s, x):
         amp = s.ampfn.fn(x) / 2 - s.b/2
+        amp = amp * (amp>0)
         return amp * np.sin((x - s.shift)*s.f*2*np.pi) + amp + s.b
 
 
@@ -611,17 +703,17 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
             progress = round((epoch/n_epochs) * 100, 1)
             remaining = (elapsed / (epoch+1)) * (n_epochs - epoch)
             if animate:
-                legend = ['Training loss']
+                legend = [f'Training loss = {round(losses[-1],3)}']
                 line1.set_xdata(list(range(epoch + 1)))
                 line1.set_ydata(losses)
                 if tst:
                     line2.set_xdata(list(range(epoch + 1)))
                     line2.set_ydata(testlosses)
-                    legend.append('Test loss')
+                    legend.append(f'Test loss = {round(testlosses[-1],3)}')
                 if noise:
                     line3.set_xdata(list(range(epoch + 1)))
                     line3.set_ydata(noiselevels)
-                    legend.append('Noise level')
+                    legend.append(f'Noise level = {round(noiselevels[-1],3)}')
                 if best:
                     line4.set_xdata(bestmodeldata[0])
                     line4.set_ydata(bestmodeldata[1])

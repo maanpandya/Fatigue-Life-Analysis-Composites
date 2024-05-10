@@ -14,7 +14,7 @@ R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.
 
 #Plot the CLD
 
-CLD_definition.plot_CLD(R_values, R_slopes_coeff, SN_models)
+CLD_definition.plot_CLD(R_values, R_slopes_coeff, SN_models, with_bounds=False, std=std, std_num=2)
 
 CLD_definition.plot_regression_models(SN_models, R_values,parameter_dictionary)
 
@@ -92,6 +92,6 @@ def CLD_interpolator_log(surface,amp_stress,R_value):
 # print("Amplitude: 134, Mean stress: -378, Life:")
 # print(Life)
 
-
+plt.show()
 
 

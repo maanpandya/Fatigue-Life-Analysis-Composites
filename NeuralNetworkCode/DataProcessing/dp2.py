@@ -3,13 +3,15 @@ import numpy as np
 import DPfunctions as dp
 
 
-cols = ['Ncycles', 'smax', 'smean', 'Lnominal', 'taverage', 'waverage', 'area', 'Fmax', 'R-value1']
+cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 'area', 'R-value1']
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '11'
+tag = 'test'
 save = True
-absmax = True
+split_on_smax_sign = False
+absmax = False
+correct_smax = True
 
 
 collums_to_include = [
@@ -50,32 +52,48 @@ for i in dfnew.index:
         dfnew.loc[i, 'R-value1'] = 0
 dfnew = dp.col_filter(dfnew, cols+['R-value1'], 'include')
 dfnew = dp.big_cleanup(dfnew)
-dfnew['smean'] = ((1+dfnew['R-value1']) / 2) * dfnew['smax']
-for i in dfnew.index:
-    smax = dfnew['smax'].loc[i]
-    R = dfnew['R-value1'].loc[i]
-    if smax < 0 and R != 0:
-        dfnew.loc[i, 'smean'] = (smax / 2)*(1 + (1 / R))
+
+if correct_smax:
+    dfnew['smean'] = dp.rmath({'smax':dfnew['smax'], 'R':dfnew['R-value1']}, 'smean')
+    for i in dfnew.index:
+        smax = dfnew['smax'].loc[i]
+        R = dfnew['R-value1'].loc[i]
+        if smax < 0 and R != 0:
+            dfnew.loc[i, 'smax'] = smax/R
+            dfnew.loc[i, 'smean'] = dp.rmath({'smax':dfnew.loc[i, 'smax'], 'R':dfnew.loc[i, 'R-value1']}, 'smean')
+        elif smax < 0 and R == 0:
+            dfnew.loc[i, 'smax'] = 0
+            dfnew.loc[i, 'smean'] = smax/2
+    dfnew['smin'] = dp.rmath({'smax':dfnew['smax'], 'smean':dfnew['smean']}, 'smin')
+else:
+    dfnew['smean'] = ((1+dfnew['R-value1']) / 2) * dfnew['smax']
+    for i in dfnew.index:
+        smax = dfnew['smax'].loc[i]
+        R = dfnew['R-value1'].loc[i]
+        if smax < 0 and R != 0:
+            dfnew.loc[i, 'smean'] = (smax / 2)*(1 + (1 / R))
+
+
+    if absmax:
+        dfnew['smax'] = np.abs(dfnew['smax'])
+        dfnew['Fmax'] = np.abs(dfnew['Fmax'])
+        dfnew['smean'] = np.abs(dfnew['smean'])
+
+if split_on_smax_sign:
+    dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
+    dfnew = dfdown
+
 dfnew = dp.col_filter(dfnew, cols, 'include')
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
 dp.dfinfo(dfnew, 'final')
-
-if absmax:
-    dfnew['smax'] = np.abs(dfnew['smax'])
-    dfnew['Fmax'] = np.abs(dfnew['Fmax'])
-    dfnew['smean'] = np.abs(dfnew['smean'])
-
-dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
-#dfnew = dfdown
-dp.dfinfo(dfnew, 'final final')
 name = 'data'
 if tag == '':
     tag = dp.timetag()
 name = name + tag + '.csv'
 print()
 if save:
-    dfnew.to_csv('processed\\' + name)
+    dfnew.to_csv('processed/' + name)
     print('File saved as: ' + name)
 else:
     print('results not saved')
