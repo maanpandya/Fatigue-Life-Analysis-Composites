@@ -25,7 +25,7 @@ while True:
     print(datapoint)
     datapoint = datapoint.to_frame().T
     for i in Rlist:
-        f.complete_sncurve2(datapoint, data, i, model, scaler, maxstress=800, exp=False)
+        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=800, exp=True)
     plt.legend()
     plt.xlim(0,10)
     plt.show()

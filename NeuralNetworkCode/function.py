@@ -396,7 +396,12 @@ def complete_sn_curve(model, scaler, data, datapoint):
     plt.legend()
     plt.show()
 
-def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True):
+def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True):
+    range = 0.1,0.9
+    factor = 0.8
+    predcolor = np.array([np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1])])
+    expcolor = list(predcolor * factor) + [0.5]
+    predcolor = list(predcolor)
     data = copy.deepcopy(data)
     noR = False
     if 'R-value1' not in data.columns:
@@ -409,15 +414,18 @@ def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True
             exps = expdata['smax']
         else:
             exps = -expdata['smin']
-        plt.scatter(expn, exps, label=f'experimental R = {R}')
+        plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
     datapoint['R-value1'] = R
-    x = pd.DataFrame(columns=datapoint.columns)
     if R <= 1:
-        stressrange = np.arange(0, maxstress, 1)
+        stressrange = np.arange(minstress, maxstress, 1)
+        datapoint['smax'] = minstress
     else:
-        stressrange = np.arange(-maxstress/R, 0, 1/R)
+        stressrange = np.arange(-maxstress/R, -minstress/R, 1/R)
+        stressrange = np.flip(stressrange)
+        datapoint['smax'] = -minstress/R
+    x = copy.deepcopy(datapoint)
     for i in stressrange:
         datapoint['smax'] = float(i)
         x = pd.concat([x, datapoint])
@@ -450,10 +458,12 @@ def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True
     npred = model(x).cpu().detach().numpy()
     npred = npred * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
     if R <= 1:
+        stressrange = np.insert(stressrange, 0, minstress)
         spred = stressrange
     else:
+        stressrange = np.insert(stressrange, 0, -minstress/R)
         spred = -R * stressrange
-    plt.scatter(npred, spred, label=f'predicted R = {R}')
+    plt.plot(npred, spred, label=f'predicted R = {R}', color=predcolor)
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):

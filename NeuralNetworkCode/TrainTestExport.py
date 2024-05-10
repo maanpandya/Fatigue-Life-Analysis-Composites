@@ -18,7 +18,7 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'data12'
+file = 'datatest'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
