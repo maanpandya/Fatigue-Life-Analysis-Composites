@@ -22,6 +22,7 @@ while True:
     # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)
     datapoint = data.loc[i]
+    print(datapoint)
     datapoint = datapoint.to_frame().T
     for i in Rlist:
         f.complete_sncurve2(datapoint, data, i, model, scaler, maxstress=800, exp=False)
