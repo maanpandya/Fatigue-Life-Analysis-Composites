@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import time
+import sympy as sp
+from warnings import warn
 
 
 def cleanup(dataframe, collum, mode):
@@ -232,3 +234,35 @@ def filter_dataframe_by_cutoff(df, column, cutoff):
     below_cutoff = df[df[column] < cutoff]
 
     return above_cutoff, below_cutoff
+
+
+def rmath(inputs: dict, output: str):
+    # using sensible smax inputs (smax is always maximum stress and smax is always larger than smin)
+    if len(inputs) != 2:
+        raise Exception(f'can only compute with 2 knowns, got {len(inputs)}.')
+    known = []
+    unknown = [output]
+    for i in inputs:
+        known.append(i)
+    smin, smax, R, samp, smean = sp.symbols('smin, smax, R, samp, smean', real=True)
+    symdict = {'smin':smin, 'smax':smax, 'R':R, 'samp':samp, 'smean':smean}
+    eq1 = smin/smax - R
+    eq2 = smax+smin - 2*smean
+    eq3 = smax-smin - 2*samp
+    symlist = [symdict[output]]
+    for i in symdict:
+        if i not in known and i is not output:
+            symlist.append(symdict[i])
+            unknown.append(i)
+    sols = sp.nonlinsolve([eq1, eq2, eq3], symlist)
+    sols = list(sols)[0]
+    f = sp.utilities.lambdify([symdict[known[0]], symdict[known[1]]], sols[0])
+    try:
+        out = f(inputs[known[0]], inputs[known[1]])
+    except ZeroDivisionError:
+        # math breaking error handling
+        warn(f'division by zero trying to calculate {output}, assumed output is 0.')
+        out = 0
+    if type(out) is not float or int:
+        out = np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
+    return out

@@ -396,6 +396,66 @@ def complete_sn_curve(model, scaler, data, datapoint):
     plt.legend()
     plt.show()
 
+def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True):
+    data = copy.deepcopy(data)
+    noR = False
+    if 'R-value1' not in data.columns:
+        noR = True
+        data['R-value1'] = dp.rmath({'smean':data['smean'], 'smax':data['smax']}, 'R')
+    if exp:
+        expdata = data[data['R-value1']==R]
+        expn = expdata['Ncycles']
+        if R <= 1:
+            exps = expdata['smax']
+        else:
+            exps = expdata['smin']
+        plt.scatter(expn, exps, label=f'experimental R = {R}')
+    if 'Ncycles' in datapoint.columns:
+        datapoint = datapoint.drop(columns=['Ncycles'])
+    datapoint['R-value1'] = R
+    x = pd.DataFrame(columns=datapoint.columns)
+    if R <= 1:
+        stressrange = np.arange(0, maxstress, 1)
+    else:
+        stressrange = np.arange(-maxstress/R, 0, 1/R)
+    for i in stressrange:
+        datapoint['smax'] = float(i)
+        x = pd.concat([x, datapoint])
+        x['smax'] = x['smax'].astype(float)
+    if 'smean' in x.columns:
+        x['smean'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'smean')
+        x['smean'] = x['smean'].astype(float)
+    if 'smin' in x.columns:
+        x['smin'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'smin')
+        x['smin'] = x['smin'].astype(float)
+    if 'samp' in x.columns:
+        x['samp'] = dp.rmath({'smax':x['smax'], 'R':x['R-value1']}, 'samp')
+        x['samp'] = x['samp'].astype(float)
+    if 'Fmax' in x.columns:
+        x['Fmax'] = x['smax'] * (data['taverage'] * data['waverage']) * 10**-3
+    if noR:
+        x = x.drop(columns=['R-value1'])
+    else:
+        x['R-value1'] = x['R-value1'].astype(float)
+    for i in x.columns:
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
+    model.eval()
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
+    x = x.cuda()
+    x.requires_grad = True
+    npred = model(x).cpu().detach().numpy()
+    npred = npred * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
+    if R <= 1:
+        spred = stressrange
+    else:
+        spred = -R * stressrange
+    plt.scatter(npred, spred, label=f'predicted R = {R}')
+
+
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
     if name == None:
         name = dp.timetag()
