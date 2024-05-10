@@ -408,7 +408,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True
         if R <= 1:
             exps = expdata['smax']
         else:
-            exps = expdata['smin']
+            exps = -expdata['smin']
         plt.scatter(expn, exps, label=f'experimental R = {R}')
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
