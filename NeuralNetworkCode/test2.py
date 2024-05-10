@@ -19,6 +19,7 @@ f.test_model(model, scaler, x_test, y_test)
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
 print(Rlist)
 while True:
+    # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)
     datapoint = data.loc[i]
     datapoint = datapoint.to_frame().T
