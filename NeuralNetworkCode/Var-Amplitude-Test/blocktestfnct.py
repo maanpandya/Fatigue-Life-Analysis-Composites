@@ -27,17 +27,23 @@ def NNmodel(x_imput, R_value):
     x['taverage'] = 6.6 #Average thickness
     x['waverage'] = 25#Average width
     x['area'] = 162.31 #Area
-    x['Lnominal'] = 145 #Nominal length of sample
-    x['R-value1'] = R_value #R-value
-    x['Fmax'] = 36.08 #Fatigue force
+    x['Lnominal'] = 280 #Nominal length of sample
+    #x['R-value1'] = -1 #R-value
+    #x['Fmax'] = 36.08 #Fatigue force
     x['smax'] = x_imput
-    x['smean'] = (x['smax'])*((1-R_value)*2)
+    x['smean'] = 0
+    x['smin'] = 0
     #x['f'] = 3.44 #Frequency
     #x['E'] = 37.46 #Young's modulus
     #x['Temp.'] = 28 #Temperature
     #x["tens"] = 75
     #x["comp"]= -45
     x.drop(columns=['nr','Ncycles'],inplace=True)
+    x.drop(columns=['nr','Ncycles'],inplace=True)
+
+    
+    x['smean'] = rmath({'smax':x['smax'], 'R':R_counted[i]}, 'smean')
+    x['smean'] = rmath({'smax':x['smax'], 'R':R_counted[i]}, 'smin')
     for i in x.columns:
         x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
     xtest = torch.tensor(x.values)
