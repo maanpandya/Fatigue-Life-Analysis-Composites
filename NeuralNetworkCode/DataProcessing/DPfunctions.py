@@ -237,8 +237,9 @@ def filter_dataframe_by_cutoff(df, column, cutoff):
 
 
 def rmath(inputs: dict, output: str):
-    # inputs: dict => {'R':2, 'smax':400}
+    # inputs: dict => {'R':2, 'smax':-40}
     # output:str => 'smean'
+    # returns in this case smean with same size as R and smax
     # using sensible smax inputs (smax is always maximum stress and smax is always larger than smin)
     if len(inputs) != 2:
         raise Exception(f'can only compute with 2 knowns, got {len(inputs)}.')

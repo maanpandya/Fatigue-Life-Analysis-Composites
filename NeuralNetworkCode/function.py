@@ -452,7 +452,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, maxstress=800, exp=True
     if R <= 1:
         spred = stressrange
     else:
-        spred = R * stressrange
+        spred = -R * stressrange
     plt.scatter(npred, spred, label=f'predicted R = {R}')
 
 
