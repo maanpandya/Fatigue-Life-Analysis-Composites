@@ -4,8 +4,12 @@ import rainflow
 import matplotlib.pyplot as plt
 import pandas as pd
 from   NNfuncion import NNfuntion 
+import CLD_interpolator
+from CLD_interpolator import CLD_interpolator_log
 
-def SNfunction(normalized_array, wawas):  
+
+
+def SNfunction(normalized_array, wawas, surface):  
     count_2 = 0
     rng_list = []
     R_list = []
@@ -41,11 +45,9 @@ def SNfunction(normalized_array, wawas):
         Accumulated_stress = 0
         for i in range(len(R_counted)):
             N_Cycle =n_times_apeared[i] # fatigue life at reference stress 
-            Rng_counted[i]*j# stress
-            N_SN = math.e**((Rng_counted[i]*j - 552.01)/-26.51)
+            Rng_counted[i]*j# stress x*(1-R_value)/2
+            N_SN = CLD_interpolator_log(surface,Rng_counted[i]*j*(1-R_counted[i])/2, R_counted[i])
             Accumulated_stress += N_Cycle/N_SN
-        print(j)
-        print(Accumulated_stress)
         cycles.append(1/Accumulated_stress)
         stresses.append(j)
 
