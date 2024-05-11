@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import pandas as pd
 from Data_processing import separateDataFrame
 from SNCurve import regression
 import random as rd
 
-# pd.options.mode.chained_assignment = None
-# np.set_printoptions(precision=4)
+pd.options.mode.chained_assignment = None
+np.set_printoptions(precision=4)
 
 def convert_to_mean_stress(amp,R):
     S_max = amp*2/(1-R)
@@ -61,9 +60,9 @@ def add_amplitudecol(dataframe):
     dataframe["amp"] = 0.
     for index, row in dataframe.iterrows():
         if row["smax"] < 0:
-            dataframe.loc[index, "amp"] = row["smax"] * (1 / row["R-value1"] - 1) /2
+            dataframe["amp"][index] = row["smax"] * (1 / row["R-value1"] - 1) /2
         else:
-            dataframe.loc[index, "amp"] = row["smax"] / 2 * (1 - row["R-value1"])
+            dataframe["amp"][index] = row["smax"] / 2 * (1 - row["R-value1"])
     return dataframe
 
 
@@ -74,23 +73,18 @@ def CLD_definition(dataframe):
     
     #Find which R values are available
     R_values = list(dataframe.groupby("R-value1").groups.keys())
-    print("The dictionary contains the following R values: ")
+    print("The dictionary contains the followin R values: ")
     print(R_values)
 
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
     
     SN_models = []
-    std = []
-    from SNCurve import getStd
 
-    i = 0
     for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
         # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
         # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
-        std.append(getStd(np.array(df["Ncycles"]), np.array(df["amp"]),SN_models[i]))
-        i += 1
- 
+
     print("Number of regression models available: ", len(SN_models))
 
     #     # # DEBUGGING - plot S-N curve for every R
@@ -136,8 +130,7 @@ def CLD_definition(dataframe):
 
     print("\nCLD is fully defined.")
     print("-----------------------------\n")
-    return R_values, R_slopes_coeff, SN_models, parameter_dictionary, std
-
+    return R_values, R_slopes_coeff, SN_models,parameter_dictionary
 
 def plot_regression_models(SN_models, R_values,parameter_dictionary):
     colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
@@ -153,8 +146,12 @@ def plot_regression_models(SN_models, R_values,parameter_dictionary):
 
     return
 
+def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490):
 
-def make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, x = np.linspace(-800,800)):
+    #################### Creation of constant life lines ands R lines
+    fig, ax = plt.subplots()
+    R_line_visualizer(R_slopes_coeff,R_values,ax)
+
     #------------------- Create constant life lines
     amp_plot_lists = []
     mean_plot_lists = []
@@ -180,44 +177,14 @@ def make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log
         amp_plot_lists.append(amp_list)
         mean_plot_lists.append(mean_list)
 
-    y = []
-    for life in range(len(mean_plot_lists)):
-        y.append(np.interp(x, mean_plot_lists[life], amp_plot_lists[life]))
-
-    return y
-
-def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, with_bounds = False, std =[], std_num=0):
-
-    #################### Creation of constant life lines ands R lines
-    fig, ax = plt.subplots()
-    R_line_visualizer(R_slopes_coeff,R_values,ax)
-
-    #------------------- Create constant life lines
-    colors = list(mcolors.TABLEAU_COLORS.values()) + list((mcolors.BASE_COLORS.values()))
-    print(colors)
-    cx = np.linspace(UCS,UTS, 200)
-    cy = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
-    for life in range(len(Life_lines_log)):
-        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life+len(R_values)])
-    ax.legend()
-
-    if with_bounds:
-        for index, model in enumerate(SN_models):
-            model.intercept_ = model.intercept_ - std[index]*std_num
-        cyl = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
-
-        for index, model in enumerate(SN_models):
-            model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
-        cyu = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
-
-        for life in range(len(Life_lines_log)):
-            ax.fill_between(cx, cyl[life], cyu[life], alpha = 0.2, color=colors[life+len(R_values)])
+    for p in range(len(amp_plot_lists)):
+        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}")
+        ax.legend()
 
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
     
     return ax
-
 
 def Location_of_target(target_stress_amplitude,target_mean_stress,R_values,R_slopes_coeff):
     #------------------------------------------------------------------------------------
