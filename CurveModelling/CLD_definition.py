@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import pandas as pd
 from Data_processing import separateDataFrame
 from SNCurve import regression
@@ -153,7 +154,7 @@ def plot_regression_models(SN_models, R_values,parameter_dictionary):
     return
 
 
-def plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, color="blue"):
+def make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, x = np.linspace(-800,800)):
     #------------------- Create constant life lines
     amp_plot_lists = []
     mean_plot_lists = []
@@ -179,11 +180,11 @@ def plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log
         amp_plot_lists.append(amp_list)
         mean_plot_lists.append(mean_list)
 
-    for p in range(len(amp_plot_lists)):
-        ax.plot(mean_plot_lists[p], amp_plot_lists[p], label=f"N = 10^{Life_lines_log[p]}", c=color)
-        ax.legend()
+    y = []
+    for life in range(len(mean_plot_lists)):
+        y.append(np.interp(x, mean_plot_lists[life], amp_plot_lists[life]))
 
-    return 
+    return y
 
 def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, with_bounds = False, std =[], std_num=0):
 
@@ -192,16 +193,25 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
     R_line_visualizer(R_slopes_coeff,R_values,ax)
 
     #------------------- Create constant life lines
-    plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="green")
+    colors = list(mcolors.TABLEAU_COLORS.values()) + list((mcolors.BASE_COLORS.values()))
+    print(colors)
+    cx = np.linspace(UCS,UTS, 200)
+    cy = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
+    for life in range(len(Life_lines_log)):
+        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life+len(R_values)])
+    ax.legend()
 
     if with_bounds:
         for index, model in enumerate(SN_models):
             model.intercept_ = model.intercept_ - std[index]*std_num
-        plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="blue")
+        cyl = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
 
         for index, model in enumerate(SN_models):
             model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
-        plot_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, color="red")
+        cyu = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
+
+        for life in range(len(Life_lines_log)):
+            ax.fill_between(cx, cyl[life], cyu[life], alpha = 0.2, color=colors[life+len(R_values)])
 
     ax.set_xlabel("Mean Stress")
     ax.set_ylabel("Stress Amplitude")
