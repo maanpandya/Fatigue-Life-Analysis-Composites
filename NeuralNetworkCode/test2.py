@@ -10,7 +10,7 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/rev4/test21'
+path = 'NNModelArchive/finalmodels/correctsmax3'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
@@ -37,8 +37,6 @@ while True:
     datapoint = data.loc[i]
     print(datapoint)
     datapoint = datapoint.to_frame().T
-    for i in Rlist:
-        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name)
     if compare:
         if all(data.columns==data2.columns):
             datapoint2 = datapoint
@@ -47,8 +45,11 @@ while True:
             datapoint2 = data2.loc[i]
             print(datapoint2)
             datapoint2 = datapoint2.to_frame().T
-        for i in Rlist:
-            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2)
+    for i in Rlist:
+        color = f.randomcolor()
+        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color)
+        if compare:
+            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=f.reshade(color, rng=0.3))
     plt.legend()
     plt.xlim(0,10)
     plt.show()
