@@ -32,7 +32,7 @@ dropout_prob = 0.0
 # training parameters
 savemodel = True
 n_epochs = 30000
-loss_fn = cl.altMSE()          # fn
+loss_fn = cl.log_adjusted_MSE()          # fn
 test_loss_fn = None     # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.00001
 optimizer = torch.optim.Adam            # fn
