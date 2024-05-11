@@ -48,7 +48,7 @@ def predband(nArray, sArray, model, conf=0.95, x = np.linspace(0,10)):
                  np.sum((sArray - model.predict(nArray)) ** 2))    
     # Prediction band
     dy = q * se * np.sqrt(1.0+ (1.0/N) + (sx/sxd))
-    return np.mean(dy)
+    return dy
 
 def getStd(nArray, sArray, model):
     nArray = nArray.reshape((-1,1))
