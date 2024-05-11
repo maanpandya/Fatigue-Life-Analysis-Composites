@@ -80,15 +80,15 @@ def CLD_definition(dataframe):
     parameter_dictionary = separateDataFrame(dataframe, separationParameters= ["R-value1"], separationRanges=[False, [0,40], False]) 
     
     SN_models = []
-    std = []
-    from SNCurve import getStd
+    pbound = []
+    from SNCurve import predband
 
     i = 0
     for key, df in parameter_dictionary["R-value1"].items(): # go through the dataframe for each r-value
         # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
         # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
-        std.append(getStd(np.array(df["Ncycles"]), np.array(df["amp"]),SN_models[i]))
+        pbound.append(predband(np.array(df["Ncycles"]), np.array(df["amp"]), SN_models[i]))
         i += 1
  
     print("Number of regression models available: ", len(SN_models))
@@ -133,13 +133,14 @@ def CLD_definition(dataframe):
     R_slopes_coeff = R_slopes_coeff[sort_indices]
     SN_models = np.array(SN_models)[sort_indices]
     R_values = np.array(R_values)[sort_indices]
+    pbound = np.array(pbound)[sort_indices]
 
     print("\nCLD is fully defined.")
     print("-----------------------------\n")
-    return R_values, R_slopes_coeff, SN_models, parameter_dictionary, std
+    return R_values, R_slopes_coeff, SN_models, parameter_dictionary, pbound
 
 
-def plot_regression_models(SN_models, R_values,parameter_dictionary):
+def plot_regression_models(SN_models, R_values, parameter_dictionary):
     colors = ['#2ca02c','#d62728','#9467bd', '#8c564b','#e377c2','#1f77b4','#ff7f0e','#7f7f7f', '#bcbd22', '#17becf']
 
     fig, ax = plt.subplots()
@@ -186,7 +187,7 @@ def make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log
 
     return y
 
-def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, with_bounds = False, std =[], std_num=0):
+def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], UTS = 820, UCS = -490, with_bounds = False, pbound =[]):
 
     #################### Creation of constant life lines ands R lines
     fig, ax = plt.subplots()
@@ -203,12 +204,15 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
 
     if with_bounds:
         for index, model in enumerate(SN_models):
-            model.intercept_ = model.intercept_ - std[index]*std_num
+            model.intercept_ = model.intercept_ - pbound[index]
         cyl = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
 
         for index, model in enumerate(SN_models):
-            model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
+            model.intercept_ = model.intercept_ + pbound[index]*2 # 2 because it has to counteract the previous one
         cyu = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
+
+        for index, model in enumerate(SN_models):
+            model.intercept_ = model.intercept_ - pbound[index] # return models back to normal
 
         for life in range(len(Life_lines_log)):
             ax.fill_between(cx, cyl[life], cyu[life], alpha = 0.2, color=colors[life+len(R_values)])

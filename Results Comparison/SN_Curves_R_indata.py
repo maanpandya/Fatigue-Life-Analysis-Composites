@@ -14,7 +14,7 @@ import CLD_definition
 #################################################
 #Settings
 #################################################
-R_value_to_plot = 0.1
+R_value_to_plot = -1.
 std_num         = 1 # number of standard deviations for uncertainty
 #################################################
 #Regression prediction
