@@ -396,7 +396,7 @@ def complete_sn_curve(model, scaler, data, datapoint):
     plt.legend()
     plt.show()
 
-def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True):
+def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True, name=''):
     range = 0.1,0.9
     factor = 0.8
     predcolor = np.array([np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1])])
@@ -463,7 +463,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     else:
         stressrange = np.insert(stressrange, 0, -minstress/R)
         spred = -R * stressrange
-    plt.plot(npred, spred, label=f'predicted R = {R}', color=predcolor)
+    plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
