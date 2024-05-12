@@ -26,7 +26,7 @@ def NNfuntion(normalized_array, wawas):
     x['Lnominal'] = 150 #Nominal length of sample
     #x['R-value1'] = -1 #R-value
     #x['Fmax'] = 36.08 #Fatigue force
-    x['smax'] = 0
+    x['smax'] = wawas
     x['smean'] = 0
     x['smin'] = 0
     #x['f'] = 3.44 #Frequency
