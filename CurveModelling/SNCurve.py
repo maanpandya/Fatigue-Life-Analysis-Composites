@@ -3,6 +3,7 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
+from scipy import stats
 
 def regression(nArray, sArray):
     """
@@ -23,6 +24,31 @@ def regression(nArray, sArray):
     # print(model.get_params()) # debugging
 
     return model
+
+def predband(nArray, sArray, model, conf=0.95, x = np.linspace(0,10)):
+    """ INPUT \n
+    nArray = array of log of fatigue life cycles \n
+    sArray = array of stress amplitude in MPa \n
+    model = linear regression model with the given data \n
+    x = requested points, default np.linspace(0,10) \n
+    OUTPUT \n
+    dy = confidence band half-width in a log-log plot"""
+    alpha = 1.0 - conf    # significance
+    N = nArray.size          # data sample size
+    var_n = 2  # number of parameters
+    # Quantile of Student's t distribution for p=(1-alpha/2)
+    q = stats.t.ppf(1.0 - alpha / 2.0, N - var_n)
+    # Auxiliary definitions
+    sx = (x - nArray.mean()) ** 2
+    sxd = np.sum((nArray - nArray.mean()) ** 2)
+    # Stdev of an individual measurement
+    sArray = np.log10(sArray)
+    nArray = nArray.reshape((-1,1))   
+    se = np.sqrt(1. / (N - var_n) * \
+                 np.sum((sArray - model.predict(nArray)) ** 2))    
+    # Prediction band
+    dy = q * se * np.sqrt(1.0+ (1.0/N) + (sx/sxd))
+    return dy
 
 def getStd(nArray, sArray, model):
     nArray = nArray.reshape((-1,1))

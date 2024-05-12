@@ -3,11 +3,11 @@ import numpy as np
 import DPfunctions as dp
 
 
-cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 'area', 'R-value1']
+cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 'area']
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = 'test'
+tag = '12'
 save = True
 split_on_smax_sign = False
 absmax = False
