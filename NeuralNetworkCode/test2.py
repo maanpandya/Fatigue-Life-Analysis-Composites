@@ -51,7 +51,7 @@ while True:
         if compare:
             f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=f.reshade(color, rng=0.3))
     plt.legend()
-    plt.xlim(0,10)
+    plt.xlim(0,7)
     plt.show()
 
 
