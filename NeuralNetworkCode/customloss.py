@@ -66,5 +66,14 @@ class altMSE(nn.modules.loss._Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input, target):
-        loss = torch.nn.functional.mse_loss(input, target, reduction=self.reduction)
+        loss = torch.mean((1 + torch.relu(target)/3) * (input - target) ** 2)
+        return loss
+
+class log_adjusted_MSE(nn.modules.loss._Loss):
+    #mse = (log(p)-log(t))**2 => 10^sqrt(mse) = p/t
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
+        super().__init__(size_average, reduce, reduction)
+
+    def forward(self, input, target):
+        loss = torch.mean(torch.pow(10, torch.sqrt((input - target) ** 2)))
         return loss

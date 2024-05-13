@@ -8,24 +8,48 @@ import function as f
 import time
 import random as rd
 
-complete = True
-path = 'NeuralNetworkCode/NNModelArchive/rev4/PINNnewlr0.0001epoch3000'
+
+# main
+path = 'NNModelArchive/finalmodels/correctsmax3'
+name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
 f.test_model(model, scaler, x_test, y_test)
 
+exp = True
+compare = True
+# compare to
+path2 = 'NNModelArchive/finalmodels/testaltmse2'
+name2 = path2.split('/')[-1]
+model2, scaler2 = f.import_model(path2)
+x_test2 = dp.dfread(path + '/x_test.csv')
+y_test2 = dp.dfread(path + '/y_test.csv')
+data2 = dp.dfread(path + '/data.csv')
+print()
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
-print(Rlist)
+if compare:
+    Rlist = [-1, -0.4, 10]
 while True:
     # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)
     datapoint = data.loc[i]
     print(datapoint)
     datapoint = datapoint.to_frame().T
+    if compare:
+        if all(data.columns==data2.columns):
+            datapoint2 = datapoint
+        else:
+            i = rd.choice(data2.index)
+            datapoint2 = data2.loc[i]
+            print(datapoint2)
+            datapoint2 = datapoint2.to_frame().T
     for i in Rlist:
-        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=800, exp=True)
+        color = f.randomcolor()
+        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color)
+        if compare:
+            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=f.reshade(color, rng=0.3))
     plt.legend()
     plt.xlim(0,7)
     plt.show()

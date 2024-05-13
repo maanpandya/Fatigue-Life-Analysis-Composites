@@ -396,12 +396,22 @@ def complete_sn_curve(model, scaler, data, datapoint):
     plt.legend()
     plt.show()
 
-def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True):
-    range = 0.1,0.9
-    factor = 0.8
-    predcolor = np.array([np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1])])
-    expcolor = list(predcolor * factor) + [0.5]
-    predcolor = list(predcolor)
+def randomcolor(min=0, max=1):
+    range = min, max
+    color = np.array([np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1]), np.random.uniform(range[0],range[1])])
+    return color
+def invertcolor(color):
+    return np.array([1, 1, 1]) - color
+def reshade(color, rng=0.1):
+    color = color + np.array([np.random.uniform(-rng, rng), np.random.uniform(-rng, rng),
+              np.random.uniform(-rng, rng)])
+    color = (color<=1) * (color>=0) * color + (color>1)
+    return color
+def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True, name='', color=None):
+    if type(color)==type(None):
+        color = randomcolor()
+    expcolor = np.append(color * 0.8, 0.5)
+    predcolor = color
     data = copy.deepcopy(data)
     noR = False
     if 'R-value1' not in data.columns:
@@ -463,7 +473,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     else:
         stressrange = np.insert(stressrange, 0, -minstress/R)
         spred = -R * stressrange
-    plt.plot(npred, spred, label=f'predicted R = {R}', color=predcolor)
+    plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):

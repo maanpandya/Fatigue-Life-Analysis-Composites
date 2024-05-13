@@ -18,8 +18,8 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'datatest'
-folder = 'NeuralNetworkCode/DataProcessing/processed'
+file = 'data12'
+folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
@@ -31,10 +31,10 @@ dropout_prob = 0.0
 
 # training parameters
 savemodel = True
-n_epochs = 3000
-loss_fn = cl.PINNLoss          # fn
+n_epochs = 20000
+loss_fn = nn.MSELoss()          # fn
 test_loss_fn = nn.MSELoss()     # fn, if ==None > test loss fn == loss fn
-learning_rate = 0.0001
+learning_rate = 0.00001
 optimizer = torch.optim.Adam            # fn
 start, incr, freq = 1, -0.07, 1
 noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
@@ -56,9 +56,7 @@ x_test, y_test = dp.dfxysplit(testdata, target_columns)
 
 # seven cutoff
 sco = min((7 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std'], (10**7 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std'])
-sczero = (0 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
 print(f'Ncycles scaled 10**7 = {sco}')
-print(f'Ncycles scaled 0 = {sczero}')
 # create model
 if n_hidden_layers == 0:
     n_hidden_layers = len(layer_sizes)

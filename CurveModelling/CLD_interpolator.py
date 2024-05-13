@@ -10,11 +10,11 @@ dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
 #Add amplitude column to the dataframe
 CLD_definition.add_amplitudecol(dataframe)
 #Define the CLD
-R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.CLD_definition(dataframe)
+R_values, R_slopes_coeff, SN_models, parameter_dictionary, pbound = CLD_definition.CLD_definition(dataframe)
 
 #Plot the CLD
 
-CLD_definition.plot_CLD(R_values, R_slopes_coeff, SN_models, with_bounds=True, std=std, std_num=2, Life_lines_log=[2,5])
+CLD_definition.plot_CLD(R_values, R_slopes_coeff, SN_models, with_bounds=True, pbound=pbound, Life_lines_log=[2,5])
 
 CLD_definition.plot_regression_models(SN_models, R_values,parameter_dictionary)
 
