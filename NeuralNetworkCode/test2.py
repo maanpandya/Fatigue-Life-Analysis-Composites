@@ -9,7 +9,7 @@ import time
 import random as rd
 
 complete = True
-path = 'NNModelArchive/rev4/correctsmax3'
+path = 'NeuralNetworkCode/NNModelArchive/rev4/PINNnewlr0.0001epoch3000'
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
@@ -27,7 +27,7 @@ while True:
     for i in Rlist:
         f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=800, exp=True)
     plt.legend()
-    plt.xlim(0,10)
+    plt.xlim(0,7)
     plt.show()
 
 
