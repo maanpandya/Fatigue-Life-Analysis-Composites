@@ -68,21 +68,28 @@ for i in range(4):
 
 ######################################################################################################################################
 
-x_values = np.linspace(0, 20, 200)  
+x_values = np.linspace(0.9, 10000000, 200)  
 y_values = x_values 
 colours1 = ["forestgreen", "limegreen", "mediumturquoise", "deepskyblue"]
 colours2 = ["red", "coral", "yellow", "darkorange"]
+
+print("results")
+print(Resultstest)
+print(ResultsCLD)
+print(ResultsNN)
 for i in range(4):
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsCLD[i]), label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsNN[i]), label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
+    plt.scatter(Resultstest[i], ResultsCLD[i], label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
+    plt.scatter(Resultstest[i], ResultsNN[i], label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
 
 plt.xlabel("log(Resultstest)")
 plt.ylabel("log(Results)")
 plt.legend()
 
-plt.xlim(0, 20)
-plt.ylim(0, 20)
+plt.xlim(0.9, 1000000)
+plt.ylim(0.9, 1000000)
+plt.xscale("log")
+plt.yscale("log")
 plt.plot(x_values, y_values, color='red', linestyle='--')
-plt.xlabel("Optidat log of number of cycles")
-plt.ylabel("CLD and NN log of number of cycles")
+plt.xlabel("Optidat of number of cycles")
+plt.ylabel("CLD and NN of number of cycles")
 plt.show()
