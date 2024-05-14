@@ -32,7 +32,7 @@ dropout_prob = 0.0
 # training parameters
 savemodel = True
 n_epochs = 5000
-loss_fn = cl.PINNLoss          # fn
+loss_fn = cl.PINNLoss          # fn PINNloss is different change names in customloss to change back
 test_loss_fn = cl.PINNLoss    # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
