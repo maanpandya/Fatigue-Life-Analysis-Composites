@@ -756,7 +756,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
                 if tst:
                     line2.set_xdata(list(range(epoch + 1)))
                     line2.set_ydata(testlosses)
-                    legend.append(f'Test loss = {round(testlosses[-1],3)}')
+                    legend.append(f'Validation loss = {round(testlosses[-1],3)}')
                 if noise:
                     line3.set_xdata(list(range(epoch + 1)))
                     line3.set_ydata(noiselevels)

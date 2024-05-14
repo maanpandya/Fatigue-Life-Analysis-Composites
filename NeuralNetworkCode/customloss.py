@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4, a=10**4, b=10**6, c=10**-4, d=10**-4):
+def PINNLoss(output, target, inputs, sevencutoff=1.5,zerocutoff=0.3,indexsmax=4, a=10**4, b=10**6, c=10**-4, d=10**-4):
     # Mean squared error
     loss = torch.nn.functional.mse_loss(output, target, reduction='mean')
 
@@ -54,7 +54,7 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4
     else: loss4 = 0
     #print(f"loss4 = {loss4}")
 
-    return loss + loss3 + loss4 #+ loss1 + loss2
+    return loss + loss3 + loss4 + loss1 + loss2
 
 
 class notMSELoss(nn.modules.loss._Loss):
