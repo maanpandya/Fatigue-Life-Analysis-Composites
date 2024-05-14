@@ -19,7 +19,7 @@ if not random_seed:
 
 # input data
 file = 'data13'
-folder = 'DataProcessing/processed'
+folder = 'NeuralNetworkCode/DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
 
@@ -34,7 +34,7 @@ savemodel = True
 n_epochs = 5000
 loss_fn = cl.PINNLoss          # fn
 test_loss_fn = cl.PINNLoss     # fn, if ==None > test loss fn == loss fn
-learning_rate = 0.0001
+learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
 start, incr, freq = 1, -0.07, 1
 noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
@@ -79,7 +79,7 @@ if savemodel:
     if name != '':
         if name == 't':
             name = None
-        f.export_model(model, 'NNModelArchive/rev4', scalers, name=name, data=data,
+        f.export_model(model, 'NeuralNetworkCode/NNModelArchive/rev4', scalers, name=name, data=data,
                        x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
 
 
