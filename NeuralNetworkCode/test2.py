@@ -10,7 +10,7 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/rev4/pinnlossfinale2'
+path = 'NNModelArchive/rev4/newpinn12grads'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
@@ -30,7 +30,7 @@ x_test2 = dp.dfread(path + '/x_test.csv')
 y_test2 = dp.dfread(path + '/y_test.csv')
 data2 = dp.dfread(path + '/data.csv')
 print()
-Rlist = [-2.5, -1, -0.4, 0.1, 0.5]
+Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
 if compare:
     Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 10]
 while True:

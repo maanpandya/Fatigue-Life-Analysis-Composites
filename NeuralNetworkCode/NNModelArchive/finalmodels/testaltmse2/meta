@@ -1,0 +1,25 @@
+# input data
+file = 'data12'
+folder = 'DataProcessing/processed'
+target_columns = ['Ncycles']            # max of 1 output
+test_size = 0.3
+
+# model parameters
+n_hidden_layers = 6                         # int (set to zero to use len(layer_sizes)
+layer_sizes = 90                           # int or list of int
+act_fn = nn.Tanh()         # fn or list of fn
+dropout_prob = 0.0
+
+# training parameters
+savemodel = True
+n_epochs = 50000
+loss_fn = cl.log_adjusted_MSE()          # fn
+test_loss_fn = None     # fn, if ==None > test loss fn == loss fn
+learning_rate = 0.00001
+optimizer = torch.optim.Adam            # fn
+start, incr, freq = 1, -0.07, 1
+noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
+validate = True                     # run validation with the test date set, required to pick best model based on validation
+pick_best_model = True
+animate = True
+update_freq = 0.5

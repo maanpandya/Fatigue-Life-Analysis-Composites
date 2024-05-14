@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4, a=10**4, b=10**6, c=10**-4, d=10**-4):
+def PINNLoss2(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4, a=10**4, b=10**6, c=10**-6, d=10**-6):
     # Mean squared error
     loss = torch.nn.functional.mse_loss(output, target, reduction='mean')
 
@@ -56,6 +56,38 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4
 
     return loss + loss3 + loss4 #+ loss1 + loss2
 
+def MS(x):
+    return torch.mean(x**2)
+
+def Mexp(x, base=10):
+    return torch.mean(base**x)
+
+def PINNLoss(output, target, inputs, sevencutoff=1.9, zerocutoff=0.3, indexsmax=4,
+             f0=0 * 10 ** 0, f1=4 * 10 ** 1, f2=1 * 10 ** 5, f3=1 * 10 ** 3, f4=1 * 10 ** 2):
+    error = torch.abs(target - output)
+
+    # Compute 1st and 2nd gradients
+    gradient1 = torch.autograd.grad(torch.mean(output), inputs, create_graph=True)[0]
+    gradient2 = torch.autograd.grad(torch.mean(gradient1[:, indexsmax]), inputs, create_graph=True)[0]
+
+    # constraint 0: add loss for non zero 1st gradient(makes 1, 3 and 4 redundant)
+    loss0 = f0 * torch.abs(gradient1[:, indexsmax])
+    # Constraint 1: The first derivative of the S-N curve must be negative.
+    # Penalize positive first derivatives
+    loss1 = f1 * torch.relu(gradient1[:, indexsmax])
+
+    # Constraint 2: The second derivative of the S-N curve must be positive.
+    # Penalize negative second derivatives
+    loss2 = f2 * torch.abs(torch.relu(-gradient2[:, indexsmax]))
+
+    # Constraint 3: The S-N curve's slope must be 0 at 0 and10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
+    # Penalize non-infinite gradients at high cycles
+    loss3 = (f3 * (target > sevencutoff)) * torch.abs(gradient1[:, indexsmax])
+    # penalize non-infinite gradients at low cycles
+    loss4 = (f4*(target<zerocutoff)) * torch.abs(gradient1[:, indexsmax])
+
+    loss = error + loss0 + loss1 + loss2 + loss3 + loss4
+    return Mexp(loss) # for some reason this works well instead of mean square
 
 class notMSELoss(nn.modules.loss._Loss):
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
