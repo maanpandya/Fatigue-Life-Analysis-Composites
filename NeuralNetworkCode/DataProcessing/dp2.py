@@ -7,9 +7,9 @@ cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
 tests = ['CA', 'STT', 'STC']
-tag = '12'
+tag = '13'
 save = True
-split_on_smax_sign = False
+split_on_smax_sign = True
 absmax = False
 correct_smax = True
 
@@ -53,6 +53,10 @@ for i in dfnew.index:
 dfnew = dp.col_filter(dfnew, cols+['R-value1'], 'include')
 dfnew = dp.big_cleanup(dfnew)
 
+if split_on_smax_sign:
+    dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
+    dfnew = dfup
+
 if correct_smax:
     dfnew['smean'] = dp.rmath({'smax':dfnew['smax'], 'R':dfnew['R-value1']}, 'smean')
     for i in dfnew.index:
@@ -79,9 +83,6 @@ else:
         dfnew['Fmax'] = np.abs(dfnew['Fmax'])
         dfnew['smean'] = np.abs(dfnew['smean'])
 
-if split_on_smax_sign:
-    dfup, dfdown = dp.filter_dataframe_by_cutoff(dfnew, 'smax', 0)
-    dfnew = dfdown
 
 dfnew = dp.col_filter(dfnew, cols, 'include')
 if 'Ncycles' in dfnew.columns:

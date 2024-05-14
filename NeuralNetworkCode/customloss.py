@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=-0.8,indexsmax=5, a=10**4, b=10**6, c=10**-4, d=10**-4):
+def PINNLoss(output, target, inputs, sevencutoff=1.5,zerocutoff=1.5,indexsmax=5, a=10**4, b=10**6, c=10**-5, d=10**-4):
     # Mean squared error
     loss = torch.nn.functional.mse_loss(output, target, reduction='mean')
 
@@ -24,7 +24,7 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=-0.8,indexsmax=5
     #Constraint 1: The first derivative of the S-N curve must be negative.
     # Penalize positive first derivatives
     loss1 = a*torch.mean(torch.abs(torch.relu(gradient1[:, indexsmax])))
-    print(loss1)
+    #print(loss1)
 
     #Constraint 2: The second derivative of the S-N curve must be positive.
     # Compute second derivatives
@@ -32,23 +32,27 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=-0.8,indexsmax=5
 
     # Penalize negative second derivatives
     loss2 = b*torch.mean(torch.abs(torch.relu(-gradient2[:, indexsmax])))
-    print(loss2)
+    #print(loss2)
 
     #Constraint 3: The S-N curve's slope must be 0 at 10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
     # Penalize non-infinite gradients at 10^7 cycles
     loss3list = []
     for i in range(len(target)):
-        if target[i] >= sevencutoff:
+        if target[i] > sevencutoff:
             loss3list.append(gradient1[i, indexsmax])
-    loss3 = c*torch.mean(torch.abs(1/torch.tensor(loss3list)))
-    print(loss3)
+    if len(loss3list)>0:
+        loss3 = c*torch.mean(torch.abs(1/torch.tensor(loss3list)))
+    else: loss3 = 0
+    #print(loss3)
 
     loss4list = []
     for i in range(len(target)):
         if target[i] <= zerocutoff:
             loss4list.append(gradient1[i, indexsmax])
-    loss4 = d*torch.mean(torch.abs(1/torch.tensor(loss4list)))
-    print(f"loss4 = {loss4}")
+    if len(loss4list) > 0:
+        loss4 = d*torch.mean(torch.abs(1/torch.tensor(loss4list)))
+    else: loss4 = 0
+    #print(f"loss4 = {loss4}")
 
     return loss + loss1 + loss2 + loss3 + loss4
 

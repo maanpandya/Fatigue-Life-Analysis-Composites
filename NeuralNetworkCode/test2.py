@@ -20,8 +20,9 @@ f.test_model(model, scaler, x_test, y_test)
 
 exp = True
 compare = True
+plot_abs = False
 # compare to
-path2 = 'NNModelArchive/finalmodels/testaltmse2'
+path2 = 'NNModelArchive/finalmodels/pltest3'
 name2 = path2.split('/')[-1]
 model2, scaler2 = f.import_model(path2)
 x_test2 = dp.dfread(path + '/x_test.csv')
@@ -30,7 +31,7 @@ data2 = dp.dfread(path + '/data.csv')
 print()
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
 if compare:
-    Rlist = [-1, -0.4, 10]
+    Rlist = [-2.5, -1, -0.4, 0.1, 0.5]
 while True:
     # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)
@@ -47,9 +48,9 @@ while True:
             datapoint2 = datapoint2.to_frame().T
     for i in Rlist:
         color = f.randomcolor()
-        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color)
+        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs)
         if compare:
-            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=f.reshade(color, rng=0.3))
+            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=color*0.6, plot_abs=plot_abs)
     plt.legend()
     plt.xlim(0,7)
     plt.show()
