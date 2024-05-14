@@ -84,8 +84,11 @@ def Calculations(Smax1, Smax2, code, surface, R):
                     cycles1[i][k] = (SNcurve1(Smax2[i], R, surface) * ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))))
                 else:
                     cycles1[i][k] = 1
-                cycles2[i][k] = (NNmodel(Smax2[i], R) * ( 1 - (N1 / NNmodel(Smax1[k],  R))))
-
+                if ( 1 - (N1 /NNmodel(Smax1[k],  R))) > 0:
+                    cycles2[i][k] = (NNmodel(Smax2[i], R) * ( 1 - (N1 / NNmodel(Smax1[k],  R))))
+                else:
+                    cycles2[i][k] = 1
+                
         cycles1_array = np.array(cycles1)
         cycles2_array = np.array(cycles2)
         Smax1_array = np.array(Smax1)

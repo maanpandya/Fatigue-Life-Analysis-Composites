@@ -4,6 +4,7 @@ from blocktestfnct import Calculations
 import sys
 sys.path.append('NeuralNetworkCode')
 import function as f
+import pandas as pd
 
 
 import CLD_interpolator
@@ -68,21 +69,49 @@ for i in range(4):
 
 ######################################################################################################################################
 
-x_values = np.linspace(0, 20, 200)  
+x_values = np.linspace(0.9, 10000000, 200)  
 y_values = x_values 
 colours1 = ["forestgreen", "limegreen", "mediumturquoise", "deepskyblue"]
 colours2 = ["red", "coral", "yellow", "darkorange"]
+
+
+data1 = Resultstest
+data2 = ResultsNN
+data3 = ResultsCLD
+
+# Convert array to DataFrame
+"""
+df1 = pd.DataFrame(data1[0], data1[1], data1[2], data1[3])
+df2 = pd.DataFrame(data2[0], data2[1], data2[2], data2[3])
+df3 = pd.DataFrame(data3[0], data3[1], data3[2], data3[3])
+"""
+
+df1 = pd.DataFrame(data1)
+df2 = pd.DataFrame(data2)
+df3 = pd.DataFrame(data3)
+# Define the Excel file path
+excel_file1 = "resulst.xlsx"
+excel_file2 = "ResultsNN.xlsx"
+excel_file3 = "ResultsCLD.xlsx"
+# Write DataFrame to Excel
+df1.to_excel(excel_file1, index=False, header=False)
+df2.to_excel(excel_file2, index=False, header=False)
+df3.to_excel(excel_file3, index=False, header=False)
+
+print("Excel file created successfully.")
 for i in range(4):
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsCLD[i]), label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsNN[i]), label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
+    plt.scatter(Resultstest[i], ResultsCLD[i], label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
+    plt.scatter(Resultstest[i], ResultsNN[i], label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
 
 plt.xlabel("log(Resultstest)")
 plt.ylabel("log(Results)")
 plt.legend()
 
-plt.xlim(0, 20)
-plt.ylim(0, 20)
+plt.xlim(0.9, 1000000)
+plt.ylim(0.9, 1000000)
+plt.xscale("log")
+plt.yscale("log")
 plt.plot(x_values, y_values, color='red', linestyle='--')
-plt.xlabel("Optidat log of number of cycles")
-plt.ylabel("CLD and NN log of number of cycles")
+plt.xlabel("Optidat of number of cycles")
+plt.ylabel("CLD and NN of number of cycles")
 plt.show()

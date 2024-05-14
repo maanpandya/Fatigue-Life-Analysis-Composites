@@ -497,7 +497,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     if axis == None:
         plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
     else:
-        axis.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+        axis.plot(npred, spred, label=f'Prediction by PINN, R = {R}', color=predcolor)
 
 
 
@@ -787,7 +787,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         legend = ['Training loss']
         if tst:
             plt.plot(testlosses)
-            legend.append('Test loss')
+            legend.append('Validation loss')
         if noise:
             plt.plot(noiselevels)
             legend.append('Noise level')

@@ -22,7 +22,7 @@ import DataProcessing.DPfunctions as dp
 #################################################
 #Settings
 #################################################
-R_value_to_plot = -0.4
+R_value_to_plot = -1
 conf = 0.95 # confidence value - not implemented yet - 95% by default (fraction of data within the bounds)
 fig, ax = plt.subplots()
 #################################################
@@ -47,14 +47,15 @@ amp_list_reg_lower = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1
 
 ####################################################
 #PINN prediction
-path = 'NeuralNetworkCode/NNModelArchive/rev4/pltest5'
+path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
 i = rd.choice(data.index)
-i = data.index[100]
+#i = data.index[100]
+i = 2180 #2174
 datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T
