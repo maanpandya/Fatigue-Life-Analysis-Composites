@@ -54,7 +54,7 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=4
     else: loss4 = 0
     #print(f"loss4 = {loss4}")
 
-    return loss + loss1 + loss2 + loss3 + loss4
+    return loss + loss3 + loss4 #+ loss1 + loss2
 
 
 class notMSELoss(nn.modules.loss._Loss):
