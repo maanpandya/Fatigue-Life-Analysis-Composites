@@ -497,7 +497,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     if axis == None:
         plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
     else:
-        axis.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+        axis.plot(npred, spred, label=f'Prediction by PINN, R = {R}', color=predcolor)
 
 
 
