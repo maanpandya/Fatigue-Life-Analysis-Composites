@@ -21,6 +21,8 @@ data8 MD2 CA STT STC above 0 smax
 data9 MD2 CA STT STC below 0 smax
 data10 MD2 CA STT STC all smax
 data11: data10 but abs smax and fmax
+data12: full set with consistent smax min and mean
+data13: data12 but with only R<1
 
 
 

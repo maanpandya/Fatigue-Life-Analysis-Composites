@@ -24,5 +24,3 @@ def CLD_interpolator_log(surface,amp_stress,R_value):
 
 
 
-
-

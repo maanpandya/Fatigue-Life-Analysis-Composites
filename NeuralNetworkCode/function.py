@@ -407,7 +407,7 @@ def reshade(color, rng=0.1):
               np.random.uniform(-rng, rng)])
     color = (color<=1) * (color>=0) * color + (color>1)
     return color
-def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True, name='', color=None):
+def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True, name='', color=None, plot_abs=True):
     if type(color)==type(None):
         color = randomcolor()
     expcolor = np.append(color * 0.8, 0.5)
@@ -423,7 +423,9 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         if R <= 1:
             exps = expdata['smax']
         else:
-            exps = -expdata['smin']
+            exps = expdata['smin']
+            if plot_abs:
+                exps = -exps
         plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
@@ -472,7 +474,9 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         spred = stressrange
     else:
         stressrange = np.insert(stressrange, 0, -minstress/R)
-        spred = -R * stressrange
+        spred = R * stressrange
+        if plot_abs:
+            spred = -spred
     plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
 
 
@@ -615,6 +619,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     x_train.requires_grad = True
     y_train = torch.tensor(y_train.iloc[:, -1].values).view(-1, 1)
     y_train = y_train.cuda()
+    y_train.requires_grad = True
     # init some noise variables
     if noise:
         x_train_size = x_train.size()
@@ -627,6 +632,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         x_test.requires_grad = True
         y_test = torch.tensor(y_test.iloc[:, -1].values).view(-1, 1)
         y_test = y_test.cuda()
+        y_test.requires_grad = True
 
     print('Training starting...')
     losses = []
@@ -692,7 +698,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         # Forward pass and compute the loss
         y_pred_train = model(x_train_temp)
         if loss_fn == PINNLoss:
-            loss = loss_fn(y_pred_train, y_train, x_train, sevencutoff=1.4, indexsmax=6)
+            loss = loss_fn(y_pred_train, y_train, x_train, indexsmax=6)
         else:
             loss = loss_fn(y_pred_train, y_train)
         losses.append(loss.item())
@@ -700,7 +706,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         if tst:
             y_pred_test = model(x_test)
             if testloss_fn == PINNLoss:
-                testloss = testloss_fn(y_pred_test, y_test, x_test, sevencutoff=1.9, indexsmax=6)
+                testloss = testloss_fn(y_pred_test, y_test, x_test, indexsmax=6)
             else:
                 testloss = testloss_fn(y_pred_test, y_test)
             testloss = testloss.item()

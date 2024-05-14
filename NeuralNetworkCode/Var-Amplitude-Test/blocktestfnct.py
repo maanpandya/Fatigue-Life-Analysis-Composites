@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import function as f
 import torch
 import pandas as pd
+from DPfunctions import rmath
 
 import CLD_interpolator
 from CLD_interpolator import CLD_interpolator_log
@@ -18,16 +19,16 @@ from CLD_interpolator import CLD_interpolator_log
 def SNcurve1(x, R_value, suface): #S-N Curve of the 1st block with R1 value
     return CLD_interpolator_log(suface, x*(1-R_value)/2, R_value )
 def NNmodel(x_imput, R_value):    
-    path = 'NeuralNetworkCode/NNModelArchive/rev3/goodname1'
+    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/correctsmax3'
     model, scaler = f.import_model(path)
-    data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data10.csv')
+    data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data12.csv')
     x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
     #x['Fibre Volume Fraction'] =50.92 #Fibre Volume Fraction
     #x['Cut angle '] = 0 #Cut angle
     x['taverage'] = 6.6 #Average thickness
     x['waverage'] = 25#Average width
     x['area'] = 162.31 #Area
-    x['Lnominal'] = 280 #Nominal length of sample
+    x['Lnominal'] = 150 #Nominal length of sample
     #x['R-value1'] = -1 #R-value
     #x['Fmax'] = 36.08 #Fatigue force
     x['smax'] = x_imput
@@ -39,13 +40,12 @@ def NNmodel(x_imput, R_value):
     #x["tens"] = 75
     #x["comp"]= -45
     x.drop(columns=['nr','Ncycles'],inplace=True)
-    x.drop(columns=['nr','Ncycles'],inplace=True)
 
-    
-    x['smean'] = rmath({'smax':x['smax'], 'R':R_counted[i]}, 'smean')
-    x['smean'] = rmath({'smax':x['smax'], 'R':R_counted[i]}, 'smin')
+    x['smean'] = rmath({'smax':x['smax'], 'R':R_value}, 'smean')
+    x['smin'] = rmath({'smax':x['smax'], 'R':R_value}, 'smin')
     for i in x.columns:
         x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
+    print(x)
     xtest = torch.tensor(x.values)
     xtest=xtest.cuda()
     N_AI = model(xtest)
@@ -80,8 +80,12 @@ def Calculations(Smax1, Smax2, code, surface, R):
         N2 = []
         for i in range(len(Smax2)):
             for k in range(len(Smax1)):
-                cycles1[i][k] = (SNcurve1(Smax2[i], R, surface) * ( 1 - (N1 / SNcurve1(Smax1[k],  R, surface))))+N1
-                cycles2[i][k] = (NNmodel(Smax2[i], R) * ( 1 - (N1 / NNmodel(Smax1[k],  R))))+N1
+                if ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))) > 0:
+                    cycles1[i][k] = (SNcurve1(Smax2[i], R, surface) * ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))))
+                else:
+                    cycles1[i][k] = 1
+                cycles2[i][k] = (NNmodel(Smax2[i], R) * ( 1 - (N1 / NNmodel(Smax1[k],  R))))
+
         cycles1_array = np.array(cycles1)
         cycles2_array = np.array(cycles2)
         Smax1_array = np.array(Smax1)
@@ -112,11 +116,10 @@ def Calculations(Smax1, Smax2, code, surface, R):
         for i in range(len(Smax2)):
             for k in range(len(Smax1)):
                 damage1 = N1 / SNcurve1(Smax1[k], R, surface) + N2 / SNcurve1(Smax2[i], R, surface)
-                damage2 = N1 / NNmodel(Smax1[k], R) + N2 / NNmodel(Smax1[k], R)
+                damage2 = N1 / NNmodel(Smax1[k], R) + N2 / NNmodel(Smax2[k], R)
                 cycles1[i][k] = (1 / damage1)*(N1+N2)
                 cycles2[i][k] = 1 / damage2*(N1+N2)
 
-            print(i)
         # Convert Smax1 and Smax2 to numpy arrays for plotting
         Smax1_array = np.array(Smax1)
         Smax2_array = np.array(Smax2)

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.3,indexsmax=6, a=10**4, b=10**6, c=10**-4, d=10**-4):
+def PINNLoss(output, target, inputs, sevencutoff=1.5,zerocutoff=1.5,indexsmax=5, a=10**4, b=10**6, c=10**-5, d=10**-4):
     # Mean squared error
     loss = torch.nn.functional.mse_loss(output, target, reduction='mean')
 
@@ -38,16 +38,21 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0.3,indexsmax=6,
     # Penalize non-infinite gradients at 10^7 cycles
     loss3list = []
     for i in range(len(target)):
-        if target[i] >= sevencutoff:
+        if target[i] > sevencutoff:
             loss3list.append(gradient1[i, indexsmax])
-    loss3 = c*torch.mean(torch.abs(1/torch.tensor(loss3list)))
+    if len(loss3list)>0:
+        loss3 = c*torch.mean(torch.abs(1/torch.tensor(loss3list)))
+    else: loss3 = 0
     #print(loss3)
 
     loss4list = []
     for i in range(len(target)):
         if target[i] <= zerocutoff:
             loss4list.append(gradient1[i, indexsmax])
-    loss4 = d*torch.mean(torch.abs(1/torch.tensor(loss4list)))
+    if len(loss4list) > 0:
+        loss4 = d*torch.mean(torch.abs(1/torch.tensor(loss4list)))
+    else: loss4 = 0
+    #print(f"loss4 = {loss4}")
 
     return loss + loss1 + loss2 + loss3 + loss4
 
