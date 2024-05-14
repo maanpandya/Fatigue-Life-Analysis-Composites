@@ -19,7 +19,7 @@ from CLD_interpolator import CLD_interpolator_log
 def SNcurve1(x, R_value, suface): #S-N Curve of the 1st block with R1 value
     return CLD_interpolator_log(suface, x*(1-R_value)/2, R_value )
 def NNmodel(x_imput, R_value):    
-    path = 'NeuralNetworkCode/NNModelArchive/rev4/correctsmax3'
+    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/correctsmax3'
     model, scaler = f.import_model(path)
     data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data12.csv')
     x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
@@ -80,22 +80,12 @@ def Calculations(Smax1, Smax2, code, surface, R):
         N2 = []
         for i in range(len(Smax2)):
             for k in range(len(Smax1)):
-                print("N cycles")
-                print(N1)
-                print("N cycles CLD")
-                print(1 - (N1 /SNcurve1(Smax1[k],  R, surface)))
-                print("N cycles PINN")
-                print(1 - (N1 / NNmodel(Smax1[k],  R)))
-                print("Smax1")
-                print(Smax1[i])
-                print("Smax2")
-                print(Smax2[k])
-                cycles1[i][k] = (SNcurve1(Smax2[i], R, surface) * ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))))
+                if ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))) > 0:
+                    cycles1[i][k] = (SNcurve1(Smax2[i], R, surface) * ( 1 - (N1 /SNcurve1(Smax1[k],  R, surface))))
+                else:
+                    cycles1[i][k] = 1
                 cycles2[i][k] = (NNmodel(Smax2[i], R) * ( 1 - (N1 / NNmodel(Smax1[k],  R))))
-                print("CLD cycles")
-                print(cycles1)
-                print("NN cycles")
-                print(cycles2)
+
         cycles1_array = np.array(cycles1)
         cycles2_array = np.array(cycles2)
         Smax1_array = np.array(Smax1)
@@ -127,14 +117,9 @@ def Calculations(Smax1, Smax2, code, surface, R):
             for k in range(len(Smax1)):
                 damage1 = N1 / SNcurve1(Smax1[k], R, surface) + N2 / SNcurve1(Smax2[i], R, surface)
                 damage2 = N1 / NNmodel(Smax1[k], R) + N2 / NNmodel(Smax2[k], R)
-                print("damage cld")
-                print(SNcurve1(Smax1[k], R, surface))
-                print("damage Pinn")
-                print(NNmodel(Smax1[k], R))
                 cycles1[i][k] = (1 / damage1)*(N1+N2)
                 cycles2[i][k] = 1 / damage2*(N1+N2)
 
-            print(i)
         # Convert Smax1 and Smax2 to numpy arrays for plotting
         Smax1_array = np.array(Smax1)
         Smax2_array = np.array(Smax2)

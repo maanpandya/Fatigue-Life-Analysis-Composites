@@ -12,7 +12,7 @@ from DPfunctions import rmath
 def NNfuntion(normalized_array, wawas):
 
 
-    path = 'NeuralNetworkCode/NNModelArchive/rev4/correctsmaxnol'
+    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/correctsmax3'
     model, scaler = f.import_model(path)
     stresses = []
     cycles = []
@@ -26,7 +26,7 @@ def NNfuntion(normalized_array, wawas):
     x['Lnominal'] = 150 #Nominal length of sample
     #x['R-value1'] = -1 #R-value
     #x['Fmax'] = 36.08 #Fatigue force
-    x['smax'] = wawas
+    x['smax'] = 0
     x['smean'] = 0
     x['smin'] = 0
     #x['f'] = 3.44 #Frequency
