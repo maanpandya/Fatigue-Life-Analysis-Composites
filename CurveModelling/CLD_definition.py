@@ -203,15 +203,18 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
 
     if with_bounds:
         for index, model in enumerate(SN_models):
-            model.intercept_ = model.intercept_ - np.mean(pbound[index])
+            model.intercept_ = model.intercept_ - np.mean(pbound[index]) 
+        print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
         cyl = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
 
         for index, model in enumerate(SN_models):
             model.intercept_ = model.intercept_ + np.mean(pbound[index])*2 # 2 because it has to counteract the previous one
+        print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
         cyu = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
 
         for index, model in enumerate(SN_models):
             model.intercept_ = model.intercept_ - np.mean(pbound[index]) # return models back to normal
+        print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 
         for life in range(len(Life_lines_log)):
             ax.fill_between(cx, cyl[life], cyu[life], alpha = 0.2, color=colors[life+len(R_values)])
