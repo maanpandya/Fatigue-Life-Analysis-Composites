@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 
-def PINNLoss(output, target, inputs, sevencutoff=1.5,zerocutoff=1.5,indexsmax=5, a=10**4, b=10**6, c=10**-5, d=10**-4):
+def PINNLoss(output, target, inputs, sevencutoff=1.7,zerocutoff=0,indexsmax=4, a=10**4, b=10**6, c=10**-5, d=10**-4):
     # Mean squared error
     loss = torch.nn.functional.mse_loss(output, target, reduction='mean')
 
@@ -79,5 +79,5 @@ class log_adjusted_MSE(nn.modules.loss._Loss):
         super().__init__(size_average, reduce, reduction)
 
     def forward(self, input, target):
-        loss = torch.mean(torch.pow(10, torch.sqrt((input - target) ** 2)))
+        loss = torch.mean(torch.pow(10, torch.abs(input - target)))
         return loss
