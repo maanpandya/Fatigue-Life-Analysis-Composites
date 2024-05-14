@@ -34,7 +34,7 @@ savemodel = True
 n_epochs = 5000
 loss_fn = cl.PINNLoss          # fn
 test_loss_fn = cl.PINNLoss     # fn, if ==None > test loss fn == loss fn
-learning_rate = 0.001
+learning_rate = 0.0001
 optimizer = torch.optim.Adam            # fn
 start, incr, freq = 1, -0.07, 1
 noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
@@ -58,6 +58,11 @@ x_test, y_test = dp.dfxysplit(testdata, target_columns)
 N = 3
 sco = (N - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
 print(f"Ncycles scaled 10**{N} = {sco}, mean={scalers['Ncycles']['mean']}, std = {scalers['Ncycles']['std']}")
+
+N = 7
+sco = (N - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
+print(f"Ncycles scaled 10**{N} = {sco}, mean={scalers['Ncycles']['mean']}, std = {scalers['Ncycles']['std']}")
+
 # create model
 if n_hidden_layers == 0:
     n_hidden_layers = len(layer_sizes)
