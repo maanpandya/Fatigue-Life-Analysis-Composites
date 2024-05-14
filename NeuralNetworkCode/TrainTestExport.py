@@ -55,8 +55,9 @@ x_train, y_train = dp.dfxysplit(traindata, target_columns)
 x_test, y_test = dp.dfxysplit(testdata, target_columns)
 
 # seven cutoff
-sco = (3 - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
-print(f"Ncycles scaled 10**7 = {sco}, mean={scalers['Ncycles']['mean']}, std = {scalers['Ncycles']['std']}")
+N = 3
+sco = (N - scalers['Ncycles']['mean'])/scalers['Ncycles']['std']
+print(f"Ncycles scaled 10**{N} = {sco}, mean={scalers['Ncycles']['mean']}, std = {scalers['Ncycles']['std']}")
 # create model
 if n_hidden_layers == 0:
     n_hidden_layers = len(layer_sizes)
