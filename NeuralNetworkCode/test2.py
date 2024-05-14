@@ -10,19 +10,20 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/finalmodels/correctsmax3'
+path = 'NNModelArchive/finalmodels/testaltmse2'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
+data = dp.dfread('NNModelArchive/finalmodels/testaltmse2' + '/data.csv')
 f.test_model(model, scaler, x_test, y_test)
 
 exp = True
 compare = True
-plot_abs = False
+plot_abs = True
 # compare to
-path2 = 'NNModelArchive/finalmodels/pltest3'
+path2 = 'NNModelArchive/rev4/pltest5'
 name2 = path2.split('/')[-1]
 model2, scaler2 = f.import_model(path2)
 x_test2 = dp.dfread(path + '/x_test.csv')
@@ -30,8 +31,9 @@ y_test2 = dp.dfread(path + '/y_test.csv')
 data2 = dp.dfread(path + '/data.csv')
 print()
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
+Rlist = [10]
 if compare:
-    Rlist = [-2.5, -1, -0.4, 0.1, 0.5]
+    Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 10]
 while True:
     # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)

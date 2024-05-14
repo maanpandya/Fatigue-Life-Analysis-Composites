@@ -19,7 +19,7 @@ from Data_processing import separateDataFrame
 R_value_to_plot   = 0.1
 R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
-std_num           = 2 # number of standard deviations for uncertainty
+std_num           = 1 # number of standard deviations for uncertainty
 
 #################################################
 #Get the data from dataframe for R value to plot
@@ -51,19 +51,22 @@ n_cld     = surface(mean_cld ,amp_cld)
 
 #Get the lower surface 
 for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - std[index]*std_num
+    model.intercept_ = model.intercept_ - np.mean(std[index]*std_num) 
+print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 lower_surface, xl, yl, zl = makeSurface(R_values,SN_models)
 n_cld_l = lower_surface(mean_cld,amp_cld)
 
 #Get the upper surface 
 for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ + std[index]*std_num*2 # 2 because it has to counteract the previous one
+    model.intercept_ = model.intercept_ + np.mean(std[index]*std_num)*2 # 2 because it has to counteract the previous one
+print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 upper_surface, xu, yu, zu = makeSurface(R_values,SN_models)
 n_cld_u = upper_surface(mean_cld,amp_cld)
 
 #Return SN_ models back to normal
 for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - std[index]*std_num
+    model.intercept_ = model.intercept_ - np.mean(std[index])*std_num 
+print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 
 ####################################################
 #PINN prediction

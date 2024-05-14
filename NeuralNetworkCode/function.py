@@ -407,7 +407,8 @@ def reshade(color, rng=0.1):
               np.random.uniform(-rng, rng)])
     color = (color<=1) * (color>=0) * color + (color>1)
     return color
-def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800, exp=True, name='', color=None, plot_abs=True):
+def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800,
+                      exp=True, name='', color=None, plot_abs=True, axis=None, unlog_n=False, amp_s=False):
     if type(color)==type(None):
         color = randomcolor()
     expcolor = np.append(color * 0.8, 0.5)
@@ -426,7 +427,12 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
             exps = expdata['smin']
             if plot_abs:
                 exps = -exps
-        plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
+        if unlog_n:
+            expn = 10**expn
+        if axis == None:
+            plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
+        else:
+            axis.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
     datapoint['R-value1'] = R
@@ -469,15 +475,30 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     x.requires_grad = True
     npred = model(x).cpu().detach().numpy()
     npred = npred * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
-    if R <= 1:
-        stressrange = np.insert(stressrange, 0, minstress)
-        spred = stressrange
-    else:
-        stressrange = np.insert(stressrange, 0, -minstress/R)
-        spred = R * stressrange
+    if R <= 1: # smax is plotted
+        smax = np.insert(stressrange, 0, minstress)
+        if amp_s: # plot s amp
+            samp = dp.rmath({'R': R, 'smax': smax}, 'samp')
+            spred = samp
+        else: # plot smax
+            spred = smax
+    else: # smin is plotted
+        smax = np.insert(stressrange, 0, -minstress/R)
+        if amp_s:
+            samp = dp.rmath({'R': R, 'smax': smax}, 'samp')
+            spred = samp
+        else:
+            smin = dp.rmath({'R':R, 'smax':smax}, 'smin')
+            spred = smin
         if plot_abs:
-            spred = -spred
-    plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+            spred = np.abs(spred)
+    if unlog_n:
+        npred = 10**npred
+    if axis == None:
+        plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+    else:
+        axis.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
