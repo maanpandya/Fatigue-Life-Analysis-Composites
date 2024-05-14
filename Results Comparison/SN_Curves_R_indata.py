@@ -54,8 +54,7 @@ x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
 i = rd.choice(data.index)
-#i = data.index[100]
-i = 2180 #2174
+i = data.index[100]
 datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T

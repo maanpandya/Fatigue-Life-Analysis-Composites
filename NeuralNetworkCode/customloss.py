@@ -54,7 +54,7 @@ def PINNLoss2(output, target, inputs, sevencutoff=1.7,zerocutoff=0.26,indexsmax=
     else: loss4 = 0
     #print(f"loss4 = {loss4}")
 
-    return loss + loss3 + loss4 #+ loss1 + loss2
+    return loss + loss3 + loss4 + loss1 + loss2
 
 def MS(x):
     return torch.mean(x**2)
