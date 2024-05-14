@@ -10,7 +10,7 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/finalmodels/testaltmse2'
+path = 'NNModelArchive/rev4/pinnlossfinale2'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
@@ -20,7 +20,7 @@ data = dp.dfread('NNModelArchive/finalmodels/testaltmse2' + '/data.csv')
 f.test_model(model, scaler, x_test, y_test)
 
 exp = True
-compare = True
+compare = False
 plot_abs = True
 # compare to
 path2 = 'NNModelArchive/rev4/pltest5'
@@ -30,8 +30,7 @@ x_test2 = dp.dfread(path + '/x_test.csv')
 y_test2 = dp.dfread(path + '/y_test.csv')
 data2 = dp.dfread(path + '/data.csv')
 print()
-Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
-Rlist = [10]
+Rlist = [-2.5, -1, -0.4, 0.1, 0.5]
 if compare:
     Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 10]
 while True:
