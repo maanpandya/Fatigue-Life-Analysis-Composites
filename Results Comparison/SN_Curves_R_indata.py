@@ -6,7 +6,7 @@ import random as rd
 import matplotlib.pyplot as plt
 
 #Add the directory that contains the modules you want to import to sys.path
-if os.getcwd()[-10:-1] != 'Composites':
+if os.getcwd()[-10:-1] != 'Composite':
     os.chdir(os.getcwd()[0:-18])
 Curve_modeling_path = os.path.join(os.getcwd(), 'CurveModelling')
 sys.path.append(os.path.join(Curve_modeling_path))
