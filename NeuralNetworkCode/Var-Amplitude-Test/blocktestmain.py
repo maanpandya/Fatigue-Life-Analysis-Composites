@@ -53,6 +53,8 @@ for i in range(4):
     cycles1_array, cycles2_array, x, y = Calculations(Smax1test[i], Smax2test[i], code[i], surface, R[i])
     ResultsCLD.append(np.diag(cycles1_array))
     ResultsNN.append(np.diag(cycles2_array))
+    
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_wireframe(x, y, np.log(cycles1_array), rstride=5, cstride=5, linewidth=0.5, color='blue', alpha=0.8, cmap='viridis')
@@ -61,7 +63,7 @@ for i in range(4):
     ax.set_xlabel('Smax1 (MPa)')
     ax.set_ylabel('Smax2 (MPa)')
     ax.set_zlabel('Cycles')
-    plt.show()
+    plt.show()"""
 
 
 ######################################################################################################################################
@@ -71,12 +73,12 @@ y_values = x_values
 colours1 = ["forestgreen", "limegreen", "mediumturquoise", "deepskyblue"]
 colours2 = ["red", "coral", "yellow", "darkorange"]
 for i in range(4):
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsCLD[i]), label=f"CLD predictions {code[i]}",  alpha=0.8)
-    plt.scatter(np.log(Resultstest[i]), np.log(ResultsNN[i]), label=f"NN predictions {code[i]}",  alpha=0.8)
+    plt.scatter(np.log(Resultstest[i]), np.log(ResultsCLD[i]), label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
+    plt.scatter(np.log(Resultstest[i]), np.log(ResultsNN[i]), label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
 
 plt.xlabel("log(Resultstest)")
 plt.ylabel("log(Results)")
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+plt.legend()
 
 plt.xlim(0, 20)
 plt.ylim(0, 20)

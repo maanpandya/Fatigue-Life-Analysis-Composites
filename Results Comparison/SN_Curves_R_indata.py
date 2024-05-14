@@ -23,7 +23,7 @@ import DataProcessing.DPfunctions as dp
 #Settings
 #################################################
 R_value_to_plot = -0.4
-std_num         = 1 # number of standard deviations for uncertainty
+conf = 0.95 # confidence value - not implemented yet - 95% by default (fraction of data within the bounds)
 fig, ax = plt.subplots()
 #################################################
 #Regression prediction
@@ -36,9 +36,8 @@ R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.
 R_index             = np.where(R_values == R_value_to_plot)[0][0]
 Reg_model_to_plot   = SN_models[R_index]
 Data_to_plot        = parameter_dictionary["R-value1"][R_value_to_plot]
-std_to_plot         = std[R_index]*std_num
+std_to_plot         = std[R_index] # *std_num
 
-print(Data_to_plot)
 
 #Create the regression curve points
 n_list_reg         = np.linspace(0,10)
@@ -74,7 +73,7 @@ f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
 
 #Get the pinn model trained on all R values
 
-ax.fill_between(np.power(10,n_list_reg),amp_list_reg_upper, amp_list_reg_lower, alpha=0.5, label ="Confidence interval with " + str(std_num) + " STD", color = "orange")
+ax.fill_between(np.power(10,n_list_reg),amp_list_reg_upper, amp_list_reg_lower, alpha=0.5, label ="Prediction interval with " + str(conf*100) + "% confidence", color = "orange")
 ax.plot(np.power(10,n_list_reg), amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot), color = "blue")
 ax.scatter(np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"]), parameter_dictionary["R-value1"][R_value_to_plot]["amp"], label ="Optidat datapoints ", color = "gray")
 ax.set_xscale('log')
