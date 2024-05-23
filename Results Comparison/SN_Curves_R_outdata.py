@@ -2,13 +2,21 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import random as rd
 import matplotlib.pyplot as plt
 
 #Add the directory that contains the modules you want to import to sys.path
+if os.getcwd()[-10:-1] != 'Composite':
+    os.chdir(os.getcwd()[0:-18])
 Curve_modeling_path = os.path.join(os.getcwd(), 'CurveModelling')
 sys.path.append(os.path.join(Curve_modeling_path))
+nn_path = os.path.join(os.getcwd(), 'NeuralNetworkCode')
+sys.path.append(os.path.join(nn_path))
 
 #Now you can import your modules as if they were in the same folder
+import CLD_definition
+import function as f
+import DataProcessing.DPfunctions as dp
 import CLD_definition
 from CLD_surface import makeSurface, plotSurface
 from Data_processing import separateDataFrame
@@ -20,6 +28,7 @@ R_value_to_plot   = 0.1
 R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
 std_num           = 1 # number of standard deviations for uncertainty
+fig, ax = plt.subplots()
 
 #################################################
 #Get the data from dataframe for R value to plot
@@ -71,21 +80,31 @@ print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 ####################################################
 #PINN prediction
 ####################################################
-
-amp_pinn    = [0,0]
-n_pinn      = [0,1]
+#PINN prediction
+path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
+name = path.split('/')[-1]
+model, scaler = f.import_model(path)
+x_test = dp.dfread(path + '/x_test.csv')
+y_test = dp.dfread(path + '/y_test.csv')
+data = dp.dfread(path + '/data.csv')
+i = rd.choice(data.index)
+i = data.index[100]
+datapoint = data.loc[i]
+print(datapoint)
+datapoint = datapoint.to_frame().T
+f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
+                    minstress=0, maxstress=600, exp=False, name=name,
+                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None)
 
 ####################################################
 #Plotting
 ####################################################
 
 #Get the pinn model trained on all R values
-fig, ax = plt.subplots()
 ax.scatter(np.power(10,Data_Ncycles), Data_amp )
 ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
 ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds σ = " + str(std_num), c="red")
 ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
-ax.plot(np.power(10,n_pinn), amp_pinn , label ="PINN prediction R = " + str(R_value_to_plot))
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
