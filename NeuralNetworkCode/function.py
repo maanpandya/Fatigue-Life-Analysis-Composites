@@ -418,7 +418,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     noR = False
     if 'R-value1' not in data.columns:
         noR = True
-        data['R-value1'] = dp.rmath({'smean':data['smean'], 'smax':data['smax']}, 'R')
+        data['R-value1'] = np.round(dp.rmath({'smean':data['smean'], 'smax':data['smax']}, 'R'),2)
     if exp:
         expdata = data[data['R-value1']==R]
         expn = expdata['Ncycles']

@@ -12,7 +12,7 @@ tag = '14'
 save = True
 split_on_smax_sign = False
 absmax = False
-correct_smax = True
+correct_smax = False
 
 
 collums_to_include = [
