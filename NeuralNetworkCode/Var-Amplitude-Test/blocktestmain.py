@@ -99,9 +99,10 @@ df2.to_excel(excel_file2, index=False, header=False)
 df3.to_excel(excel_file3, index=False, header=False)
 
 print("Excel file created successfully.")
+ayuda = ["red", "blue", "green", "yellow"]
 for i in range(4):
-    plt.scatter(Resultstest[i], ResultsCLD[i], label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o")
-    plt.scatter(Resultstest[i], ResultsNN[i], label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D")
+    plt.scatter(Resultstest[i], ResultsCLD[i], label=f"CLD predictions {code[i]}",  alpha=0.8, marker ="o", color = ayuda[i])
+    plt.scatter(Resultstest[i], ResultsNN[i], label=f"NN predictions {code[i]}",  alpha=0.8, marker ="D", color = ayuda[i])
 
 plt.xlabel("log(Resultstest)")
 plt.ylabel("log(Results)")
