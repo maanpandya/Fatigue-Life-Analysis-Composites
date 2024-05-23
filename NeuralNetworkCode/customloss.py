@@ -66,12 +66,12 @@ def MS(x):
 
 
 def Mexp(x, base=10):
-    return torch.mean(base ** x)
+    return torch.mean(base ** x)-1
 
 
-def PINNLoss(output, target, inputs, sevencutoff=1.9, zerocutoff=0.3, indexsmax=4,
-             f0=0 * 10 ** 0, f1=4 * 10 ** 1, f2=1 * 10 ** 5, f3=1 * 10 ** 3, f4=1 * 10 ** 2):
-    error = torch.abs(target - output)
+def PINNLoss(output, target, inputs, sevencutoff=1.7, zerocutoff=0.3, indexsmax=4,
+             f0=0 * 10 ** 3, f1=4 * 10 ** 5, f2=4 * 10 ** 6, f3=0 * 10 ** 3, f4=0 * 10 ** 2):
+    error = torch.abs(target - output).view(-1)
 
     # Compute 1st and 2nd gradients
     gradient1 = torch.autograd.grad(torch.mean(output), inputs, create_graph=True)[0][:, indexsmax]
@@ -89,12 +89,13 @@ def PINNLoss(output, target, inputs, sevencutoff=1.9, zerocutoff=0.3, indexsmax=
 
     # Constraint 3: The S-N curve's slope must be 0 at 0 and10^7 cycles. i.e. The output of the neural network (ncycles) must have a gradient of infinity with respect to the smax input at 10^7 cycles.
     # Penalize non-infinite gradients at high cycles
-    loss3 = f3 * (target > sevencutoff) / torch.abs(gradient1)
+    loss3 = f3 * (target.view(-1) > sevencutoff) * torch.abs(1/gradient1)
     # penalize non-infinite gradients at low cycles
-    loss4 = f4 * (target < zerocutoff) / torch.abs(gradient1)
+    loss4 = f4 * (target.view(-1) < zerocutoff) * torch.abs(1/gradient1)
 
     loss = error + loss0 + loss1 + loss2 + loss3 + loss4
-    return Mexp(loss) # for some reason this works well instead of mean square
+    out = Mexp(loss)
+    return torch.mean(loss)
 
 
 class notMSELoss(nn.modules.loss._Loss):
