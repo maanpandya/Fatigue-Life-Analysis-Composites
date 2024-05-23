@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import cm
 
 #Create a dataframe out of the csv file
-dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
+dataframe = pd.read_csv("CurveModelling/Data/data14alt.csv")
 #Add amplitude column to the dataframe
 CLD_definition.add_amplitudecol(dataframe)
 #Define the CLD
