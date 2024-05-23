@@ -31,7 +31,7 @@ dropout_prob = 0.0
 
 # training parameters
 savemodel = True
-n_epochs = 30000
+n_epochs = 10000
 loss_fn = cl.log_adjusted_MSE()          # fn PINNloss is different change names in customloss to change back
 test_loss_fn = cl.log_adjusted_MSE()    # fn, if ==None > test loss fn == loss fn
 learning_rate = 0.0001
