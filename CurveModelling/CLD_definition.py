@@ -48,8 +48,8 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
             y = np.linspace(0,Y_limit,5)
             x = np.zeros(5)
 
-        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)))
-        plt.plot(x, y)
+        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)),ha='center', va='center')
+        plt.plot(x, y,color = 'black', linestyle = '--')
 
         i += 1
     
@@ -198,7 +198,7 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
     cx = np.linspace(UCS,UTS, 200)
     cy = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
     for life in range(len(Life_lines_log)):
-        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life+len(R_values)])
+        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life])
     ax.legend()
 
     if with_bounds:
