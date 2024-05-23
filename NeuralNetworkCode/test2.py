@@ -24,18 +24,18 @@ compare = True
 plot_abs = True
 show_grad = False
 # compare to
-path2 = 'NNModelArchive/finalmodels/newpinn12grads'
+path2 = 'NNModelArchive/rev4/noSgoe2'
 name2 = path2.split('/')[-1]
 model2, scaler2 = f.import_model(path2)
-x_test2 = dp.dfread(path + '/x_test.csv')
-y_test2 = dp.dfread(path + '/y_test.csv')
-data2 = dp.dfread(path + '/data.csv')
+x_test2 = dp.dfread(path2 + '/x_test.csv')
+y_test2 = dp.dfread(path2 + '/y_test.csv')
+data2 = dp.dfread(path2 + '/data.csv')
 print()
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
 if show_grad:
     Rlist = [0.5]
 if compare:
-    Rlist = [ 0.5]
+    Rlist = [-1, 0.1]
 while True:
     # generate sn curves for random geometry from dataset
     i = rd.choice(data.index)
