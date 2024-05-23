@@ -10,7 +10,7 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/rev4/newpinn12grads'
+path = 'NNModelArchive/rev4/0gradtest'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
@@ -22,6 +22,7 @@ f.test_model(model, scaler, x_test, y_test)
 exp = True
 compare = False
 plot_abs = True
+show_grad = False
 # compare to
 path2 = 'NNModelArchive/rev4/pltest5'
 name2 = path2.split('/')[-1]
@@ -31,6 +32,8 @@ y_test2 = dp.dfread(path + '/y_test.csv')
 data2 = dp.dfread(path + '/data.csv')
 print()
 Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 2, 10]
+if show_grad:
+    Rlist = [0.5]
 if compare:
     Rlist = [-2.5, -1, -0.4, 0.1, 0.5, 10]
 while True:
@@ -49,11 +52,11 @@ while True:
             datapoint2 = datapoint2.to_frame().T
     for i in Rlist:
         color = f.randomcolor()
-        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs)
+        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs, show_grad=show_grad)
         if compare:
             f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=color*0.6, plot_abs=plot_abs)
     plt.legend()
-    plt.xlim(0,7)
+    plt.xlim(-3,10)
     plt.show()
 
 

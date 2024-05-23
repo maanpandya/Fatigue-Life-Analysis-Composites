@@ -3,13 +3,14 @@ import numpy as np
 import DPfunctions as dp
 
 
-cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 'area']
+cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 'area', 'R-value1']
 #laminates = ['UD1', 'UD2', 'UD3', 'UD4', 'UD5']
 laminates = ['MD2']
+geometries = ['R0400']
 tests = ['CA', 'STT', 'STC']
-tag = '13'
+tag = '14'
 save = True
-split_on_smax_sign = True
+split_on_smax_sign = False
 absmax = False
 correct_smax = True
 
@@ -18,7 +19,7 @@ collums_to_include = [
     'Lnominal', 'taverage', 'waverage', 'area',
     'Test type', 'Laminate', 'Cut angle ',
     'R-value1', 'Ncycles', 'smax', 'Fmax'
-    ,'runout'
+    ,'runout', 'Geometry'
 ]
 
 dfbase = pd.read_csv('Data/optimatforpy.csv')
@@ -30,6 +31,11 @@ dp.dfinfo(dfnew, 'col selection')
 
 dfnew = dp.row_filter(dfnew, 'Laminate', laminates, 'include')
 dp.dfinfo(dfnew, 'filter on laminate')
+if len(geometries) > 0:
+    dfnew = dp.row_filter_remove(dfnew, 'Geometry', geometries, 'include')
+    dp.dfinfo(dfnew, 'filter on geometry')
+else:
+    dfnew = dp.col_filter(dfnew, ['Geometry'], 'exclude')
 
 dfnew = dp.row_filter_remove(dfnew, 'Test type', tests, 'include')
 

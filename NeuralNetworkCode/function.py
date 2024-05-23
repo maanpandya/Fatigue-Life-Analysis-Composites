@@ -408,7 +408,8 @@ def reshade(color, rng=0.1):
     color = (color<=1) * (color>=0) * color + (color>1)
     return color
 def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800,
-                      exp=True, name='', color=None, plot_abs=True, axis=None, unlog_n=False, amp_s=False):
+                      exp=True, name='', color=None, plot_abs=True, axis=None,
+                      unlog_n=False, amp_s=False, show_grad=False):
     if type(color)==type(None):
         color = randomcolor()
     expcolor = np.append(color * 0.8, 0.5)
@@ -473,7 +474,8 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         raise Exception(x.dtypes)
     x = x.cuda()
     x.requires_grad = True
-    npred = model(x).cpu().detach().numpy()
+    y = model(x)
+    npred = y.cpu().detach().numpy()
     npred = npred * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
     if R <= 1: # smax is plotted
         smax = np.insert(stressrange, 0, minstress)
@@ -496,8 +498,18 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         npred = 10**npred
     if axis == None:
         plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+        if show_grad:
+            gradient1 = torch.autograd.grad(torch.sum(y), x, create_graph=True)[0][:, 4].cpu().detach().numpy()
+            S = spred
+            center = 0
+            offset = 0
+            amp = 10
+            gradient1 = (gradient1 + offset) * amp + center
+            plt.plot(gradient1, S, label='1st gradient')
+            plt.plot(center * S / S, S, linestyle='--', color='grey', label='zero gradient')
     else:
         axis.plot(npred, spred, label=f'Prediction by PINN, R = {R}', color=predcolor)
+
 
 
 
