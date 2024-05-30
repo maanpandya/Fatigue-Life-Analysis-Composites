@@ -71,11 +71,14 @@ f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
 ####################################################
 
 
+datapoints_n = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
+datapoints_amp = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
+
 #Get the pinn model trained on all R values
 
 ax.fill_between(np.power(10,n_list_reg),amp_list_reg_upper, amp_list_reg_lower, alpha=0.5, label ="Prediction interval with " + str(conf*100) + "% confidence", color = "orange")
 ax.plot(np.power(10,n_list_reg), amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot), color = "blue")
-ax.scatter(np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"]), parameter_dictionary["R-value1"][R_value_to_plot]["amp"], label ="Optidat datapoints ", color = "gray")
+ax.scatter(datapoints_n, datapoints_amp, label ="Optidat datapoints ", color = "gray")
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
