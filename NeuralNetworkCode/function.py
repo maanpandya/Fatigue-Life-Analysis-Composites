@@ -157,7 +157,7 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     return model
 
 
-def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
+def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True, mute=False):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
@@ -188,14 +188,15 @@ def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
         'lMAE': np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log'])),
         'MRE': np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))
     }
-    print('Measures of error:')
-    print(error_dict)
     # outlier detection
     lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
     lAE = lAE.sort_values(ascending=False)
     lE = pred_eval['pred_log'] - pred_eval['real_log']
-    print('top 5 lAE:')
-    print(lE.loc[lAE.index[0:5:]])
+    if not mute:
+        print('Measures of error:')
+        print(error_dict)
+        print('bottom 5 lAE:')
+        print(lE.loc[lAE.index[-5::]])
 
     # plot errors
     if plot:
@@ -409,7 +410,8 @@ def reshade(color, rng=0.1):
     return color
 def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=800,
                       exp=True, name='', color=None, plot_abs=True, axis=None,
-                      unlog_n=False, amp_s=False, show_grad=False):
+                      unlog_n=False, amp_s=False, show_grad=False, export_data=False):
+    out = {}
     if type(color)==type(None):
         color = randomcolor()
     expcolor = np.append(color * 0.8, 0.5)
@@ -430,10 +432,13 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
                 exps = -exps
         if unlog_n:
             expn = 10**expn
-        if axis == None:
+        if axis == None and not export_data:
             plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
-        else:
+        elif not export_data:
             axis.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
+        else:
+            out['expn'] = expn
+            out['exps'] = exps
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
     datapoint['R-value1'] = R
@@ -496,7 +501,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
             spred = np.abs(spred)
     if unlog_n:
         npred = 10**npred
-    if axis == None:
+    if axis == None and not export_data:
         plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
         if show_grad:
             gradient1 = torch.autograd.grad(torch.sum(y), x, create_graph=True)[0][:, 4].cpu().detach().numpy()
@@ -507,8 +512,13 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
             gradient1 = (gradient1 + offset) * amp + center
             plt.plot(gradient1, S, label='1st gradient')
             plt.plot(center * S / S, S, linestyle='--', color='grey', label='zero gradient')
-    else:
+    elif not export_data:
         axis.plot(npred, spred, label=f'Prediction by PINN, R = {R}', color=predcolor)
+    else:
+        out['predn'] = npred
+        out['preds'] = spred
+    if export_data:
+        return out
 
 
 

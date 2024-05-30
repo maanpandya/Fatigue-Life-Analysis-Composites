@@ -65,9 +65,10 @@ i = data.index[100]
 datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T
-f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
-                    minstress=0, maxstress=600, exp=False, name=name,
-                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None)
+pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
+                    minstress=0, maxstress=600, exp=True, name=name,
+                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
+
 
 ####################################################
 
@@ -76,7 +77,7 @@ f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
 ####################################################
 #Get the NRMSE of the regression prediction
 
-# np.power(2,amp_list_reg - datapoints_amp)/np.sum(datapoints_amp)
+np.power(2,amp_list_reg - datapoints_amp)/np.sum(datapoints_amp)
 
 
 ####################################################
@@ -93,8 +94,7 @@ ax.plot(n_list_reg, amp_list_reg, label ="Basquin Regression R = " + str(R_value
 
 #Scatter the datapoints
 ax.scatter(datapoints_n, datapoints_amp, label ="Optidat datapoints ", color = "gray")
-
-#Adjust plot settings
+ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
