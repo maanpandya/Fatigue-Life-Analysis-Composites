@@ -38,9 +38,13 @@ Reg_model_to_plot   = SN_models[R_index]
 Data_to_plot        = parameter_dictionary["R-value1"][R_value_to_plot]
 std_to_plot         = std[R_index] # *std_num
 
+
 #Get the datapoints from the optidat
-datapoints_n_log = parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"]
+datapoints_n_log = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
 datapoints_amp = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
+
+
+
 
 #Create the regression curve points
 n_list_reg_log        = datapoints_n_log
@@ -77,8 +81,11 @@ pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scale
 ####################################################
 #Get the NRMSE of the regression prediction
 
-np.power(2,amp_list_reg - datapoints_amp)/np.sum(datapoints_amp)
+RMSE_reg = np.power(0.5,
+                    (np.power(2,amp_list_reg - datapoints_amp)/len(datapoints_amp))
+                    )
 
+print("RMSE of the regression prediction: ", RMSE_reg)
 
 ####################################################
 #Plotting

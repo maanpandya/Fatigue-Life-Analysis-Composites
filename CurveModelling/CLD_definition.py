@@ -88,7 +88,7 @@ def CLD_definition(dataframe):
         # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
         # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
-        pbound.append(predband(np.array(df["Ncycles"]), np.array(df["amp"]), SN_models[i]))
+        pbound.append(predband(np.array(df["Ncycles"]), np.array(df["amp"]), SN_models[i], x = np.array(df["Ncycles"])))
         i += 1
  
     print("Number of regression models available: ", len(SN_models))
