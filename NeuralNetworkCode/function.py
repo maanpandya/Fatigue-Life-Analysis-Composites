@@ -216,7 +216,7 @@ def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True, mute=Fal
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         plt.show()
-    return error_dict
+    return error_dict, pred_eval
 
 def sncurvetest(model, maxstress, datapoint, scalers, exportdata=False):
     data = datapoint
@@ -439,6 +439,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         else:
             out['expn'] = expn
             out['exps'] = exps
+            out['expdata'] = expdata
     if 'Ncycles' in datapoint.columns:
         datapoint = datapoint.drop(columns=['Ncycles'])
     datapoint['R-value1'] = R

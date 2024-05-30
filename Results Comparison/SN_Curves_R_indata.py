@@ -61,8 +61,12 @@ datapoint = datapoint.to_frame().T
 pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
                     minstress=0, maxstress=600, exp=True, name=name,
                     plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
-
-
+y_test = dp.col_filter(pinn_output['expdata'], ['Ncycles'], 'include')
+x_test = pinn_output['expdata'].drop(columns=['Ncycles', 'R-value1'])
+model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=False, mute=True)
+# pinn_output is dictionary with keys: 'preds', 'predn', 'exps', 'expn', 'expdata'
+# pinn_preds is dataframe with columns pred_scaled, pred_log, pred and real_scaled, real_log, real
+# model_error_dict is a dictionary with keys: 'lMSE', 'lRMSE' (root mean square error), 'lMAE', 'MRE'.
 ####################################################
 
 
