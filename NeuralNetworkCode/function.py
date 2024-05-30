@@ -157,7 +157,7 @@ def train_model(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
     return model
 
 
-def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
+def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True, mute=False):
     model.eval()
     X_test = torch.tensor(x_test.iloc[:, :len(x_test.columns)].values)
     X_test = X_test.cuda()
@@ -188,14 +188,15 @@ def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True):
         'lMAE': np.mean(np.abs(pred_eval['pred_log'] - pred_eval['real_log'])),
         'MRE': np.mean(np.abs((pred_eval['pred'] - pred_eval['real']) / (pred_eval['real'])))
     }
-    print('Measures of error:')
-    print(error_dict)
     # outlier detection
     lAE = np.abs(pred_eval['pred_log'] - pred_eval['real_log'])
     lAE = lAE.sort_values(ascending=False)
     lE = pred_eval['pred_log'] - pred_eval['real_log']
-    print('top 5 lAE:')
-    print(lE.loc[lAE.index[0:5:]])
+    if not mute:
+        print('Measures of error:')
+        print(error_dict)
+        print('bottom 5 lAE:')
+        print(lE.loc[lAE.index[-5::]])
 
     # plot errors
     if plot:

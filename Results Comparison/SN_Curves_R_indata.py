@@ -59,8 +59,9 @@ datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T
 pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
-                    minstress=0, maxstress=600, exp=False, name=name,
+                    minstress=0, maxstress=600, exp=True, name=name,
                     plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
+
 
 ####################################################
 
