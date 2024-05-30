@@ -38,15 +38,22 @@ Reg_model_to_plot   = SN_models[R_index]
 Data_to_plot        = parameter_dictionary["R-value1"][R_value_to_plot]
 std_to_plot         = std[R_index] # *std_num
 
+#Get the datapoints from the optidat
+datapoints_n_log = parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"]
+datapoints_amp = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
 
 #Create the regression curve points
-n_list_reg         = np.linspace(0,10)
-amp_list_reg       = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)))
-amp_list_reg_upper = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)) + std_to_plot)
-amp_list_reg_lower = np.power(10,Reg_model_to_plot.predict(n_list_reg.reshape(-1,1)) - std_to_plot)
+n_list_reg_log        = datapoints_n_log
+amp_list_reg          = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1)))
+amp_list_reg_upper    = np.power(10,amp_list_reg  + std_to_plot)
+amp_list_reg_lower    = np.power(10,amp_list_reg  - std_to_plot)
+n_list_reg            = np.power(10,n_list_reg_log)
+
 
 ####################################################
 #PINN prediction
+
+#Get the pinn model trained on all R values
 path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
@@ -69,6 +76,12 @@ model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=
 # model_error_dict is a dictionary with keys: 'lMSE', 'lRMSE' (root mean square error), 'lMAE', 'MRE'.
 ####################################################
 
+####################################################
+#NRMSE calculation
+####################################################
+#Get the NRMSE of the regression prediction
+
+np.power(2,amp_list_reg - datapoints_amp)/np.sum(datapoints_amp)
 
 
 ####################################################
@@ -76,13 +89,14 @@ model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=
 ####################################################
 
 
-datapoints_n = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
-datapoints_amp = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
 
-#Get the pinn model trained on all R values
+#Plot the regression curve
+ax.fill_between(n_list_reg, amp_list_reg_upper, amp_list_reg_lower, alpha=0.5, label ="Prediction interval with " + str(conf*100) + "% confidence", color = "orange")
+ax.plot(n_list_reg, amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot), color = "blue")
 
-ax.fill_between(np.power(10,n_list_reg),amp_list_reg_upper, amp_list_reg_lower, alpha=0.5, label ="Prediction interval with " + str(conf*100) + "% confidence", color = "orange")
-ax.plot(np.power(10,n_list_reg), amp_list_reg, label ="Basquin Regression R = " + str(R_value_to_plot), color = "blue")
+#Plot the PINN prediction
+
+#Scatter the datapoints
 ax.scatter(datapoints_n, datapoints_amp, label ="Optidat datapoints ", color = "gray")
 ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
 ax.set_xscale('log')
@@ -90,5 +104,10 @@ ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
 ax.set_xlim(1, 10**7)
 ax.legend()
+
+
+
+
+
 
 plt.show()
