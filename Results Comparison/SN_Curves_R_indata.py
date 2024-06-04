@@ -75,6 +75,7 @@ pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scale
 y_test = dp.scale(dp.col_filter(pinn_output['expdata'], ['Ncycles'], 'include'), scaler)
 x_test = dp.scale(pinn_output['expdata'].drop(columns=['Ncycles', 'R-value1']), scaler)
 model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=False, mute=True)
+big_pinn_df = pinn_output['expdata'].join(pinn_preds) # dataframe with all the data for each point in the dataset with R=rvaluetopplot, including pinn inputs(stress and geometry) and pinn predictions
 # pinn_output is dictionary with keys: 'preds', 'predn', 'exps', 'expn', 'expdata'
 # pinn_preds is dataframe with columns pred_scaled, pred_log, pred and real_scaled, real_log, real
 # model_error_dict is a dictionary with keys: 'lMSE', 'lRMSE' (root mean square error), 'lMAE', 'MRE'.
