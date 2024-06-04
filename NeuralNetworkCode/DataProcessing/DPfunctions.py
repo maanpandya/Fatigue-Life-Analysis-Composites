@@ -135,6 +135,18 @@ def datasplitscale(dataframe, test_size=0 , exclude_columns=[]):
         scalers[i] = {'mean': mean, 'std': std}
     return dftrain, dftest, scalers
 
+def scale(dftrain, scalers , exclude_columns=[]):
+    for i in dftrain.columns:
+        if i not in exclude_columns:
+            mean = scalers[i]['mean']
+            std = scalers[i]['std']
+            if std == 0.0 or std == 0:
+                std = 1
+                print('std of col', i, 'is 0, with mean', mean, 'whole column will be zero')
+            dftrain[i] = (dftrain[i] - mean) / std
+    return dftrain
+
+
 def dfread(file):
     base = pd.read_csv(file)
     base = base.set_index(base.columns[0])

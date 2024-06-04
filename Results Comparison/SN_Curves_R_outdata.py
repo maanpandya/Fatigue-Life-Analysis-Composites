@@ -92,9 +92,9 @@ i = data.index[100]
 datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T
-f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
+pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
                     minstress=0, maxstress=600, exp=False, name=name,
-                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None)
+                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
 
 ####################################################
 #Plotting
@@ -104,6 +104,7 @@ f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
 ax.scatter(np.power(10,Data_Ncycles), Data_amp )
 ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
 ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds σ = " + str(std_num), c="red")
+ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
 ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')

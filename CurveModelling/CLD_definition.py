@@ -6,8 +6,8 @@ from Data_processing import separateDataFrame
 from SNCurve import regression
 import random as rd
 
-# pd.options.mode.chained_assignment = None
-# np.set_printoptions(precision=4)
+pd.options.mode.chained_assignment = None
+np.set_printoptions(precision=4)
 
 def convert_to_mean_stress(amp,R):
     S_max = amp*2/(1-R)
@@ -48,8 +48,8 @@ def R_line_visualizer(R_slopes_coeff,R_values,ax):
             y = np.linspace(0,Y_limit,5)
             x = np.zeros(5)
 
-        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)))
-        plt.plot(x, y)
+        ax.text(x[3], y[3], f"R = {R_values[i]}", dict(size=10),bbox=dict(boxstyle="round",ec=(0, 0, 0),fc=(1, 1, 1)),ha='center', va='center')
+        plt.plot(x, y,color = 'black', linestyle = '--')
 
         i += 1
     
@@ -88,7 +88,7 @@ def CLD_definition(dataframe):
         # df = pd.merge(df, parameter_dictionary["Temp."][40]) # merge/take overlap of each dataframe with the desired temperature 
         # df = pd.merge(df, parameter_dictionary["Cut angle "][0.0]) # merge/take overlap of each dataframe with the desired cut angle 
         SN_models.append(regression(np.array(df["Ncycles"]), np.array(df["amp"])))
-        pbound.append(predband(np.array(df["Ncycles"]), np.array(df["amp"]), SN_models[i]))
+        pbound.append(predband(np.array(df["Ncycles"]), np.array(df["amp"]), SN_models[i], x = np.array(df["Ncycles"])))
         i += 1
  
     print("Number of regression models available: ", len(SN_models))
@@ -198,7 +198,7 @@ def plot_CLD(R_values, R_slopes_coeff, SN_models, Life_lines_log = [3,4,5,6,7], 
     cx = np.linspace(UCS,UTS, 200)
     cy = make_life_lines(fig, ax, R_values, R_slopes_coeff, SN_models, Life_lines_log, UTS, UCS, cx)
     for life in range(len(Life_lines_log)):
-        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life+len(R_values)])
+        ax.plot(cx, cy[life], label=f"N = 10^{Life_lines_log[life]}", color=colors[life])
     ax.legend()
 
     if with_bounds:
