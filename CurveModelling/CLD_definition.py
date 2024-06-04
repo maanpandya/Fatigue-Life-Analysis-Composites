@@ -6,8 +6,8 @@ from Data_processing import separateDataFrame
 from SNCurve import regression
 import random as rd
 
-# pd.options.mode.chained_assignment = None
-# np.set_printoptions(precision=4)
+pd.options.mode.chained_assignment = None
+np.set_printoptions(precision=4)
 
 def convert_to_mean_stress(amp,R):
     S_max = amp*2/(1-R)

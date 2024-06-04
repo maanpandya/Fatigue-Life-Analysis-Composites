@@ -44,6 +44,7 @@ std_to_plot         = std[R_index] # *std_num
 datapoints_n_log = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
 datapoints_amp = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
 
+print("There are: ", len(datapoints_n_log), "datapoints for R = ", R_value_to_plot, "in the dataframe selected \n")
 
 #Create the regression curve points
 n_list_reg_log        = datapoints_n_log
@@ -53,6 +54,7 @@ amp_list_reg_lower    = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .re
 n_list_reg            = np.power(10,n_list_reg_log)
 
 ####################################################
+print("PINN predictions are being calculated \n")
 #PINN prediction
 
 #Get the pinn model trained on all R values
@@ -81,9 +83,8 @@ model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=
 ####################################################
 #NRMSE calculation
 ####################################################
+print("-----------------------------")
 #Get the NRMSE of the regression prediction
-
-
 avg_amp = np.mean(datapoints_amp)
 diff_list_reg = amp_list_reg - datapoints_amp
 RMSE_reg = ((np.sum(np.square(diff_list_reg)))/len(datapoints_amp))**0.5
@@ -91,6 +92,16 @@ NRMSE_reg = RMSE_reg/avg_amp
 
 print("RMSE of the regression prediction: ", RMSE_reg)
 print("NRMSE of the regression prediction: ", NRMSE_reg)
+
+#Get the NRMSE of the PINN prediction
+print(pinn_preds)
+
+diff_list_PINN = np.array(pinn_preds) - datapoints_amp
+RMSE_PINN = ((np.sum(np.square(diff_list_PINN)))/len(datapoints_amp))**0.5
+NRMSE_PINN = RMSE_PINN/avg_amp
+
+print("RMSE of the PINN prediction: ", RMSE_PINN)
+print("NRMSE of the PINN prediction: ", NRMSE_PINN)
 
 ####################################################
 #Plotting
