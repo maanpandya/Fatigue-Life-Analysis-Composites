@@ -1,4 +1,7 @@
 import pandas as pd
+pd.set_option('display.max_rows', 10)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
