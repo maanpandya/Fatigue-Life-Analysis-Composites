@@ -39,20 +39,18 @@ Data_to_plot        = parameter_dictionary["R-value1"][R_value_to_plot]
 std_to_plot         = std[R_index] # *std_num
 
 
+
 #Get the datapoints from the optidat
 datapoints_n_log = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
-datapoints_amp = np.power(10,parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
-
-
+datapoints_amp = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["amp"])
 
 
 #Create the regression curve points
 n_list_reg_log        = datapoints_n_log
 amp_list_reg          = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1)))
-amp_list_reg_upper    = np.power(10,amp_list_reg  + std_to_plot)
-amp_list_reg_lower    = np.power(10,amp_list_reg  - std_to_plot)
+amp_list_reg_upper    = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1))  + std_to_plot)
+amp_list_reg_lower    = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1))  - std_to_plot)
 n_list_reg            = np.power(10,n_list_reg_log)
-
 
 ####################################################
 #PINN prediction
@@ -85,16 +83,18 @@ model_error_dict, pinn_preds = f.test_model(model, scaler, x_test, y_test, plot=
 ####################################################
 #Get the NRMSE of the regression prediction
 
-RMSE_reg = np.power(0.5,
-                    (np.power(2,amp_list_reg - datapoints_amp)/len(datapoints_amp))
-                    )
+
+avg_amp = np.mean(datapoints_amp)
+diff_list_reg = amp_list_reg - datapoints_amp
+RMSE_reg = ((np.sum(np.square(diff_list_reg)))/len(datapoints_amp))**0.5
+NRMSE_reg = RMSE_reg/avg_amp
 
 print("RMSE of the regression prediction: ", RMSE_reg)
+print("NRMSE of the regression prediction: ", NRMSE_reg)
 
 ####################################################
 #Plotting
 ####################################################
-
 
 
 #Plot the regression curve
