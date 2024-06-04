@@ -12,7 +12,7 @@ from DPfunctions import rmath
 def NNfuntion(normalized_array, wawas):
 
 
-    path = 'NeuralNetworkCode/NNModelArchive/rev/newpinnall'
+    path = 'NeuralNetworkCode/NNModelArchive/rev4/noSgoe2'
     model, scaler = f.import_model(path)
     stresses = []
     cycles = []
