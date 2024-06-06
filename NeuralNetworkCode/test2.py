@@ -10,13 +10,13 @@ import random as rd
 
 
 # main
-path = 'NNModelArchive/bayesoptmodels/newpinnfinal'
+path = 'NNModelArchive/finalmodels/newpinnfinal'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
-#data = dp.dfread('NNModelArchive/finalmodels/testaltmse2' + '/data.csv')
+data = dp.dfread('DataProcessing/processed/data15.csv')
 f.test_model(model, scaler, x_test, y_test)
 
 exp = True
@@ -55,8 +55,8 @@ while True:
         f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs, show_grad=show_grad)
         if compare:
             f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=color*0.6, plot_abs=plot_abs)
-    #plt.legend()
-    plt.xlim(-3,10)
+    plt.legend()
+    plt.xlim(0,7)
     plt.show()
     input("Press Enter to continue...")
 

@@ -211,8 +211,9 @@ def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True, mute=Fal
         plt.plot([-100, 100], [-100-bound2, 100-bound2], color='black', linestyle='--')
         plt.plot([-100, 100], [-100+bound2, 100+bound2], color='black', linestyle='--')
         plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-        plt.xlabel('y_test')
-        plt.ylabel('predicted')
+        plt.xlabel('Eperimental log of number of cycles', fontsize=12)
+        plt.ylabel('Predicted log of number of cycles', fontsize=12)
+        plt.title('Test set fit')
         plt.legend()
         plt.xlim(0, 10)
         plt.ylim(0, 10)
@@ -436,7 +437,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         if unlog_n:
             expn = 10**expn
         if axis == None and not export_data:
-            plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
+            plt.scatter(expn, exps, color=expcolor)
         elif not export_data:
             axis.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
         else:
@@ -506,7 +507,10 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     if unlog_n:
         npred = 10**npred
     if axis == None and not export_data:
-        plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+        plt.plot(npred, spred, label=f'R = {R}', color=predcolor)
+        plt.xlabel('Log of number of cycles', fontsize=12)
+        plt.ylabel('Maximum absolute stress [MPa]', fontsize=12)
+        plt.title('SN curves for various R values')
         if show_grad:
             gradient1 = torch.autograd.grad(torch.sum(y), x, create_graph=True)[0][:, 4].cpu().detach().numpy()
             S = spred
