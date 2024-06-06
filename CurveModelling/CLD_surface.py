@@ -15,7 +15,7 @@ y-axis - log number of cycles
 z-axis - stress amplitude
 """
 
-def makeSurface(R_values,SN_models):
+def makeSurface(R_values,SN_models, lifelist = [x/10. for x in range(1,80)], dy = [] ):
     """Create Radial Basis Function interpolated surface from the data in the dataframe\n
     INPUT \n
     R-values \n
@@ -28,7 +28,9 @@ def makeSurface(R_values,SN_models):
     print("Creating CLD surface...")
     print("\n")
 
-    lives = [x/10. for x in range(1,80)]
+    lives = lifelist
+    if len(predband) < 1:
+        predband = [0]*len(lifelist)
 
     x = []
     y = []
@@ -36,7 +38,7 @@ def makeSurface(R_values,SN_models):
 
     for life in lives:
         for i in range(len(SN_models)):
-            amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))))
+            amp = 10**(float(SN_models[i].predict(np.array(life).reshape(-1, 1))) + dy)
             mean = CLD_definition.convert_to_mean_stress(amp,R_values[i])
 
             x.append(mean)

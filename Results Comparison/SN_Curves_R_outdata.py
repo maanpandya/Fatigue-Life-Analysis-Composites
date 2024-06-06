@@ -18,6 +18,7 @@ import CLD_definition
 import function as f
 import DataProcessing.DPfunctions as dp
 import CLD_definition
+import SNCurve
 from CLD_surface import makeSurface, plotSurface
 from Data_processing import separateDataFrame
 
@@ -27,7 +28,7 @@ from Data_processing import separateDataFrame
 R_value_to_plot   = 0.1
 R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
-std_num           = 1 # number of standard deviations for uncertainty
+conf              = 0.95 # confidence level for uncertainty
 fig, ax = plt.subplots()
 
 #################################################
@@ -50,19 +51,20 @@ Data_amp     = Data_to_plot["amp"]
 #Remove the R value that wants to be neglected
 dataframe = dataframe[dataframe["R-value1"] != R_to_remove]
 #Create CLD surface
-R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.CLD_definition(dataframe)
+R_values, R_slopes_coeff, SN_models, parameter_dictionary = CLD_definition.CLD_definition(dataframe)
 surface,x,y,z       = makeSurface(R_values,SN_models)
 
 #Create CLD points curve points
 amp_cld   = np.linspace(0,max_amp_to_plot,200)
 mean_cld  = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
 n_cld     = surface(mean_cld ,amp_cld)
+predband = SNCurve.predband(dataframe["R-value1"], datapoints_amp,Reg_model_to_plot, conf, n_list_reg_log)
 
 #Get the lower surface 
 for index, model in enumerate(SN_models):
     model.intercept_ = model.intercept_ - np.mean(std[index]*std_num) 
 print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
-lower_surface, xl, yl, zl = makeSurface(R_values,SN_models)
+lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = predband)
 n_cld_l = lower_surface(mean_cld,amp_cld)
 
 #Get the upper surface 
