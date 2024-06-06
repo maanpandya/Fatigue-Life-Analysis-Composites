@@ -58,7 +58,7 @@ print("PINN predictions are being calculated \n")
 #PINN prediction
 
 #Get the pinn model trained on all R values
-path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
+path = 'NeuralNetworkCode/NNModelArchive/finalmodels/newpinnfinal'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')

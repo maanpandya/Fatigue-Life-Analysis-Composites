@@ -270,7 +270,9 @@ def rmath(inputs: dict, output: str):
             symlist.append(symdict[i])
             unknown.append(i)
     sols = sp.nonlinsolve([eq1, eq2, eq3], symlist)
+    print(output)
     sols = list(sols)[0]
+    print(sols[0])
     f = sp.utilities.lambdify([symdict[known[0]], symdict[known[1]]], sols[0])
     try:
         out = f(inputs[known[0]], inputs[known[1]])

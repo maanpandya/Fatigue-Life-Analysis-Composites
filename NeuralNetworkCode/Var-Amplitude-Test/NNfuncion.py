@@ -12,7 +12,7 @@ from DPfunctions import rmath
 def NNfuntion(normalized_array, wawas):
 
 
-    path = 'NeuralNetworkCode/NNModelArchive/rev4/noSgoe2'
+    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/newpinnfinal'
     model, scaler = f.import_model(path)
     stresses = []
     cycles = []
@@ -20,9 +20,9 @@ def NNfuntion(normalized_array, wawas):
     x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
     #x['Fibre Volume Fraction'] =50.92 #Fibre Volume Fraction
     #x['Cut angle '] = 0 #Cut angle
-    x['taverage'] = 6.45 #Average thickness
+    x['taverage'] = 6.8 #Average thickness
     x['waverage'] = 25#Average width
-    x['area'] = 160.00 #Area
+    x['area'] = x['taverage'] * x['waverage'] #Area
     x['Lnominal'] = 150 #Nominal length of sample
     #x['R-value1'] = -1 #R-value
     #x['Fmax'] = 36.08 #Fatigue force
