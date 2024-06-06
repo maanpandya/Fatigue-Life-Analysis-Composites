@@ -17,13 +17,13 @@ sys.path.append(os.path.join(nn_path))
 import CLD_definition
 import function as f
 import DataProcessing.DPfunctions as dp
-
+import SNCurve
 
 #################################################
 #Settings
 #################################################
 R_value_to_plot = -1
-conf = 0.95 # confidence value - not implemented yet - 95% by default (fraction of data within the bounds)
+conf = 0.95 # confidence value - 95% by default (fraction of data within the bounds)
 fig, ax = plt.subplots()
 #################################################
 #Regression prediction
@@ -32,13 +32,10 @@ fig, ax = plt.subplots()
 #Obtain the data and regression the chosen R value
 dataframe = pd.read_csv("CurveModelling/Data/data42alt.csv")
 CLD_definition.add_amplitudecol(dataframe)
-R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.CLD_definition(dataframe)
+R_values, R_slopes_coeff, SN_models, parameter_dictionary = CLD_definition.CLD_definition(dataframe)
 R_index             = np.where(R_values == R_value_to_plot)[0][0]
 Reg_model_to_plot   = SN_models[R_index]
 Data_to_plot        = parameter_dictionary["R-value1"][R_value_to_plot]
-std_to_plot         = std[R_index] # *std_num
-
-
 
 #Get the datapoints from the optidat
 datapoints_n_log = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["Ncycles"])
@@ -47,10 +44,13 @@ datapoints_amp = np.array(parameter_dictionary["R-value1"][R_value_to_plot]["amp
 print("There are: ", len(datapoints_n_log), "datapoints for R = ", R_value_to_plot, "in the dataframe selected \n")
 
 #Create the regression curve points
-n_list_reg_log        = datapoints_n_log
-amp_list_reg          = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1)))
-amp_list_reg_upper    = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1))  + std_to_plot)
-amp_list_reg_lower    = np.power(10,Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1))  - std_to_plot)
+n_list_reg_log        = datapoints_n_log #Choose points(x axis) to make the regression SN curves
+n_list_reg_log.sort()
+amp_list_reg          = np.power(10,Reg_model_to_plot.predict(n_list_reg_log.reshape(-1,1)))
+bandwidth             = SNCurve.predband(datapoints_n_log, datapoints_amp,Reg_model_to_plot, conf, n_list_reg_log)
+pred_points           = Reg_model_to_plot.predict(n_list_reg_log .reshape(-1,1))
+amp_list_reg_upper    = np.power(10,pred_points + bandwidth)
+amp_list_reg_lower    = np.power(10,pred_points - bandwidth)  
 n_list_reg            = np.power(10,n_list_reg_log)
 
 ####################################################
@@ -123,10 +123,6 @@ ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
 ax.set_xlim(1, 10**7)
 ax.legend()
-
-
-
-
 
 
 plt.show()
