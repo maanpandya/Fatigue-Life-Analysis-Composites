@@ -18,7 +18,7 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'data15'
+file = 'data12'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
@@ -32,15 +32,16 @@ dropout_prob = 0.0
 # training parameters
 savemodel = True
 n_epochs = 10000
-loss_fn = cl.log_adjusted_MSE()          # fn PINNloss is different change names in customloss to change back
-test_loss_fn = cl.log_adjusted_MSE()    # fn, if ==None > test loss fn == loss fn
-learning_rate = 0.0001
+loss_fn = cl.PINNLoss          # fn PINNloss is different change names in customloss to change back
+test_loss_fn = None    # fn, if ==None > test loss fn == loss fn
+pinn_inputs = [38554.513400070005, 149174.13598024775, 1.0637763908757616e-05, 3.753158676473376e-06]
+learning_rate = 0.001
 optimizer = torch.optim.Adam            # fn
 start, incr, freq = 1, -0.07, 1
 noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
-animate = True
+animate = False
 update_freq = 0.5
 
 # data loading
@@ -75,7 +76,7 @@ model.to('cuda')
 # train
 model = f.train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train, x_test, y_test,
                       best=pick_best_model, testloss_fn=test_loss_fn, noise_fn=noise_fn,  anti_overfit=False,
-                      update_freq=update_freq, animate=animate, force_no_test=(not validate))
+                      update_freq=update_freq, animate=animate, force_no_test=(not validate), pinn_inputs=pinn_inputs)
 # test
 f.test_model(model, scalers, x_test, y_test)
 
@@ -85,7 +86,7 @@ if savemodel:
     if name != '':
         if name == 't':
             name = None
-        f.export_model(model, 'NeuralNetworkCode/NNModelArchive/rev4', scalers, name=name, data=data,
+        f.export_model(model, 'NNModelArchive/bayesoptmodels', scalers, name=name, data=data,
                        x_test=x_test, y_test=y_test, x_train=x_train, y_train=y_train)
 
 

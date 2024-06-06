@@ -69,16 +69,12 @@ def Mexp(x, base=10):
     return torch.mean(base ** x)-1
 
 
-def PINNLoss(output, target, inputs, sevencutoff=1.7, zerocutoff=0.3, indexsmax=4,
-             f0=0 * 10 ** 3, f1=4 * 10 ** 5, f2=4 * 10 ** 6, f3=0 * 10 ** 3, f4=0 * 10 ** 2):
+def PINNLoss(output, target, inputs, sevencutoff=1.7, zerocutoff=0.3, indexsmax=4, f1=4 * 10 ** 5, f2=4 * 10 ** 6, f3=1 * 10 ** -5, f4=1 * 10 ** -5):
     error = torch.abs(target - output).view(-1)
 
     # Compute 1st and 2nd gradients
     gradient1 = torch.autograd.grad(torch.mean(output), inputs, create_graph=True)[0][:, indexsmax]
     gradient2 = torch.autograd.grad(torch.mean(gradient1), inputs, create_graph=True)[0][:, indexsmax]
-
-    # constraint 0: add loss for non-zero 1st gradient(makes loss1 redundant)
-    loss0 = f0 * torch.abs(gradient1)
     # Constraint 1: The first derivative of the S-N curve must be negative.
     # Penalize positive first derivatives
     loss1 = f1 * torch.relu(gradient1)
@@ -93,10 +89,8 @@ def PINNLoss(output, target, inputs, sevencutoff=1.7, zerocutoff=0.3, indexsmax=
     # penalize non-infinite gradients at low cycles
     loss4 = f4 * (target.view(-1) < zerocutoff) * torch.abs(1/gradient1)
 
-    loss = error + loss0 + loss1 + loss2 + loss3 + loss4
-    out = Mexp(loss)
-    return torch.mean(loss)
-
+    loss = error + loss1 + loss2 + loss3 + loss4
+    return MS(loss)
 
 class notMSELoss(nn.modules.loss._Loss):
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
