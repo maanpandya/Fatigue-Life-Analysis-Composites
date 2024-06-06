@@ -15,7 +15,7 @@ sys.path.append(os.path.join(nn_path))
 
 #Now you can import your modules as if they were in the same folder
 import CLD_definition
-import function as f
+# import function as f
 import DataProcessing.DPfunctions as dp
 import CLD_definition
 import SNCurve
@@ -25,8 +25,8 @@ from Data_processing import separateDataFrame
 #################################################
 #Settings
 #################################################
-R_value_to_plot   = 0.1
-R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
+R_value_to_plot   = 10
+R_to_remove       = 10 # Put 0 if you don't want to remove any R value
 max_amp_to_plot   = 300
 conf              = 0.95 # confidence level for uncertainty
 fig, ax = plt.subplots()
@@ -58,45 +58,39 @@ surface,x,y,z       = makeSurface(R_values,SN_models)
 amp_cld   = np.linspace(0,max_amp_to_plot,200)
 mean_cld  = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
 n_cld     = surface(mean_cld ,amp_cld)
-predband = SNCurve.predband(dataframe["R-value1"], datapoints_amp,Reg_model_to_plot, conf, n_list_reg_log)
+
+lives = [x/10. for x in range(1,80)]
+predband = []
+for  index, R_value in enumerate(R_values):
+    predband.append(SNCurve.predband(np.array(parameter_dictionary["R-value1"][R_value]["Ncycles"]), np.array(parameter_dictionary["R-value1"][R_value]["amp"]), SN_models[index],conf, lives))
 
 #Get the lower surface 
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - np.mean(std[index]*std_num) 
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
-lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = predband)
+lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = [-x for x in predband])
 n_cld_l = lower_surface(mean_cld,amp_cld)
 
 #Get the upper surface 
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ + np.mean(std[index]*std_num)*2 # 2 because it has to counteract the previous one
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
-upper_surface, xu, yu, zu = makeSurface(R_values,SN_models)
+upper_surface, xu, yu, zu = makeSurface(R_values,SN_models, dy = predband)
 n_cld_u = upper_surface(mean_cld,amp_cld)
 
-#Return SN_ models back to normal
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - np.mean(std[index])*std_num 
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 
 ####################################################
 #PINN prediction
 ####################################################
-#PINN prediction
-path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
-name = path.split('/')[-1]
-model, scaler = f.import_model(path)
-x_test = dp.dfread(path + '/x_test.csv')
-y_test = dp.dfread(path + '/y_test.csv')
-data = dp.dfread(path + '/data.csv')
-i = rd.choice(data.index)
-i = data.index[100]
-datapoint = data.loc[i]
-print(datapoint)
-datapoint = datapoint.to_frame().T
-pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
-                    minstress=0, maxstress=600, exp=False, name=name,
-                    plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
+# #PINN prediction
+# path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
+# name = path.split('/')[-1]
+# model, scaler = f.import_model(path)
+# x_test = dp.dfread(path + '/x_test.csv')
+# y_test = dp.dfread(path + '/y_test.csv')
+# data = dp.dfread(path + '/data.csv')
+# i = rd.choice(data.index)
+# i = data.index[100]
+# datapoint = data.loc[i]
+# print(datapoint)
+# datapoint = datapoint.to_frame().T
+# pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scaler,
+#                     minstress=0, maxstress=600, exp=False, name=name,
+#                     plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
 
 ####################################################
 #Plotting
@@ -105,8 +99,8 @@ pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scale
 #Get the pinn model trained on all R values
 ax.scatter(np.power(10,Data_Ncycles), Data_amp )
 ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
-ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds σ = " + str(std_num), c="red")
-ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
+ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds confidence = " + str(conf*100) + "%", c="red")
+# ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
 ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
