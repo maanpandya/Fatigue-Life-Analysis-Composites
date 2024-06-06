@@ -643,7 +643,7 @@ class variable_top_wave(fn_01):
 def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_train,
                 x_test=None, y_test=None,
                 best=True, testloss_fn=None, noise_fn=None, anti_overfit=False,
-                update_freq=1, animate=False, force_no_test=False):
+                update_freq=1, animate=False, force_no_test=False, pinn_inputs=None):
 
     from copy import deepcopy
     # initialize values
@@ -745,15 +745,22 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
         # Forward pass and compute the loss
         y_pred_train = model(x_train_temp)
         if loss_fn == PINNLoss:
-            loss = loss_fn(y_pred_train, y_train, x_train, indexsmax=6)
+            if pinn_inputs is not None:
+                loss = loss_fn(y_pred_train, y_train, x_train, f1=pinn_inputs[0], f2=pinn_inputs[1], f3=pinn_inputs[2], f4=pinn_inputs[3])
+            else:
+                loss = loss_fn(y_pred_train, y_train, x_train)
         else:
             loss = loss_fn(y_pred_train, y_train)
         losses.append(loss.item())
         # repeat for test data
         if tst:
+            model.eval()
             y_pred_test = model(x_test)
             if testloss_fn == PINNLoss:
-                testloss = testloss_fn(y_pred_test, y_test, x_test, indexsmax=6)
+                if pinn_inputs is not None:
+                    testloss = testloss_fn(y_pred_test, y_test, x_test, f1=pinn_inputs[0], f2=pinn_inputs[1], f3=pinn_inputs[2], f4=pinn_inputs[3])
+                else:
+                    testloss = testloss_fn(y_pred_test, y_test, x_test)
             else:
                 testloss = testloss_fn(y_pred_test, y_test)
             testloss = testloss.item()
@@ -762,6 +769,7 @@ def train_final(model, loss_fn, optimizer, n_epochs, learning_rate, x_train, y_t
                 if testloss < bestmodeldata[1]:
                     bestmodel = deepcopy(model.state_dict())
                     bestmodeldata = [epoch, testloss]
+            model.train()
         # Zero the gradients
         optimizer.zero_grad()
         # Backward pass
