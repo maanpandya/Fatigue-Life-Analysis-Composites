@@ -72,14 +72,14 @@ def makeSurface(R_values,SN_models, lives = [x/10. for x in range(1,80)], dy = [
 
     for index in range(len(R_values)): # for each R value
         if len(dy) > 0:
-            for life in lives:
-                amp = 10**((SN_models[index].predict(np.array(life).reshape(-1, 1))) + dy[index])
+            for lifeindex, life in enumerate(lives):
+                amp = 10**((SN_models[index].predict(np.array(life).reshape(-1, 1))) + dy[index][lifeindex])
                 y.append(amp)
                 mean = CLD_definition.convert_to_mean_stress(amp,R_values[index])
                 x.append(mean)
                 z.append(life)
         else:
-            for life in lives:
+            for ifeindex, life  in enumerate(lives):
                 amp = 10**((SN_models[index].predict(np.array(life).reshape(-1, 1))))
                 y.append(amp)
                 mean = CLD_definition.convert_to_mean_stress(amp,R_values[index])   

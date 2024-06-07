@@ -65,11 +65,11 @@ for  index, R_value in enumerate(R_values):
     predband.append(SNCurve.predband(np.array(parameter_dictionary["R-value1"][R_value]["Ncycles"]), np.array(parameter_dictionary["R-value1"][R_value]["amp"]), SN_models[index],conf, lives))
 
 #Get the lower surface 
-lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = [-x for x in predband])
+lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = [-x for x in predband], lives = lives)
 n_cld_l = lower_surface(mean_cld,amp_cld)
 
 #Get the upper surface 
-upper_surface, xu, yu, zu = makeSurface(R_values,SN_models, dy = predband)
+upper_surface, xu, yu, zu = makeSurface(R_values,SN_models, dy = predband, lives = lives)
 n_cld_u = upper_surface(mean_cld,amp_cld)
 
 
