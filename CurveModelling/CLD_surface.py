@@ -42,6 +42,7 @@ def makeSurfaceOLD(R_values,SN_models):
             x.append(mean)
             y.append(amp)
             z.append(life)
+        print(x)
     x = np.array(x)
     y = np.array(y)
     z = np.array(z)
@@ -71,15 +72,19 @@ def makeSurface(R_values,SN_models, lives = [x/10. for x in range(1,80)], dy = [
 
     for index in range(len(R_values)): # for each R value
         if len(dy) > 0:
-            amp = 10**((SN_models[index].predict(np.array(lives).reshape(-1, 1))) + dy[index])
+            for life in lives:
+                amp = 10**((SN_models[index].predict(np.array(life).reshape(-1, 1))) + dy[index])
+                y.append(amp)
+                mean = CLD_definition.convert_to_mean_stress(amp,R_values[index])
+                x.append(mean)
+                z.append(life)
         else:
-            amp = 10**((SN_models[index].predict(np.array(lives).reshape(-1, 1))))
-                       
-        mean = CLD_definition.convert_to_mean_stress(amp,R_values[index])
-
-        x.append(mean)
-        y.append(amp)
-        z.append(lives)
+            for life in lives:
+                amp = 10**((SN_models[index].predict(np.array(life).reshape(-1, 1))))
+                y.append(amp)
+                mean = CLD_definition.convert_to_mean_stress(amp,R_values[index])   
+                x.append(mean)     
+                z.append(life) 
 
     x = np.array(x)
     y = np.array(y)
@@ -101,7 +106,8 @@ def plotSurface(SN_models,R_values,surface,x,y,z):
 
     ax.plot_surface(xPlot, zPlot, yPlot, cmap='viridis', alpha=0.5)
     for i in range(len(SN_models)):
-        ax.plot(x[i::len(R_values)], z[i::len(R_values)], y[i::len(R_values)])
+        print(i,i*len(x)/len(R_values),(i+1)*len(x)/len(R_values) )
+        ax.plot(x[int(i*len(x)/len(R_values)):int((i+1)*len(x)/len(R_values))], z[int(i*len(x)/len(R_values)):int((i+1)*len(x)/len(R_values))], y[int(i*len(x)/len(R_values)):int((i+1)*len(x)/len(R_values))])
 
     ax.set_xlabel('Mean stress MPa')
     ax.set_ylabel('log Number of cycles')
