@@ -22,7 +22,7 @@ import SNCurve
 #################################################
 #Settings
 #################################################
-R_value_to_plot = -1
+R_value_to_plot = 0.1
 conf = 0.95 # confidence value - 95% by default (fraction of data within the bounds)
 fig, ax = plt.subplots()
 #################################################
