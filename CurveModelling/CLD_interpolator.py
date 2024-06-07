@@ -1,5 +1,5 @@
 import pandas as pd
-from CLD_surface import makeSurface, plotSurface
+from CLD_surface import makeSurface, plotSurface, makeSurfaceOLD
 import CLD_definition
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +19,7 @@ CLD_definition.plot_CLD(R_values, R_slopes_coeff, SN_models, with_bounds=False, 
 
 CLD_definition.plot_regression_models(SN_models, R_values,parameter_dictionary)
 
-surface,x,y,z = makeSurface(R_values,SN_models)
+surface,x,y,z = makeSurfaceOLD(R_values,SN_models)
 
 plotSurface(SN_models,R_values,surface,x,y,z)
 
