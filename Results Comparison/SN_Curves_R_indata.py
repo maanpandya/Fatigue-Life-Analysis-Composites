@@ -64,8 +64,8 @@ model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
 y_test = dp.dfread(path + '/y_test.csv')
 data = dp.dfread(path + '/data.csv')
+data = dp.dfread('NeuralNetworkCode/DataProcessing/processed/data15.csv')
 i = rd.choice(data.index)
-i = data.index[100]
 datapoint = data.loc[i]
 print(datapoint)
 datapoint = datapoint.to_frame().T
@@ -84,25 +84,25 @@ big_pinn_df = pinn_output['expdata'].join(pinn_preds) # dataframe with all the d
 ####################################################
 #NRMSE calculation
 ####################################################
-print("-----------------------------")
-#Get the NRMSE of the regression prediction
-avg_amp = np.mean(datapoints_amp)
-diff_list_reg = amp_list_reg - datapoints_amp
-RMSE_reg = ((np.sum(np.square(diff_list_reg)))/len(datapoints_amp))**0.5
-NRMSE_reg = RMSE_reg/avg_amp
-
-print("RMSE of the regression prediction: ", RMSE_reg)
-print("NRMSE of the regression prediction: ", NRMSE_reg)
-
-#Get the NRMSE of the PINN prediction
-print(pinn_preds)
-
-diff_list_PINN = np.array(pinn_preds) - datapoints_amp
-RMSE_PINN = ((np.sum(np.square(diff_list_PINN)))/len(datapoints_amp))**0.5
-NRMSE_PINN = RMSE_PINN/avg_amp
-
-print("RMSE of the PINN prediction: ", RMSE_PINN)
-print("NRMSE of the PINN prediction: ", NRMSE_PINN)
+# print("-----------------------------")
+# #Get the NRMSE of the regression prediction
+# avg_amp = np.mean(datapoints_amp)
+# diff_list_reg = amp_list_reg - datapoints_amp
+# RMSE_reg = ((np.sum(np.square(diff_list_reg)))/len(datapoints_amp))**0.5
+# NRMSE_reg = RMSE_reg/avg_amp
+#
+# print("RMSE of the regression prediction: ", RMSE_reg)
+# print("NRMSE of the regression prediction: ", NRMSE_reg)
+#
+# #Get the NRMSE of the PINN prediction
+# print(pinn_preds)
+#
+# diff_list_PINN = np.array(pinn_preds) - datapoints_amp
+# RMSE_PINN = ((np.sum(np.square(diff_list_PINN)))/len(datapoints_amp))**0.5
+# NRMSE_PINN = RMSE_PINN/avg_amp
+#
+# print("RMSE of the PINN prediction: ", RMSE_PINN)
+# print("NRMSE of the PINN prediction: ", NRMSE_PINN)
 
 ####################################################
 #Plotting
@@ -116,7 +116,7 @@ ax.plot(n_list_reg, amp_list_reg, label ="Basquin Regression R = " + str(R_value
 #Plot the PINN prediction
 
 #Scatter the datapoints
-ax.scatter(datapoints_n, datapoints_amp, label ="Optidat datapoints ", color = "gray")
+ax.scatter(np.power(10, datapoints_n_log), datapoints_amp, label ="Optidat datapoints ", color = "gray")
 ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
