@@ -18,7 +18,7 @@ if not random_seed:
     np.random.seed(seed)
 
 # input data
-file = 'data12'
+file = 'datanoR10'
 folder = 'DataProcessing/processed'
 target_columns = ['Ncycles']            # max of 1 output
 test_size = 0.3
@@ -35,13 +35,13 @@ n_epochs = 10000
 loss_fn = cl.PINNLoss          # fn PINNloss is different change names in customloss to change back
 test_loss_fn = None    # fn, if ==None > test loss fn == loss fn
 pinn_inputs = [38554.513400070005, 149174.13598024775, 1.0637763908757616e-05, 3.753158676473376e-06]
-learning_rate = 0.001
+learning_rate = 0.0005
 optimizer = torch.optim.Adam            # fn
 start, incr, freq = 1, -0.07, 1
 noise_fn = None#f.variable_top_wave(topfn=f.linear(start, start+incr*n_epochs/1000), min=0, freq=freq*n_epochs/1000)                 #class with a fn(self, x) function that can use floats or arrays
 validate = True                     # run validation with the test date set, required to pick best model based on validation
 pick_best_model = True
-animate = False
+animate = True
 update_freq = 0.5
 
 # data loading

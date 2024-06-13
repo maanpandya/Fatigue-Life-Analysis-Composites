@@ -529,6 +529,48 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         return out
 
 
+def nn_cld(model, datapoint, scaler, grid_size=30, axis=None):
+    grid = {
+        'samp': np.linspace(0, 350, grid_size),
+        'smean': np.linspace(-600, 600, grid_size)
+    }
+    a = np.meshgrid(grid['samp'], grid['smean'])
+    grid['samp'] = a[0].flatten()
+    grid['smean'] = a[1].flatten()
+    grid['smin'] = dp.rmath({'smean':grid['smean'], 'samp':grid['samp']},  'smin')
+    grid['smax'] = dp.rmath({'smean':grid['smean'], 'samp':grid['samp']},  'smax')
+
+    x = pd.DataFrame(columns=datapoint.columns)
+    for i in x.columns:
+        if i in grid:
+            x[i] = grid[i]
+        else:
+            x[i] = np.repeat(datapoint[i].values[0], grid_size ** 2)
+    x = x.drop(columns=['Ncycles'])
+    for i in x.columns:
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
+    model.eval()
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
+    x = x.cuda()
+    x.requires_grad = True
+    y = model(x).cpu().detach().numpy()
+    grid['Ncycles'] = y * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
+    if axis is None:
+        fig = plt.figure(figsize=(14, 9))
+        ax = plt.axes(projection='3d')
+    else:
+        ax = axis
+    for i in grid:
+        grid[i] = grid[i].reshape(grid_size, grid_size)
+    ax.plot_surface(grid['smean'], grid['Ncycles'], grid['samp'], cmap='viridis')
+    ax.set_xlabel('Mean stress [MPa]')
+    ax.set_ylabel('Number of cycles [-]')
+    ax.set_zlabel('Amplitude of stress [MPa]')
+    return grid
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):
