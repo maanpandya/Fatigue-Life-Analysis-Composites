@@ -560,16 +560,16 @@ def nn_cld(model, datapoint, scaler, grid_size=30, axis=None):
     y = model(x).cpu().detach().numpy()
     grid['Ncycles'] = y * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
     if axis is None:
-        fig = plt.figure(figsize=(14, 9))
+        fig = plt.figure()
         ax = plt.axes(projection='3d')
     else:
         ax = axis
     for i in grid:
         grid[i] = grid[i].reshape(grid_size, grid_size)
-    ax.plot_surface(grid['smean'], grid['Ncycles'], grid['samp'], cmap='viridis')
-    ax.set_xlabel('Mean stress [MPa]')
-    ax.set_ylabel('Number of cycles [-]')
-    ax.set_zlabel('Amplitude of stress [MPa]')
+    ax.plot_surface(grid['smean'], grid['Ncycles'], grid['samp'], cmap='viridis', alpha=0.5)
+    ax.set_xlabel('Mean stress [MPa]', fontsize=12)
+    ax.set_ylabel('Number of cycles [-]', fontsize=12)
+    ax.set_zlabel('Amplitude of stress [MPa]', fontsize=12)
     return grid
 
 

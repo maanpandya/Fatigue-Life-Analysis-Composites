@@ -62,13 +62,12 @@ while True:
         plt.xlim(0,7)
         plt.show()
     else:
-        fig = plt.figure(figsize=(14, 9))
+        fig = plt.figure()
         ax = plt.axes(projection='3d')
         f.nn_cld(model, datapoint, scaler, grid_size=50, axis=ax)
         if compare:
             f.nn_cld(model2, datapoint2, scaler2, grid_size=50, axis=ax)
         plt.show()
-
 
 
 '''#sn curve
