@@ -19,7 +19,7 @@ from CLD_interpolator import CLD_interpolator_log
 def SNcurve1(x, R_value, suface): #S-N Curve of the 1st block with R1 value
     return CLD_interpolator_log(suface, x*(1-R_value)/2, R_value )
 def NNmodel(x_imput, R_value):    
-    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/correctsmax3'
+    path = 'NeuralNetworkCode/NNModelArchive/finalmodels/newpinnfinal'
     model, scaler = f.import_model(path)
     data2 = pd.read_csv('NeuralNetworkCode/DataProcessing/processed/data12.csv')
     x = pd.DataFrame(np.nan,index=[0],columns=data2.columns)
