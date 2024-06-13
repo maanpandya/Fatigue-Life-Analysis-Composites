@@ -133,11 +133,10 @@ def CLD_definition(dataframe):
     R_slopes_coeff = R_slopes_coeff[sort_indices]
     SN_models = np.array(SN_models)[sort_indices]
     R_values = np.array(R_values)[sort_indices]
-    pbound = np.array(pbound)[sort_indices]
 
     print("\nCLD is fully defined.")
     print("-----------------------------\n")
-    return R_values, R_slopes_coeff, SN_models, parameter_dictionary, pbound
+    return R_values, R_slopes_coeff, SN_models, parameter_dictionary
 
 
 def plot_regression_models(SN_models, R_values, parameter_dictionary):

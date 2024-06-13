@@ -22,7 +22,11 @@ def NNfuntion(normalized_array, wawas):
     #x['Cut angle '] = 0 #Cut angle
     x['taverage'] = 6.8 #Average thickness
     x['waverage'] = 25#Average width
+<<<<<<< HEAD
     x['area'] = 170 #Area
+=======
+    x['area'] = x['taverage'] * x['waverage'] #Area
+>>>>>>> 8ba7e54c3068a06bb93161be0b3ff0c5eec57a0b
     x['Lnominal'] = 150 #Nominal length of sample
     #x['R-value1'] = -1 #R-value
     #x['Fmax'] = 36.08 #Fatigue force

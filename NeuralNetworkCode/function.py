@@ -211,8 +211,9 @@ def test_model(model, scaler, x_test, y_test, n_is_log=True, plot=True, mute=Fal
         plt.plot([-100, 100], [-100-bound2, 100-bound2], color='black', linestyle='--')
         plt.plot([-100, 100], [-100+bound2, 100+bound2], color='black', linestyle='--')
         plt.scatter(pred_eval['real_log'], pred_eval['pred_log'])
-        plt.xlabel('y_test')
-        plt.ylabel('predicted')
+        plt.xlabel('Eperimental log of number of cycles', fontsize=12)
+        plt.ylabel('Predicted log of number of cycles', fontsize=12)
+        plt.title('Test set fit')
         plt.legend()
         plt.xlim(0, 10)
         plt.ylim(0, 10)
@@ -436,7 +437,7 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         if unlog_n:
             expn = 10**expn
         if axis == None and not export_data:
-            plt.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
+            plt.scatter(expn, exps, color=expcolor)
         elif not export_data:
             axis.scatter(expn, exps, label=f'experimental R = {R}', color=expcolor)
         else:
@@ -506,7 +507,10 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
     if unlog_n:
         npred = 10**npred
     if axis == None and not export_data:
-        plt.plot(npred, spred, label=f'R = {R}, pred by {name}', color=predcolor)
+        plt.plot(npred, spred, label=f'R = {R}', color=predcolor)
+        plt.xlabel('Log of number of cycles', fontsize=12)
+        plt.ylabel('Maximum absolute stress [MPa]', fontsize=12)
+        plt.title('SN curves for various R values')
         if show_grad:
             gradient1 = torch.autograd.grad(torch.sum(y), x, create_graph=True)[0][:, 4].cpu().detach().numpy()
             S = spred
@@ -525,6 +529,48 @@ def complete_sncurve2(datapoint, data, R, model, scaler, minstress=0, maxstress=
         return out
 
 
+def nn_cld(model, datapoint, scaler, grid_size=30, axis=None):
+    grid = {
+        'samp': np.linspace(0, 350, grid_size),
+        'smean': np.linspace(-600, 600, grid_size)
+    }
+    a = np.meshgrid(grid['samp'], grid['smean'])
+    grid['samp'] = a[0].flatten()
+    grid['smean'] = a[1].flatten()
+    grid['smin'] = dp.rmath({'smean':grid['smean'], 'samp':grid['samp']},  'smin')
+    grid['smax'] = dp.rmath({'smean':grid['smean'], 'samp':grid['samp']},  'smax')
+
+    x = pd.DataFrame(columns=datapoint.columns)
+    for i in x.columns:
+        if i in grid:
+            x[i] = grid[i]
+        else:
+            x[i] = np.repeat(datapoint[i].values[0], grid_size ** 2)
+    x = x.drop(columns=['Ncycles'])
+    for i in x.columns:
+        x[i] = (x[i] - scaler[i]['mean']) / scaler[i]['std']
+    model.eval()
+    try:
+        x = torch.tensor(x.values)
+    except:
+        print(x)
+        raise Exception(x.dtypes)
+    x = x.cuda()
+    x.requires_grad = True
+    y = model(x).cpu().detach().numpy()
+    grid['Ncycles'] = y * scaler['Ncycles']['std'] + scaler['Ncycles']['mean']
+    if axis is None:
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+    else:
+        ax = axis
+    for i in grid:
+        grid[i] = grid[i].reshape(grid_size, grid_size)
+    ax.plot_surface(grid['smean'], grid['Ncycles'], grid['samp'], cmap='viridis', alpha=0.5)
+    ax.set_xlabel('Mean stress [MPa]', fontsize=12)
+    ax.set_ylabel('Number of cycles [-]', fontsize=12)
+    ax.set_zlabel('Amplitude of stress [MPa]', fontsize=12)
+    return grid
 
 
 def export_model(model, folder, scalers=None, name=None, x_train=None, y_train=None, x_test=None, y_test=None, data=None):

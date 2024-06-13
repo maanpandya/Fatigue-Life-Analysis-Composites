@@ -18,16 +18,17 @@ import CLD_definition
 import function as f
 import DataProcessing.DPfunctions as dp
 import CLD_definition
+import SNCurve
 from CLD_surface import makeSurface, plotSurface
 from Data_processing import separateDataFrame
 
 #################################################
 #Settings
 #################################################
-R_value_to_plot   = 0.1
-R_to_remove       = 0.1 # Put 0 if you don't want to remove any R value
-max_amp_to_plot   = 300
-std_num           = 1 # number of standard deviations for uncertainty
+R_value_to_plot   = -1
+R_to_remove       = 10 # Put 0 if you don't want to remove any R value
+max_amp_to_plot   = 350
+conf              = 0.95 # confidence level for uncertainty
 fig, ax = plt.subplots()
 
 #################################################
@@ -50,38 +51,33 @@ Data_amp     = Data_to_plot["amp"]
 #Remove the R value that wants to be neglected
 dataframe = dataframe[dataframe["R-value1"] != R_to_remove]
 #Create CLD surface
-R_values, R_slopes_coeff, SN_models, parameter_dictionary, std = CLD_definition.CLD_definition(dataframe)
+R_values, R_slopes_coeff, SN_models, parameter_dictionary = CLD_definition.CLD_definition(dataframe)
 surface,x,y,z       = makeSurface(R_values,SN_models)
 
-#Create CLD points curve points
-amp_cld   = np.linspace(0,max_amp_to_plot,200)
+#Create CLD curve points
+amp_cld   = np.linspace(50,max_amp_to_plot,200)
 mean_cld  = CLD_definition.convert_to_mean_stress(amp_cld,R_value_to_plot)
 n_cld     = surface(mean_cld ,amp_cld)
 
+lives = [x/10. for x in range(1,80)]
+predband = []
+for  index, R_value in enumerate(R_values):
+    predband.append(SNCurve.predband(np.array(parameter_dictionary["R-value1"][R_value]["Ncycles"]), np.array(parameter_dictionary["R-value1"][R_value]["amp"]), SN_models[index],conf, lives))
+
 #Get the lower surface 
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - np.mean(std[index]*std_num) 
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
-lower_surface, xl, yl, zl = makeSurface(R_values,SN_models)
+lower_surface, xl, yl, zl = makeSurface(R_values,SN_models, dy = [-x for x in predband], lives = lives)
 n_cld_l = lower_surface(mean_cld,amp_cld)
 
 #Get the upper surface 
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ + np.mean(std[index]*std_num)*2 # 2 because it has to counteract the previous one
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
-upper_surface, xu, yu, zu = makeSurface(R_values,SN_models)
+upper_surface, xu, yu, zu = makeSurface(R_values,SN_models, dy = predband, lives = lives)
 n_cld_u = upper_surface(mean_cld,amp_cld)
 
-#Return SN_ models back to normal
-for index, model in enumerate(SN_models):
-    model.intercept_ = model.intercept_ - np.mean(std[index])*std_num 
-print("Replace patchwork fix") # MEAN IS PATCHWORK FIX, CHANGE IT LATER !!!!!!
 
 ####################################################
 #PINN prediction
 ####################################################
 #PINN prediction
-path = 'NeuralNetworkCode/NNModelArchive/rev4/pinnlossfinale2'
+path = 'NeuralNetworkCode/NNModelArchive/finalmodels/newpinnfinal'
 name = path.split('/')[-1]
 model, scaler = f.import_model(path)
 x_test = dp.dfread(path + '/x_test.csv')
@@ -96,20 +92,33 @@ pinn_output = f.complete_sncurve2(datapoint, data, R_value_to_plot, model, scale
                     minstress=0, maxstress=600, exp=False, name=name,
                     plot_abs=True, axis=ax, unlog_n=True, amp_s=True, color=None, export_data=True)
 
+print(pinn_output)
+
 ####################################################
 #Plotting
 ####################################################
 
-#Get the pinn model trained on all R values
-ax.scatter(np.power(10,Data_Ncycles), Data_amp )
-ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
-ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds σ = " + str(std_num), c="red")
+#Scatter plot of the data
+ax.scatter(np.power(10,Data_Ncycles), Data_amp ,c="gray", label = "Data points")
+
+#Plot the PINN prediction
 ax.plot(pinn_output['predn'], pinn_output['preds'], label=f'Prediction by PINN, R = {R_value_to_plot}')
-ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
+
+
+#Plot the CLD prediction
+ax.plot(np.power(10,n_cld), amp_cld , label ="CLD prediction R = " + str(R_value_to_plot))
+
+#Plot the CLD prediction bounds
+#ax.plot(np.power(10,n_cld_l), amp_cld , label ="CLD prediction bounds extrapolation confidence = " + str(conf*100) + "%", c="red")
+# ax.plot(np.power(10,n_cld_u), amp_cld, c="red")
+
+#Configure Graph
 ax.set_xscale('log')
 ax.set_xlabel('Number of Cycles')
 ax.set_ylabel('Amplitude Stress')
 ax.legend()
+ax.set_xlim(left=10, right=10**8)
+ax.set_ylim(top=max_amp_to_plot)
 
 # Add a comment to the graph saying R_to_remove was removed from the models
 ax.text(0.8, 0.7, f"R value = {R_to_remove} \n was removed from models",
