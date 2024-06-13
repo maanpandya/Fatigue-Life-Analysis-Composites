@@ -8,9 +8,10 @@ cols = ['Ncycles', 'smax', 'smean', 'smin', 'Lnominal', 'taverage', 'waverage', 
 laminates = ['MD2']
 geometries = []#['R0400', 'R0500', 'R0300', 'D0200', 'D1200', 'I0100', 'I0200']
 tests = ['CA', 'STT', 'STC']
-tag = 'noR10'
-save = False
-split_on_R, R, use_below = True, 10, True
+tag = 'noR01'
+save = True
+split_on_R, R, use_below = False, 10, True
+R_to_exclude = 0.1  # 1 to include all
 absmax = False
 correct_smax = True
 
@@ -66,6 +67,14 @@ if split_on_R:
     else:
         dfnew = dfup
 
+
+print(dfnew['R-value1'].unique())
+print()
+if R_to_exclude != 1:
+    dfnew['R-value1'] = np.round(dfnew['R-value1'], 2)
+    dfnew = dp.row_filter(dfnew, 'R-value1', [R_to_exclude], 'exclude')
+print(dfnew['R-value1'].unique())
+
 if correct_smax:
     dfnew['smean'] = dp.rmath({'smax':dfnew['smax'], 'R':dfnew['R-value1']}, 'smean')
     for i in dfnew.index:
@@ -92,7 +101,7 @@ else:
         dfnew['Fmax'] = np.abs(dfnew['Fmax'])
         dfnew['smean'] = np.abs(dfnew['smean'])
 
-print(dfnew['R-value1'].max())
+
 dfnew = dp.col_filter(dfnew, cols, 'include')
 if 'Ncycles' in dfnew.columns:
     dfnew['Ncycles'] = np.log10(dfnew['Ncycles'])
