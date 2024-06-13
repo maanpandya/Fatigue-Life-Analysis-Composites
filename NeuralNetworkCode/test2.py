@@ -9,6 +9,7 @@ import time
 import random as rd
 
 
+
 # main
 path = 'NNModelArchive/finalmodels/newpinnfinal'
 name = path.split('/')[-1]
@@ -23,6 +24,7 @@ exp = True
 compare = False
 plot_abs = True
 show_grad = False
+cld = True # only for latest models
 # compare to
 path2 = 'NNModelArchive/finalmodels/noR10'
 name2 = path2.split('/')[-1]
@@ -50,15 +52,23 @@ while True:
             datapoint2 = data2.loc[i]
             print(datapoint2)
             datapoint2 = datapoint2.to_frame().T
-    for i in Rlist:
-        color = f.randomcolor()
-        f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs, show_grad=show_grad)
+    if not cld:
+        for i in Rlist:
+            color = f.randomcolor()
+            f.complete_sncurve2(datapoint, data, i, model, scaler, minstress=0, maxstress=600, exp=exp, name=name, color=color, plot_abs=plot_abs, show_grad=show_grad)
+            if compare:
+                f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=color*0.6, plot_abs=plot_abs)
+        plt.legend()
+        plt.xlim(0,7)
+        plt.show()
+    else:
+        fig = plt.figure(figsize=(14, 9))
+        ax = plt.axes(projection='3d')
+        f.nn_cld(model, datapoint, scaler, grid_size=50, axis=ax)
         if compare:
-            f.complete_sncurve2(datapoint2, data2, i, model2, scaler2, minstress=0, maxstress=600, exp=False, name=name2, color=color*0.6, plot_abs=plot_abs)
-    plt.legend()
-    plt.xlim(0,7)
-    plt.show()
-    input("Press Enter to continue...")
+            f.nn_cld(model2, datapoint2, scaler2, grid_size=50, axis=ax)
+        plt.show()
+
 
 
 '''#sn curve
